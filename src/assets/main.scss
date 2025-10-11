@@ -1,0 +1,59 @@
+@import './base.scss';
+
+section {
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+
+    @media screen and (max-width: 767.98px) {
+        padding: 1rem;
+    }
+}
+
+.section-header {
+    .section-title {
+        font-size: 45px;
+        font-weight: 700;
+        font-family: "Ubuntu Sans";
+        color: var(--Primary-900, #FF3C8A);
+
+        @media screen and (max-width: 767.98px) {
+            font-size: 40px;
+        }
+    }
+}
+
+.nosidebar {
+    .page-header {
+        justify-content: start;
+        gap: 50px;
+
+        svg path {
+            fill: var(--Primary-900);
+        }
+    }
+}
+
+.container {
+    padding: 0 3rem;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    padding: 20px 0;
+
+
+    .page-title {
+        font-size: 45px;
+        font-weight: 700;
+        font-family: "Ubuntu Sans";
+        color: var(--Primary-900, #FF3C8A);
+
+        @media screen and (max-width: 767.98px) {
+            font-size: 40px;
+        }
+    }
+}

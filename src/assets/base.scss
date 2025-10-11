@@ -1,0 +1,38 @@
+@import url('https://fonts.googleapis.com/css2?family=Onest:wght@100..900&family=Ubuntu+Sans:ital,wght@0,100..800;1,100..800&display=swap');
+
+
+:root {
+    --White: #FFFFFF;
+    --Soft-white: #FFFBF2;
+    --System-dark: #3B4256;
+
+    --Primary-900: #FF3C8A;
+
+    --Secondary-900: #008BD8;
+
+    --Ternary-500: #8B3DFF;
+    --Ternary-300: #B686FF;
+
+    --Info-200: #85D2FF;
+    --Danger-900: #CC1D1D;
+
+    --Neutral-100: #E9E9E9;
+    --Neutral-300: #A6A6A6;
+    --Neutral-700: #4D4D4D;
+}
+
+
+body {}
+
+h1,
+h2,
+h3 {
+    font-family: 'Ubuntu Sans', sans-serif;
+}
+
+* {
+    font-family: 'Onest', sans-serif;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
