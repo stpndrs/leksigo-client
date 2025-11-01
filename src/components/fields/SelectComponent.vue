@@ -4,47 +4,59 @@ const props = defineProps({
         type: [String, Number],
         default: ''
     },
-    type: {
-        default: 'text'
+    options: {
+        type: Array,
+        default: () => [
+            { label: 'Masukkan pilihan', value: 0 }
+        ]
     },
     label: {
+        type: String,
         default: 'Label'
     },
-    placeholder: {
-        default: 'Placeholder'
-    },
     id: {
-        default: 'input'
+        type: String,
+        default: 'select'
     },
     isInvalid: {
+        type: Boolean,
         default: false
     },
     invalidMsg: {
-        default: 'This input is invalid'
+        type: String,
+        default: 'This select is invalid'
     },
     required: {
+        type: Boolean,
         default: false
     }
 })
 
 const emit = defineEmits(['update:modelValue'])
-
 </script>
 
 <template>
-    <div class="input-wrapper" :class="{ 'invalid': isInvalid }">
+    <div class="select-wrapper" :class="{ invalid: isInvalid }">
         <label :for="props.id">
             {{ props.label }}
-            <span v-if="props.required" class="req">*</span>
+            <span class="req" v-if="props.required">*</span>
         </label>
-        <input :type="props.type" :placeholder="props.placeholder" :id="props.id" class="input" :value="modelValue"
-            @input="$emit('update:modelValue', $event.target.value)">
+
+        <select :id="props.id" class="select" :value="props.modelValue"
+            @change="$emit('update:modelValue', $event.target.value)">
+            <option v-for="(item, index) in props.options" :key="index" :value="item.value">
+                {{ item.label }}
+            </option>
+        </select>
+
         <div class="invalid-msg">{{ props.invalidMsg }}</div>
     </div>
 </template>
 
 <style lang="scss" scoped>
-.input-wrapper {
+.select-wrapper {
+    margin-bottom: 30px;
+
     label {
         color: var(--Neutral-700);
         display: block;
@@ -53,7 +65,7 @@ const emit = defineEmits(['update:modelValue'])
         font-size: medium;
     }
 
-    input {
+    select {
         width: 100%;
         display: block;
         background-color: var(--Neutral-100);
@@ -61,10 +73,6 @@ const emit = defineEmits(['update:modelValue'])
         border-radius: 5px;
         outline: 0;
         border: none;
-    }
-
-    input::placeholder {
-        color: var(--Neutral-300);
     }
 
     .invalid-msg {
@@ -76,7 +84,7 @@ const emit = defineEmits(['update:modelValue'])
             color: var(--Danger-900, #CC1D1D);
         }
 
-        input {
+        select {
             border: 2px solid var(--Danger-900);
             background-color: unset;
         }
@@ -88,7 +96,5 @@ const emit = defineEmits(['update:modelValue'])
             margin-top: 10px;
         }
     }
-
-
 }
 </style>

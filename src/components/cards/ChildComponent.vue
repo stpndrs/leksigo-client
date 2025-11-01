@@ -3,7 +3,9 @@ import ButtonComponent from '@/components/buttons/ButtonComponent.vue';
 import child from '@/assets/images/child.png'
 import CopyIcon from '@/components/shape/CopyIcon.vue';
 
-const props = defineProps(['level', 'name', 'code', 'parentName'])
+const props = defineProps(['id', 'level', 'name', 'code', 'parentName', 'method'])
+console.log(props);
+
 </script>
 
 <template>
@@ -22,8 +24,9 @@ const props = defineProps(['level', 'name', 'code', 'parentName'])
             </div>
         </div>
         <div class="card-footer">
-            <button-component label="Detail" size="full" @click="$router.push({ name: 'childs.detail', params: {code: props.code} })" />
-            <button-component label="Hapus" display="border" size="full" />
+            <button-component label="Detail" size="full"
+                @click="$router.push({ name: 'childs.detail', params: { id: props.id } })" />
+            <button-component label="Hapus" display="border" size="full" @click="props.method(props.code)" />
         </div>
     </div>
 </template>

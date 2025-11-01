@@ -113,6 +113,7 @@ async function submit() {
                     font-family: 'Ubuntu Sans';
                     border: 2px solid;
                     text-align: center;
+                    cursor: pointer;
 
                     &:nth-child(1) {
                         border-color: var(--Secondary-900);

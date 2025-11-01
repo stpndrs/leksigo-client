@@ -28,6 +28,10 @@ section {
         justify-content: start;
         gap: 50px;
 
+        &.exercise svg path {
+            fill: var(--Secondary-900);
+        }
+
         svg path {
             fill: var(--Primary-900);
         }
@@ -45,6 +49,9 @@ section {
     width: 100%;
     padding: 20px 0;
 
+    &.exercise .page-title {
+        color: var(--Secondary-900);
+    }
 
     .page-title {
         font-size: 45px;
@@ -55,5 +62,10 @@ section {
         @media screen and (max-width: 767.98px) {
             font-size: 40px;
         }
+
     }
+}
+
+span.req {
+    color: red;
 }

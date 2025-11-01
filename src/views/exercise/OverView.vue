@@ -10,6 +10,7 @@ import { useRoute, useRouter } from 'vue-router';
 const router = useRouter()
 const route = useRoute()
 const data = ref([])
+const childId = ref(null)
 const histories = ref([])
 
 function analyzeExerciseHistory(exerciseData) {
@@ -81,9 +82,9 @@ onMounted(async () => {
     api.get(`/exercise/${id}`)
         .then((res) => {
             data.value = res.data.data
+            childId.value = res.data.data.childrenId
 
             histories.value = analyzeExerciseHistory(data.value)
-            console.log(histories.value)
         })
         .catch((err) => {
             console.log(err);
@@ -105,7 +106,7 @@ const start = () => {
 <template>
     <div class="container">
         <div class="page-header">
-            <router-link :to="{ name: 'childs.index' }">
+            <router-link :to="{ name: 'childs.detail', params: { id: childId } }">
                 <ChevronLeftIcon />
             </router-link>
             <h1 class="page-title">Mengerjakan Latihan</h1>

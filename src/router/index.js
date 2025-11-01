@@ -31,7 +31,7 @@ const router = createRouter({
 					component: () => import('../views/DashboardView.vue'),
 				},
 				{
-					path: '/childs',
+					path: '/dashboard/childs',
 					name: 'childs',
 					children: [
 						{
@@ -43,7 +43,7 @@ const router = createRouter({
 							}
 						},
 						{
-							path: 'create',
+							path: '/dashboard/childs/create',
 							name: 'childs.create',
 							component: () => {
 								const roleFolder = authStore.user.role === 1 ? 'teacher' : 'parent';
@@ -51,7 +51,7 @@ const router = createRouter({
 							}
 						},
 						{
-							path: ':code',
+							path: '/dashboard/childs/:id',
 							name: 'childs.detail',
 							component: () => {
 								const roleFolder = authStore.user.role === 1 ? 'teacher' : 'parent';
@@ -62,26 +62,59 @@ const router = createRouter({
 					]
 				},
 				{
-					path: '/exercise/:id',
+					path: '/exercise',
 					name: 'exercise',
 					children: [
 						{
-							path: '',
-							name: 'exercise.overview',
-							component: () => import('../views/exercise/OverView.vue')
+							path: '/exercise/create/:id',
+							name: 'exercise.create',
+							component: () => import('../views/exercise/CreateExerciseView.vue')
 						},
 						{
-							path: 'quiz',
-							name: 'exercise.quiz',
-							component: () => import('../views/exercise/QuizView.vue')
-						},
-						{
-							path: 'summary',
-							name: 'exercise.summary',
-							component: () => import('../views/exercise/SummaryView.vue')
+							path: '/exercise/work/:id',
+							name: 'exercise.work',
+							children: [
+								{
+									path: '',
+									name: 'exercise.overview',
+									component: () => import('../views/exercise/OverView.vue')
+								},
+								{
+									path: '/exercise/quiz',
+									name: 'exercise.quiz',
+									component: () => import('../views/exercise/QuizView.vue')
+								},
+								{
+									path: '/exercise/summary',
+									name: 'exercise.summary',
+									component: () => import('../views/exercise/SummaryView.vue')
+								}
+							]
 						}
 					]
-				}
+				},
+				{
+					path: '/material/:id/',
+					name: 'material',
+					children: [
+						{
+							path: '/material/:id/create',
+							name: 'material.create',
+							component: () => import('../views/material/CreateView.vue')
+						},
+						{
+							path: '/material/:id/edit/:materialId',
+							name: 'material.edit',
+							component: () => import('../views/material/EditView.vue')
+						},
+						{
+							path: '/material/:id/overview/:materialId',
+							name: 'material.overview',
+							component: () => import('../views/material/OverView.vue')
+						},
+					]
+				},
+
 			]
 		},
 		{

@@ -4,7 +4,7 @@ import sidebar from './Sidebar.vue'
 
 const route = useRoute()
 
-const routeWithoutSidebar = ['childs.detail', 'exercise.overview', 'exercise.quiz', 'exercise.summary']
+const routeWithoutSidebar = ['childs.detail', 'exercise.create', 'exercise.overview', 'exercise.quiz', 'exercise.summary', 'material.create', 'material.edit', 'material.overview']
 </script>
 
 <template>

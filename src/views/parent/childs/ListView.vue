@@ -11,15 +11,29 @@ const search = ref('')
 
 const childs = ref([])
 onMounted(async () => {
+    await getData()
+})
+
+const getData = async () => {
     await api.get('/childs')
         .then((res) => {
-            console.log(res.data);
-            
             childs.value = res.data.data.childs
         }).catch((err) => {
             console.log(err);
         })
-})
+}
+
+const destroy = async (code) => {
+    if (confirm("Yakin ingin menghapus data?")) {
+        await api.delete(`/childs/${code}`)
+            .then((res) => {
+                console.log(res.data);
+                getData()
+            }).catch((err) => {
+                console.log(err);
+            })
+    }
+}
 </script>
 
 <template>
@@ -32,7 +46,8 @@ onMounted(async () => {
             <search-component v-model="search" placeholder="Cari data anak" @input="console.log(search)" />
             <div class="grid-container">
                 <div class="item" v-for="(item, index) in childs" :key="index">
-                    <child-component :level="item.childData.level ?? null" :name="item.childData.fullName" :code="item.childData.code"  />
+                    <child-component :level="item.child.level ?? null" :name="item.child.fullName"
+                        :code="item.child.code" :parent-name="item.parentName" :method="destroy" />
                 </div>
             </div>
         </div>

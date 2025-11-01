@@ -1,20 +1,23 @@
 <script setup>
-import { ref, watch, computed } from 'vue';
+import { ref, watch } from 'vue';
 
 // --- Props & Emits ---
 const props = defineProps({
     modelValue: {
-        type: File,
+        type: [File, Array, null], // <-- DIUBAH: Izinkan Array
         default: null
     },
     infoText: {
         type: String,
         default: 'Upload file gambar jawaban'
     },
-    // Prop baru untuk memastikan ID unik, penting untuk label
     id: {
         type: String,
         required: true
+    },
+    isMultiple: {
+        type: Boolean,
+        default: false
     }
 });
 const emit = defineEmits(['update:modelValue']);
@@ -25,32 +28,60 @@ const fileInput = ref(null);
 const isDragging = ref(false);
 
 // --- Logika Inti ---
-const handleFileChange = (event) => {
-    const files = event.target.files;
-    if (files && files.length > 0) {
-        emit('update:modelValue', files[0]);
-    } else {
-        emit('update:modelValue', null);
+
+// Helper function baru untuk menghindari duplikasi kode
+const processFiles = (files) => {
+    if (!files || files.length === 0) {
+        // Tidak ada file, reset
+        emit('update:modelValue', props.isMultiple ? [] : null);
+        return;
     }
+
+    // <-- LOGIKA BARU DI SINI
+    if (props.isMultiple) {
+        // Jika multiple, emit sebuah Array dari FileList
+        emit('update:modelValue', Array.from(files));
+    } else {
+        // Jika single, emit hanya file pertama
+        emit('update:modelValue', files[0]);
+    }
+};
+
+const handleFileChange = (event) => {
+    processFiles(event.target.files); // <-- DIUBAH
 };
 
 const handleDrop = (event) => {
     isDragging.value = false;
     const files = event.dataTransfer.files;
-    if (files && files.length > 0) {
-        // Penting: Masukkan file yang di-drop ke dalam elemen input
+
+    // Penting: Masukkan file yang di-drop ke dalam elemen input
+    if (fileInput.value) {
         fileInput.value.files = files;
-        emit('update:modelValue', files[0]);
     }
+
+    processFiles(files); // <-- DIUBAH
 };
 
 // --- Reaktivitas & Kontrol dari Induk ---
 // Watcher ini adalah kunci untuk mereset dan menampilkan jawaban yang ada
-watch(() => props.modelValue, (newFile) => {
-    if (newFile && newFile instanceof File) {
-        fileMessage.value = newFile.name;
+watch(() => props.modelValue, (newValue) => {
+    const defaultMessage = 'Drag & Drop your files or <span class="file-browse">Browse</span>';
+
+    // <-- LOGIKA WATCHER BARU
+    if (newValue && newValue instanceof File) {
+        // 1. Single file (mode single)
+        fileMessage.value = newValue.name;
+    } else if (Array.isArray(newValue) && newValue.length > 0) {
+        // 2. Multiple files (mode multiple)
+        if (newValue.length === 1) {
+            fileMessage.value = newValue[0].name;
+        } else {
+            fileMessage.value = `${newValue.length} files selected`;
+        }
     } else {
-        fileMessage.value = 'Drag & Drop your files or <span class="file-browse">Browse</span>';
+        // 3. Reset (null atau array kosong)
+        fileMessage.value = defaultMessage;
         if (fileInput.value) {
             fileInput.value.value = null;
         }
@@ -69,7 +100,8 @@ const handleDragLeave = () => { isDragging.value = false; };
             @drop.prevent="handleDrop">
             <span class="file-msg" v-html="fileMessage"></span>
         </label>
-        <input :id="id" type="file" class="visually-hidden" ref="fileInput" @change="handleFileChange">
+        <input :id="id" type="file" class="visually-hidden" ref="fileInput" @change="handleFileChange"
+            :multiple="props.isMultiple">
         <p class="file-info">{{ infoText }}</p>
     </div>
 </template>

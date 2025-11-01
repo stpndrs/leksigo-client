@@ -1,19 +1,27 @@
 <script setup>
 import child from '@/assets/images/child.png'
 import ButtonComponent from '@/components/buttons/ButtonComponent.vue';
+import FilterModal from '@/components/modal/FilterModal.vue';
 import ChevronLeftIcon from '@/components/shape/ChevronLeft.Icon.vue';
+import FilterIcon from '@/components/shape/FilterIcon.vue';
 import { formatDate } from '@/helpers/formatDate';
 import api from '@/utils/api';
 import { onMounted, ref } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
+
+const isFilterExerciseShowed = ref(false)
+const isFilterMaterialShowed = ref(false)
 
 const route = useRoute()
-const code = route.params.code
+const router = useRouter()
+const id = route.params.id
 const data = ref()
 const points = ref(0)
+const dataContainer = ref(null)
+const activeSlide = ref(0)
 
 onMounted(async () => {
-    await api(`/childs/${code}`)
+    await api(`/childs/${id}`)
         .then((res) => {
             console.log(res);
             data.value = res.data.data
@@ -21,11 +29,71 @@ onMounted(async () => {
             console.log(err);
         })
 
-
     data.value.exercises.forEach(element => {
         points.value += element.point ?? 0
     });
 })
+
+/**
+ * Fungsi untuk melakukan scrolling ke slide yang dipilih
+ * @param {number} index - Indeks slide (0 untuk Latihan, 1 untuk Materi)
+ */
+const goToSlide = (index) => {
+    if (!dataContainer.value) return;
+
+    // Hitung posisi scroll: index * lebar container
+    const scrollPosition = index * dataContainer.value.offsetWidth;
+
+    // Lakukan smooth scroll
+    dataContainer.value.scrollTo({
+        left: scrollPosition,
+        behavior: 'smooth'
+    });
+
+    // Perbarui state slide aktif
+    activeSlide.value = index;
+};
+
+/**
+ * Fungsi untuk mendeteksi slide aktif saat scrolling selesai
+ */
+const handleScroll = () => {
+    if (!dataContainer.value) return;
+
+    // Dapatkan posisi scroll horizontal saat ini
+    const scrollLeft = dataContainer.value.scrollLeft;
+    const containerWidth = dataContainer.value.offsetWidth;
+
+    // Tentukan slide mana yang paling terlihat
+    // Jika scrollLeft > (lebar container / 2), berarti slide kedua (index 1) yang aktif
+    const slideIndex = Math.round(scrollLeft / containerWidth);
+
+    // Perbarui state slide aktif
+    activeSlide.value = slideIndex;
+};
+
+
+const handleFilterModal = (params) => {
+    if (params == 'exercise') {
+        isFilterExerciseShowed.value = !isFilterExerciseShowed.value
+        isFilterMaterialShowed.value = false
+    } else {
+        isFilterExerciseShowed.value = false
+        isFilterMaterialShowed.value = !isFilterMaterialShowed.value
+    }
+}
+
+const handleDateFilter = (params) => {
+    console.log(params);
+
+    // olah data berdasarkan filter
+}
+
+const handleStatusFilter = (params) => {
+    console.log(params);
+
+    // olah data berdasarkan filter
+}
 </script>
 
 <template>
@@ -38,7 +106,7 @@ onMounted(async () => {
         </div>
         <div class="page-body">
             <div class="detail">
-                <!-- <img :src="child" alt="Child"> -->
+                <img :src="child" alt="Child">
                 <div class="biodata">
                     <span class="score">
                         <p>Total Skor :</p>
@@ -58,37 +126,68 @@ onMounted(async () => {
                     </span>
                 </div>
             </div>
-            <div class="data">
-                <div class="card exercises">
-                    <div class="card-header">
-                        <h3>Latihan</h3>
-                    </div>
-                    <div class="card-body">
-                        <div class="item" v-for="(item, index) in data?.exercises" :key="index">
-                            <div class="point">{{ item.point ?? 0 }}</div>
-                            <div class="identity">
-                                <p class="title">{{ item.name }}</p>
-                                <p class="date">{{ formatDate(item.createdAt) }}</p>
-                                <div class="category">{{ item.method }}</div>
-                            </div>
-                            <!-- hitung jumlah benar salah dari total jawaban yang benar, dibandingkan dengan jumlah soal -->
-                            <!-- <div class="correction" v-if="item.point">15/<span>20</span></div> -->
+            <div class="data-wrapper">
+                <div class="data-swiper" ref="dataContainer" @scroll="handleScroll">
 
-                            <ButtonComponent label="Review Soal" size="small"
-                                @click="$router.push({ name: 'exercise.overview', params: { id: item._id } })" />
+                    <div class="swiper-slide-manual">
+                        <div class="card exercises">
+                            <FilterModal :handleModal="handleFilterModal" :handleDateFilter="handleDateFilter"
+                                :handleStatusFilter="handleStatusFilter" type="exercise"
+                                v-if="isFilterExerciseShowed" />
+                            <div class="card-header">
+                                <h3>Latihan</h3>
+                                <FilterIcon class="filterIcon" @click="handleFilterModal('exercise')" />
+                            </div>
+                            <div class="card-body">
+                                <div class="item" v-for="(item, index) in data?.exercises" :key="index"
+                                    @click="$router.push({ name: 'exercise.overview', params: { id: item._id } })">
+                                    <div class="point">{{ item.point ?? 0 }}</div>
+                                    <div class="identity">
+                                        <p class="title">{{ item.name }}</p>
+                                        <p class="date">{{ formatDate(item.createdAt) }}</p>
+                                        <div class="category">{{ item.method }}</div>
+                                    </div>
+                                    <div class="question">
+                                        <span class="worked" v-if="points">{{ points }}</span> <span
+                                            v-show="points">/</span>
+                                        <span class="total">20</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-footer">
+                                <ButtonComponent label="Buat Soal" class="secondary" size="large"
+                                    @click="$router.push({ name: 'exercise.create', params: id })" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="swiper-slide-manual">
+                        <div class="card materials">
+                            <FilterModal :handleModal="handleFilterModal" :handleDateFilter="handleDateFilter"
+                                :handleStatusFilter="handleStatusFilter" type="material"
+                                v-if="isFilterMaterialShowed" />
+                            <div class="card-header">
+                                <h3>Materi</h3>
+                                <FilterIcon class="filterIcon" @click="handleFilterModal('material')" />
+                            </div>
+                            <div class="card-body">
+                                <div class="item" v-for="(item, index) in data?.materials" :key="index"
+                                    @click="router.push({ name: 'material.overview', params: { id: id, materialId: item._id } })">
+                                    <p class="title">{{ item.title }}</p>
+                                    <div class="category">{{ item.method }}</div>
+                                </div>
+                            </div>
+                            <div class="card-footer">
+                                <ButtonComponent label="Buat Materi" class="primary" size="large"
+                                    @click="$router.push({ name: 'material.create', params: id })" />
+                            </div>
                         </div>
                     </div>
                 </div>
-                <div class="card materials">
-                    <div class="card-header">
-                        <h3>Materi</h3>
-                    </div>
-                    <div class="card-body">
-                        <div class="item" v-for="(item, index) in data?.materials" :key="index">
-                            <p class="title">{{ item.title }}</p>
-                            <div class="category">{{ item.method }}</div>
-                        </div>
-                    </div>
+
+                <div class="swiper-pagination-manual">
+                    <span :class="['dot', { 'active': activeSlide === 0 }]" @click="goToSlide(0)"></span>
+                    <span :class="['dot', { 'active': activeSlide === 1 }]" @click="goToSlide(1)"></span>
                 </div>
             </div>
         </div>
@@ -96,160 +195,224 @@ onMounted(async () => {
 </template>
 
 <style lang="scss" scoped>
-// .grid-container {
-// display: grid;
-// grid-template-columns: 30% 70%;
-// color: var(--Neutral-700);
-// gap: 30px;
-
-.detail {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    flex-direction: column;
-    margin-bottom: 30px;
-}
-
-img {
-    width: 20rem;
-    margin-bottom: 30px;
-}
-
-.biodata {
-    width: 100%;
-
-    span {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        font-size: 20px;
-    }
-
-    .score {
-        font-size: 40px;
-        color: var(--Secondary-900);
-    }
-
-    .value {
-        font-weight: bold;
-        color: var(--Secondary-900);
-        font-family: 'Ubuntu Sans';
-    }
-}
-
-.data {
+.page-body {
     display: grid;
-    grid-template-columns: 50% 50%;
-    justify-content: center;
-    align-items: center;
+    grid-template-columns: 1fr 2fr;
+    justify-content: space-between;
+    color: var(--Neutral-700);
     gap: 30px;
+    overflow-x: hidden;
 
-    .exercises.card {
-        padding: 30px;
-        background-color: var(--White);
-        min-height: 100vh;
-        width: 100%;
-        border-radius: 10px;
-        box-shadow: 0 5.192px 31.153px 0 rgba(0, 0, 0, 0.25);
-
-        .card-header {
-            color: var(--Secondary-900);
-            font-size: 30px;
-            margin-bottom: 20px;
-        }
-
-        .item {
-            display: grid;
-            grid-template-columns: 15% 60% 20%;
-            border: 3px solid var(--Secondary-900);
-            border-radius: 5px;
-            gap: 10px;
-            color: var(--Secondary-900);
-            padding: 10px;
-            margin-bottom: 20px;
-
-            .point {
-                font-size: 50px;
-                padding-right: 10px;
-                border-right: 3px dashed var(--Info-200);
-                display: flex;
-                justify-content: center;
-                align-items: center;
-            }
-
-            .identity {
-                .title {
-                    font-weight: bold;
-                }
-
-                .date {
-                    margin-bottom: 5px;
-                }
-
-                .category {
-                    font-size: small;
-                    padding: 5px 15px;
-                    border-radius: 5px;
-                    width: fit-content;
-                    color: var(--White);
-                    background-color: var(--Secondary-900);
-                }
-            }
-
-            .correction {
-                font-size: 30px;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-
-                span {
-                    color: var(--Primary-900);
-                }
-            }
-
-        }
+    .detail {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        margin-bottom: 30px;
     }
 
-    .materials.card {
-        padding: 30px;
-        background-color: var(--White);
-        min-height: 100vh;
+    img {
+        width: 20rem;
+        margin-bottom: 30px;
+    }
+
+    .biodata {
         width: 100%;
-        border-radius: 10px;
-        box-shadow: 0 5.192px 31.153px 0 rgba(0, 0, 0, 0.25);
 
-        .card-header {
-            color: var(--Primary-900);
-            font-size: 30px;
-            margin-bottom: 20px;
-        }
-
-        .item {
-            display: grid;
-            grid-template-columns: auto 25%;
+        span {
+            display: flex;
+            justify-content: space-between;
             align-items: center;
-            border: 3px solid var(--Primary-900);
-            border-radius: 5px;
-            gap: 10px;
-            color: var(--Primary-900);
-            padding: 10px;
-            margin-bottom: 20px;
+            font-size: 20px;
+        }
 
-            .title {
-                font-weight: bold;
-            }
+        .score {
+            font-size: 40px;
+            color: var(--Secondary-900);
+        }
 
-            .category {
-                font-size: small;
-                padding: 5px 15px;
-                border-radius: 5px;
-                width: fit-content;
-                color: var(--White);
-                background-color: var(--Primary-900);
-            }
-
+        .value {
+            font-weight: bold;
+            color: var(--Secondary-900);
+            font-family: 'Ubuntu Sans';
         }
     }
-}
 
-// }</style>
+    // Wrapper untuk Swiper dan Pagination Manual
+    .data-wrapper {
+        display: flex;
+        flex-direction: column;
+        // Hapus styling posisi relatif yang bermasalah
+        // position: relative;
+        // right: -10rem;
+    }
+
+    .data-swiper {
+        display: flex;
+        overflow-x: scroll; // Aktifkan scrolling horizontal
+        scroll-snap-type: x mandatory; // Kunci scroll ke slide
+        width: 100%;
+        gap: 30px; // Jarak antar slide
+
+        // Sembunyikan scrollbar
+        &::-webkit-scrollbar {
+            display: none;
+        }
+
+        -ms-overflow-style: none;
+        /* IE and Edge */
+        scrollbar-width: none;
+        /* Firefox */
+
+        .swiper-slide-manual {
+            flex-shrink: 0; // Penting: mencegah slide mengecil
+            width: 80%; // Setiap slide mengambil 100% lebar container yang terlihat
+            scroll-snap-align: start; // Kunci snap di awal slide
+
+            // Atur agar card memenuhi slide
+            .card {
+                width: 100%;
+                min-height: 100vh; // Pertahankan tinggi minimal jika perlu
+                border-radius: 10px;
+                padding: 30px;
+
+                .card-header {
+                    font-size: 30px;
+                    margin-bottom: 20px;
+                }
+            }
+
+            .filterIcon {
+                cursor: pointer;
+                width: 30px;
+            }
+
+            .exercises.card {
+                position: relative;
+                background-color: var(--White);
+
+                .card-header {
+                    color: var(--Secondary-900);
+                    display: flex;
+                    justify-content: space-between;
+                }
+
+                .card-body .item {
+                    display: grid;
+                    grid-template-columns: 10% 70% 20%;
+                    gap: 10px;
+                    align-items: center;
+                    border: 3px solid var(--Secondary-900);
+                    border-radius: 10px;
+                    padding: 10px;
+                    margin-bottom: 30px;
+                    cursor: pointer;
+
+                    .point {
+                        font-size: 50px;
+                        color: var(--Secondary-900);
+                        text-align: center;
+                        border-right: 3px dashed var(--Info-200);
+                        padding: 10px;
+                    }
+
+                    .identity {
+                        font-size: 20px;
+                        color: var(--Secondary-900);
+
+                        .title {
+                            font-weight: bold;
+                        }
+
+                        .category {
+                            padding: 5px 15px;
+                            border-radius: 10px;
+                            margin-top: 10px;
+                            font-size: small;
+                            background-color: var(--Secondary-900);
+                            width: fit-content;
+                            color: white;
+                        }
+                    }
+
+                    .question {
+                        text-align: center;
+                        font-size: 30px;
+                        color: var(--Info-200);
+
+                        .worked {
+                            color: var(--Secondary-900);
+                        }
+
+                        .total {
+                            color: var(--Primary-900);
+                        }
+                    }
+                }
+            }
+
+            .materials.card {
+                position: relative;
+                background-color: var(--White);
+
+                .card-header {
+                    color: var(--Primary-900);
+                    display: flex;
+                    justify-content: space-between;
+
+                    svg {
+                        width: 30px;
+                    }
+                }
+
+                .item {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding: 15px;
+                    border: 3px solid var(--Primary-900);
+                    border-radius: 10px;
+                    margin-bottom: 30px;
+                    width: 100%;
+                    cursor: pointer;
+
+                    .title {
+                        font-size: large;
+                        font-weight: bold;
+                        color: var(--Primary-900);
+                    }
+
+                    .category {
+                        padding: 10px 15px;
+                        background: var(--Primary-900);
+                        color: var(--White);
+                        border-radius: 10px;
+                    }
+                }
+            }
+        }
+    }
+
+    // Gaya untuk Pagination / Dots Manual
+    .swiper-pagination-manual {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 15px; // Jarak dari swiper container
+
+        .dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: var(--Neutral-300); // Warna pasif
+            cursor: pointer;
+            transition: background-color 0.3s;
+
+            &.active {
+                background-color: var(--Secondary-900); // Warna aktif
+            }
+        }
+    }
+
+}
+</style>
