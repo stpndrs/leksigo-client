@@ -18,6 +18,10 @@ const props = defineProps({
     isMultiple: {
         type: Boolean,
         default: false
+    },
+    accept: {
+        type: String,
+        default: null
     }
 });
 const emit = defineEmits(['update:modelValue']);
@@ -101,7 +105,7 @@ const handleDragLeave = () => { isDragging.value = false; };
             <span class="file-msg" v-html="fileMessage"></span>
         </label>
         <input :id="id" type="file" class="visually-hidden" ref="fileInput" @change="handleFileChange"
-            :multiple="props.isMultiple">
+            :multiple="props.isMultiple" :accept="props.accept">
         <p class="file-info">{{ infoText }}</p>
     </div>
 </template>

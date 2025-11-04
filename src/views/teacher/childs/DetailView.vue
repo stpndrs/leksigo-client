@@ -28,10 +28,16 @@ onMounted(async () => {
         }).catch((err) => {
             console.log(err);
         })
-
-    data.value.exercises.forEach(element => {
-        points.value += element.point ?? 0
-    });
+    // OLAH DATA UNTUK TAMPILKAN POIN DI SETIAP LATIHAN
+    data.value.exercises.map(element => {
+        let exercisePoint = 0
+        element.workHistories.map(d => {
+            points.value += parseInt(d.exercisePoint) ?? 0
+            exercisePoint += parseInt(d.exercisePoint)
+        })
+        return element.exercisePoint = exercisePoint
+    })
+    console.log(data.value);
 })
 
 /**
@@ -124,6 +130,15 @@ const handleStatusFilter = (params) => {
                         <p>Kode Unik :</p>
                         <p class="value">{{ data?.child.code }}</p>
                     </span>
+                    <span class="level">
+                        <p>Level Anak </p>
+                        <div class="level-container">
+                            <div :class="['item', { active: data?.child?.level == 1 }]">1</div>
+                            <div :class="['item', { active: data?.child?.level == 2 }]">2</div>
+                            <div :class="['item', { active: data?.child?.level == 3 }]">3</div>
+                        </div>
+                    </span>
+                    <ButtonComponent label="Laporan Perilaku" class="secondary" size="full" display="border" />
                 </div>
             </div>
             <div class="data-wrapper">
@@ -141,15 +156,15 @@ const handleStatusFilter = (params) => {
                             <div class="card-body">
                                 <div class="item" v-for="(item, index) in data?.exercises" :key="index"
                                     @click="$router.push({ name: 'exercise.overview', params: { id: item._id } })">
-                                    <div class="point">{{ item.point ?? 0 }}</div>
+                                    <div class="point">{{ item?.exercisePoint ?? 0 }}</div>
                                     <div class="identity">
                                         <p class="title">{{ item.name }}</p>
                                         <p class="date">{{ formatDate(item.createdAt) }}</p>
                                         <div class="category">{{ item.method }}</div>
                                     </div>
                                     <div class="question">
-                                        <span class="worked" v-if="points">{{ points }}</span> <span
-                                            v-show="points">/</span>
+                                        <span class="worked" v-if="points">{{ item?.workHistories?.answers?.length
+                                            }}</span> <span v-show="points">/</span>
                                         <span class="total">20</span>
                                     </div>
                                 </div>
@@ -224,6 +239,7 @@ const handleStatusFilter = (params) => {
             justify-content: space-between;
             align-items: center;
             font-size: 20px;
+            margin-bottom: 10px;
         }
 
         .score {
@@ -236,15 +252,62 @@ const handleStatusFilter = (params) => {
             color: var(--Secondary-900);
             font-family: 'Ubuntu Sans';
         }
+
+        .level-container {
+            display: grid;
+            grid-template-columns: auto auto auto;
+            gap: 20px;
+
+            .item {
+                padding: 25px 20px;
+                border-radius: 10px;
+                font-size: 30px;
+                font-weight: bold;
+                font-family: 'Ubuntu Sans';
+                border: 2px solid;
+                text-align: center;
+
+                &:nth-child(1) {
+                    border-color: var(--Secondary-900);
+                    color: var(--Secondary-900);
+
+                    &.active {
+                        background-color: var(--Secondary-900);
+                        color: var(--White);
+                    }
+                }
+
+                &:nth-child(2) {
+                    border-color: var(--Ternary-500);
+                    color: var(--Ternary-500);
+
+                    &.active {
+                        background-color: var(--Ternary-500);
+                        color: var(--White);
+                    }
+                }
+
+                &:nth-child(3) {
+                    border-color: var(--Primary-900);
+                    color: var(--Primary-900);
+
+                    &.active {
+                        background-color: var(--Primary-900);
+                        color: var(--White);
+                    }
+                }
+            }
+        }
+
+        button {
+            margin-top: 30px;
+        }
     }
 
     // Wrapper untuk Swiper dan Pagination Manual
     .data-wrapper {
         display: flex;
         flex-direction: column;
-        // Hapus styling posisi relatif yang bermasalah
-        // position: relative;
-        // right: -10rem;
     }
 
     .data-swiper {
@@ -299,7 +362,7 @@ const handleStatusFilter = (params) => {
 
                 .card-body .item {
                     display: grid;
-                    grid-template-columns: 10% 70% 20%;
+                    grid-template-columns: 20% 60% 20%;
                     gap: 10px;
                     align-items: center;
                     border: 3px solid var(--Secondary-900);

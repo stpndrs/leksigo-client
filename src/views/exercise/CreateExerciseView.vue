@@ -8,11 +8,12 @@ import CheckboxesComponent from '@/components/fields/CheckboxesComponent.vue';
 
 import api from '@/utils/api';
 import { ref, computed, onMounted } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import QuestionBankModal from '@/components/modal/QuestionBankModal.vue';
 
 const isModalShowed = ref(false)
 const route = useRoute();
+const router = useRouter()
 const questionBank = ref([])
 
 const name = ref('');
@@ -75,7 +76,7 @@ const addQuestion = () => {
         return alert("Isi dan simpan soal saat ini terlebih dahulu");
     }
 
-    question.value = '<p></p>';
+    question.value = '';
     key.value = '';
     numberOfQuestion.value += 1;
     questionActive.value = numberOfQuestion.value;
@@ -89,7 +90,7 @@ const openQuestion = (num) => {
 };
 
 const pushQuestion = () => {
-    const isQuestionEmpty = !question.value || question.value === '<p><br></p>';
+    const isQuestionEmpty = !question.value;
     const isKeyEmpty = !key.value;
 
     if (isQuestionEmpty) {
@@ -122,8 +123,10 @@ const handleLevel = (val) => {
 
     if (foundLevel) {
         level.value = val;
-        methodSelected.value = foundLevel.data;
-        method.value = null;
+        // cek, kalau sama gausah ubah value, supaya method yang kepilih gaperlu pilih ulang
+        const isDataSame = JSON.stringify(methodSelected.value) == JSON.stringify(foundLevel.data)
+        methodSelected.value = isDataSame ? methodSelected.value : foundLevel.data;
+        method.value = isDataSame ? method.value : null;
     }
 };
 
@@ -157,7 +160,7 @@ const handleAttemptQuestion = (num) => {
         question.value = findQuestion.question;
         key.value = findQuestion.key;
     } else {
-        question.value = '<p></p>';
+        question.value = '';
         key.value = '';
     }
 }
@@ -173,6 +176,7 @@ const submit = async () => {
         method: method.value,
         questions: questions.value
     }).then(res => {
+        router.push({ name: 'childs.detail', params: route.params.id })
         console.log(res);
     }).catch(e => {
         if (e.status === 422) errors.value = e.response.data.errors;
@@ -186,7 +190,7 @@ const submit = async () => {
             :methodLabel="methodLabel.label" :level="level" :insertQuestion="insertQuestion"
             :handleQuestionBank="handleQuestionBank" />
         <div class="page-header exercise">
-            <router-link :to="{ name: 'childs.detail', params: route.params.code }">
+            <router-link :to="{ name: 'childs.detail', params: route.params.id }">
                 <ChevronLeftIcon />
             </router-link>
             <h1 class="page-title">Buat Latihan Baru</h1>
@@ -237,7 +241,8 @@ const submit = async () => {
                     </div>
                     <div class="input-wrapper">
                         <label for="editor">Soal</label>
-                        <WysiwygEditorComponent v-model="question" class="textarea" />
+                        <textarea v-model="question" id="textarea" class="textarea"></textarea>
+                        <!-- <WysiwygEditorComponent v-model="question" class="textarea" /> -->
                     </div>
                     <input-component label="Kunci Jawaban" :required="true" type="text" placeholder="Kunci Jawaban"
                         id="key" class="input" v-model="key" :isInvalid="errors?.key ?? false"
@@ -285,6 +290,15 @@ const submit = async () => {
 
 .textarea {
     margin-bottom: 50px;
+}
+
+textarea.textarea {
+    width: 100%;
+    min-height: 50vh;
+    border: 1px solid black;
+    outline: none;
+    border-radius: 10px;
+    padding: 15px;
 }
 
 .input-flex {

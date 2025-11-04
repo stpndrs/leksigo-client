@@ -15,11 +15,11 @@ const audioUrl = ref(null);
 const errorMsg = ref(null);
 
 // GANTI DENGAN FUNGSI API TEXT-TO-SPEECH ANDA
-async function fetchAudioFromAI(textToSpeak) {
+async function fetchAudioFromAI(textToSpeech) {
     try {
         // 1. Panggil API Anda dan tunggu responsnya
         const response = await api.post('/ai/tts', {
-            text: textToSpeak,
+            text: textToSpeech,
         });
 
         // 2. Ambil string Base64 dari respons

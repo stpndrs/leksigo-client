@@ -1,6 +1,8 @@
 <script setup>
 import ButtonComponent from '@/components/buttons/ButtonComponent.vue';
 import ChevronLeftIcon from '@/components/shape/ChevronLeft.Icon.vue';
+import EyeIcon from '@/components/shape/EyeIcon.vue';
+import EyeSlashIcon from '@/components/shape/EyeSlashIcon.vue';
 import { formatDate } from '@/helpers/formatDate';
 import { useQuizStore } from '@/stores/quiz';
 import api from '@/utils/api';
@@ -9,97 +11,51 @@ import { useRoute, useRouter } from 'vue-router';
 
 const router = useRouter()
 const route = useRoute()
+const id = route.params.id
 const data = ref([])
 const childId = ref(null)
 const histories = ref([])
+const newHistories = ref([])
 
-function analyzeExerciseHistory(exerciseData) {
-    if (!exerciseData || !exerciseData.questions) return [];
-    const { questions } = exerciseData;
-
-    const groupAnswersByIndex = (questionList) => {
-        const grouped = [];
-        let maxAttempts = 0;
-        for (const q of questionList) {
-            if (q.answers && q.answers.length > maxAttempts) {
-                maxAttempts = q.answers.length;
-            }
-        }
-        for (let i = 0; i < maxAttempts; i++) {
-            const attemptGroup = [];
-            for (const q of questionList) {
-                attemptGroup.push(q.answers[i] || null);
-            }
-            grouped.push(attemptGroup);
-        }
-        return grouped;
-    };
-
-    const attempts = groupAnswersByIndex(questions);
-    const historySummary = [];
-
-    attempts.forEach((attemptAnswers, index) => {
-        let totalPoints = 0;
-        let attemptDate = null;
-        const answeredQuestions = [];
-        const unansweredQuestions = [];
-
-        attemptAnswers.forEach((answer, questionIndex) => {
-            const originalQuestion = questions[questionIndex];
-            if (answer) {
-                totalPoints += parseFloat(answer.similarityPoint) || 0;
-                if (!attemptDate) attemptDate = new Date(answer.timeAnswered);
-                answeredQuestions.push({
-                    text: originalQuestion.question.value,
-                    yourAnswer: answer.answer.text,
-                    point: parseFloat(answer.similarityPoint) || 0,
-                });
-            } else {
-                unansweredQuestions.push({
-                    text: originalQuestion.question.value,
-                });
-            }
-        });
-
-        historySummary.push({
-            attemptNumber: index + 1,
-            date: attemptDate,
-            totalPoints: parseFloat(totalPoints.toFixed(2) / (answeredQuestions.length + unansweredQuestions.length)),
-            answeredCount: answeredQuestions.length,
-            unansweredCount: unansweredQuestions.length,
-            details: {
-                answered: answeredQuestions,
-                unanswered: unansweredQuestions,
-            }
-        });
-    });
-
-    return historySummary;
+const analyzeExerciseHistory = () => {
+    histories.value.forEach(d => {
+        newHistories.value.push({
+            date: d.date,
+            exercisePoint: d.exercisePoint,
+            attitudePoint: d.attitudePoint,
+            answeredCount: d.answers.length,
+            notAnsweredCount: data.value.questions.length - d.answers.length
+        })
+    })
 }
 
 onMounted(async () => {
-    const id = route.params.id
-    api.get(`/exercise/${id}`)
+    getData()
+})
+
+const getData = async () => {
+    await api.get(`/exercise/${id}`)
         .then((res) => {
             data.value = res.data.data
             childId.value = res.data.data.childrenId
+            histories.value = res.data.data.workHistories
 
-            histories.value = analyzeExerciseHistory(data.value)
+            analyzeExerciseHistory()
         })
         .catch((err) => {
             console.log(err);
         })
 
-})
+}
 
-
-const quizStore = useQuizStore()
-
-const start = () => {
-    quizStore.loadQuiz(data.value);
-
-    // Arahkan ke halaman pengerjaan kuis
-    router.push({ name: 'exercise.quiz' }); // Ganti dengan nama route Anda
+const visibility = async () => {
+    await api.post(`exercise/${id}`)
+        .then(res => {
+            getData()
+        })
+        .catch(e => {
+            console.log(e);
+        })
 }
 </script>
 
@@ -120,10 +76,13 @@ const start = () => {
                         <div :class="['item', { active: data?.level == 2 }]">2</div>
                         <div :class="['item', { active: data?.level == 3 }]">3</div>
                     </div>
+                    <ButtonComponent :label="!data.isHidden ? 'Sembunyikan' : 'Tampilkan'"
+                        :icon="!data.isHidden ? EyeSlashIcon : EyeIcon" class="secondary" size="small" display="border"
+                        @click="visibility" />
                 </div>
                 <div class="card-body">
                     <div class="description">
-                        <p>{{ data?.description }}</p>
+                        <div v-html="data?.description"></div>
                     </div>
                     <div class="data">
                         <div class="date">Tanggal Ditambahkan : <span>{{ formatDate(data?.createdAt) }}</span></div>
@@ -134,26 +93,26 @@ const start = () => {
                         <p>Tipe Latihan</p>
                         <div class="categories-grid">
                             <div class="category active">{{ data?.methodLabel }}</div>
-                            <!-- <div class="category">Menulis</div> -->
                         </div>
                     </div>
                     <div class="action">
-                        <ButtonComponent label="Mulai Mengerjakan" @click="start" />
+                        <ButtonComponent label="Mulai Mengerjakan"
+                            @click="router.push({ name: 'exercise.quiz', params: { id: route.params.id } })" />
                     </div>
                 </div>
                 <div class="card-footer">
                     <h3>Riwayat Pengerjaan</h3>
                     <hr>
                     <div class="history-container">
-                        <p class="nodata" v-if="!histories">Belum ada riwayat pengerjaan</p>
-                        <div class="item" v-for="(item, index) in histories" :key="index">
+                        <p class="nodata" v-if="histories.length == 0">Belum ada riwayat pengerjaan</p>
+                        <div class="item" v-else v-for="(item, index) in newHistories" :key="index">
                             <div class="left">
-                                <h3 class="point">{{ item.totalPoints }} Point</h3>
+                                <h3 class="point">{{ parseInt(item.exercisePoint) }} Point</h3>
                                 <p class="date">Tanggal : {{ formatDate(item.date) }}</p>
                             </div>
                             <div class="right">
                                 <div class="worked">Soal Dikerjakan : {{ item.answeredCount }}</div>
-                                <div class="notworked">Soal Tidak Dikerjakan : {{ item.unansweredCount }}</div>
+                                <div class="notworked">Soal Tidak Dikerjakan : {{ item.notAnsweredCount }}</div>
                             </div>
                         </div>
                     </div>

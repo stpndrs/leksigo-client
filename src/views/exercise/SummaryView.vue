@@ -1,32 +1,41 @@
 <script setup>
 import ButtonComponent from '@/components/buttons/ButtonComponent.vue';
 import ChevronLeftIcon from '@/components/shape/ChevronLeft.Icon.vue';
+import HorrayIcon from '@/components/shape/HorrayIcon.vue';
 import { formatDate } from '@/helpers/formatDate';
 import { useQuizStore } from '@/stores/quiz';
 import api from '@/utils/api';
 import { onMounted, ref } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 
 const route = useRoute()
+const router = useRouter()
 const data = ref([])
-const quizStore = useQuizStore();
+const history = ref({})
+const id = route.params.id
+const historyId = route.params.historyId
 
 onMounted(async () => {
-    const id = route.params.id
+    api.get(`/exercise/${id}`)
+        .then((res) => {
+            data.value = res.data.data
+            history.value = res.data.data.workHistories.find(d => d._id == historyId)
+            // console.log(history.value.answers.length);
 
-    data.value = quizStore.latestQuiz
-    console.log(data.value);
-    
+        })
+        .catch((err) => {
+            console.log(err);
+        })
 })
 </script>
 
 <template>
     <div class="container">
         <div class="page-header">
-            <router-link :to="{ name: 'childs.index' }">
+            <router-link :to="{ name: 'exercise.overview', params: { id: id } }">
                 <ChevronLeftIcon />
             </router-link>
-            <h1 class="page-title">Mengerjakan Latihan</h1>
+            <h1 class="page-title">Hasil Latihan</h1>
         </div>
         <div class="page-body">
             <div class="card">
@@ -40,29 +49,28 @@ onMounted(async () => {
                 </div>
                 <div class="card-body">
                     <div class="description">
-                        <p>{{ data?.description }}</p>
+                        <div v-html="data?.description"></div>
                     </div>
                     <div class="data">
-                        <div class="date">Tanggal Ditambahkan : <span>{{ formatDate(data?.createdAt) }}</span></div>
-                        <div class="questionTotal">Jumlah Soal : <span>{{ data?.questions?.length }}</span></div>
-                        <div class="point">Poin Lolos : <span>60</span></div>
+                        <div class="date">Tanggal Dikerjakan : <span>{{ formatDate(history?.date) }}</span></div>
+                        <div class="questionTotal">Jumlah Soal : <span>{{ data?.questions?.length }} Soal</span></div>
+                        <div class="point">Poin Lolos : <span>60 Poin</span></div>
                     </div>
-                    <div class="categories">
-                        <p>Tipe Latihan</p>
-                        <div class="categories-grid">
-                            <div class="category active">{{ data?.methodLabel }}</div>
-                            <!-- <div class="category">Menulis</div> -->
-                        </div>
+                    <div class="summary-data">
+                        <p>Perolehan Poin : <span>{{ parseInt(history?.exercisePoint) }} Poin</span></p>
+                        <p>Soal Dikerjakan : <span>{{ history?.answers?.length }} Soal</span></p>
+                        <p>Soal Tidak Dikerjakan : <span>{{ data?.questions?.length - history?.answers?.length }}
+                                Soal</span></p>
+                        <h1 v-html="history?.exercisePoint >= 60 ? 'Lulus' : 'Tidak Lulus'"></h1>
                     </div>
                     <div class="action">
-                        <ButtonComponent label="Mulai Mengerjakan" />
-                    </div>
-                </div>
-                <div class="card-footer">
-                    <h3>Riwayat Pengerjaan</h3>
-                    <hr>
-                    <div class="history-container">
-                        <p class="nodata">Belum ada riwayat pengerjaan</p>
+                        <HorrayIcon class="icon" />
+                        <div class="btn-group">
+                            <ButtonComponent label="Coba Lagi" display="border" class="secondary"
+                                @click="router.push({ name: 'exercise.quiz', params: { id: route.params.id } })" />
+                            <ButtonComponent label="Selesai" class="secondary"
+                                @click="router.push({ name: 'exercise.overview', params: { id: id } })" />
+                        </div>
                     </div>
                 </div>
             </div>
@@ -151,7 +159,7 @@ onMounted(async () => {
 
         .card-body {
             display: grid;
-            grid-template-columns: 50% 49%;
+            grid-template-columns: 1fr 1fr;
             gap: 50px;
             // background: red;
             position: relative;
@@ -176,37 +184,47 @@ onMounted(async () => {
                     justify-content: space-between;
                     align-items: center;
                     width: 100%;
+                    
+                    span {
+                        font-weight: bold;
+                    }
                 }
             }
 
-            .categories {
-                font-size: 20px;
-                color: var(--Neutral-700);
-
-                .category {
+            .summary-data {
+                p {
                     color: var(--Secondary-900);
-                    padding: 5px 15px;
-                    border: 1px solid var(--Secondary-900);
-                    border-radius: 30px;
-                    width: fit-content;
-                }
-
-                .categories-grid {
-                    margin-top: 10px;
                     display: flex;
-                    justify-content: start;
+                    justify-content: space-between;
                     align-items: center;
-                    gap: 10px;
+                    font-size: 25px;
+
+                    span {
+                        font-size: 25px;
+                        font-weight: bold;
+                    }
                 }
 
-                .category.active {
-                    background-color: var(--Secondary-900);
-                    color: var(--White)
+                h1 {
+                    font-size: 50px;
+                    color: var(--Primary-900);
+                    margin-top: 30px;
                 }
             }
 
             .action {
-                justify-items: end;
+                .icon {
+                    width: 100%;
+                }
+
+                .btn-group {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    gap: 15px;
+                }
+
+                // justify-items: end;
             }
         }
 

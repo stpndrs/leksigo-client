@@ -29,7 +29,7 @@ const getData = async () => {
         })
 }
 
-const visibility = async (params) => {
+const visibility = async () => {
     await api.post(`materials/${materialId}`)
         .then(res => {
             getData()

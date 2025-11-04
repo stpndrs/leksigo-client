@@ -80,12 +80,12 @@ const router = createRouter({
 									component: () => import('../views/exercise/OverView.vue')
 								},
 								{
-									path: '/exercise/quiz',
+									path: '/exercise/quiz/:id',
 									name: 'exercise.quiz',
-									component: () => import('../views/exercise/QuizView.vue')
+									component: () => import('../views/exercise/QuizzView.vue')
 								},
 								{
-									path: '/exercise/summary',
+									path: '/exercise/summary/:id/:historyId',
 									name: 'exercise.summary',
 									component: () => import('../views/exercise/SummaryView.vue')
 								}
