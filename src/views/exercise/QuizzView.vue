@@ -9,6 +9,7 @@ import api from '@/utils/api';
 import { onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
+const baseUrl = import.meta.env.VITE_APP_API_URL
 const route = useRoute()
 const router = useRouter()
 
@@ -71,7 +72,7 @@ const saveAnswerAndNext = () => {
     const duration = timeAnswered - currentQuestionStartTime.value;
 
     let fileType = 'image/jpeg';
-    if (quizData.value?.method == 3) {
+    if ([3, 5].includes(quizData?.value?.method)) {
         fileType = 'audio/wav';
     }
 
@@ -100,8 +101,6 @@ const saveAnswerAndNext = () => {
 }
 
 const fileToBase64 = (params) => new Promise((resolve, reject) => {
-    console.log(params);
-
     const reader = new FileReader();
     reader.readAsDataURL(params);
     reader.onload = () => resolve(reader.result);
@@ -123,7 +122,7 @@ const finishQuiz = async () => {
         historyId: quizData.value.historyId,
         answers: formattedAnswers
     }).then(res => {
-        router.push({ name: 'exercise.overview', params: id })
+        router.push({ name: 'exercise.summary', params: { id: id, historyId: quizData.value.historyId } })
         console.log(res);
     }).catch(e => {
         console.log(e);
@@ -132,9 +131,6 @@ const finishQuiz = async () => {
 
 watch(() => questionActiveIndex, () => {
     currentQuestionStartTime.value = new Date()
-
-    console.log('Time opened : ' + currentQuestionStartTime.value);
-
 }, {
     immediate: true
 })
@@ -166,10 +162,17 @@ watch(() => questionActiveIndex, () => {
                                 :text="questionActive?.question?.value" />
                             <!-- if 2 = tampilkan text untuk ditulis ulang -->
                             <!-- if 3 = tampilkan text dan recorder untuk dibaca -->
-                            <h2 v-else-if="quizData?.method == 2 || quizData?.method == 3">{{
-                                questionActive?.question.value }}</h2>
                             <!-- if 4 = mengurutkan kata -->
+                            <h2 v-else-if="quizData?.method == 2 || quizData?.method == 3 || quizData?.method == 4">{{
+                                questionActive?.question.value }}</h2>
                             <!-- if 5 = menebak cepat -->
+                            <!-- if isHexColor true -->
+                            <div class="object-color" v-if="questionActive?.question?.type == 'hex'"
+                                :style="`background-color: ${questionActive?.question?.value}`"></div>
+                            <!-- if isImage true -->
+                            <div class="object-image" v-if="questionActive?.question?.type == 'path'">
+                                <img :src="`${baseUrl}/api/v1/${questionActive?.question?.value}`" alt="Pertanyaan">
+                            </div>
                         </div>
 
                         <div class="answer-box">
@@ -178,7 +181,8 @@ watch(() => questionActiveIndex, () => {
                             <FileUploadComponent v-if="[1, 2, 4].includes(quizData?.method)" v-model="file" :id="'file'"
                                 :infoText="'Upload gambar tulisan'" accept="image/*" />
                             <!-- else -->
-                            <AudioRecorderComponent v-if="quizData?.method == 3" v-model="file" />
+                            <AudioRecorderComponent v-if="quizData?.method == 3 || quizData?.method == 5"
+                                v-model="file" />
                         </div>
                     </div>
                     <ButtonComponent label="Simpan Jawaban" @click="saveAnswerAndNext" />
@@ -259,6 +263,24 @@ watch(() => questionActiveIndex, () => {
             font-size: 20px;
             margin-bottom: 20px;
         }
+
+        .object-color {
+            width: 300px;
+            height: 150px;
+            display: block;
+            background-color: white;
+            border-radius: 10px;
+        }
+
+        .object-image {
+            width: 25%;
+
+            img {
+                width: 100%;
+                border-radius: 10px;
+            }
+        }
+
 
         .question {
             font-size: 40px;

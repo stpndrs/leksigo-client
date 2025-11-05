@@ -33,7 +33,7 @@ onMounted(async () => {
         let exercisePoint = 0
         element.workHistories.map(d => {
             points.value += parseInt(d.exercisePoint) ?? 0
-            exercisePoint += parseInt(d.exercisePoint)
+            exercisePoint += parseInt(d.exercisePoint) ?? 0
         })
         return element.exercisePoint = exercisePoint
     })
@@ -162,11 +162,11 @@ const handleStatusFilter = (params) => {
                                         <p class="date">{{ formatDate(item.createdAt) }}</p>
                                         <div class="category">{{ item.method }}</div>
                                     </div>
-                                    <div class="question">
+                                    <!-- <div class="question">
                                         <span class="worked" v-if="points">{{ item?.workHistories?.answers?.length
-                                            }}</span> <span v-show="points">/</span>
+                                        }}</span> <span v-show="points">/</span>
                                         <span class="total">20</span>
-                                    </div>
+                                    </div> -->
                                 </div>
                             </div>
                             <div class="card-footer">

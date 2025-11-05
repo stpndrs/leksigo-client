@@ -11,6 +11,7 @@ import { ref, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import QuestionBankModal from '@/components/modal/QuestionBankModal.vue';
 
+const baseUrl = import.meta.env.VITE_APP_API_URL
 const isModalShowed = ref(false)
 const route = useRoute();
 const router = useRouter()
@@ -51,6 +52,16 @@ const methodSelected = ref([
     { label: 'Menulis Ulang', value: 2 },
     { label: 'Membaca', value: 3 },
 ]);
+
+const typeOfObject = ref([
+    { label: 'Warna', value: 1 },
+    { label: 'Objek', value: 2 },
+]);
+
+const objectValue = ref(null)
+const objectValueLabel = computed(() => {
+    return typeOfObject.value.find(d => d.value == objectValue.value) || { label: '' };
+});
 const method = ref(null);
 const level = ref(null);
 
@@ -130,6 +141,12 @@ const handleLevel = (val) => {
     }
 };
 
+const handleObjectColor = (val) => {
+    objectValue.value = val
+    if (objectValue == 1)
+        question.value = '#000000'
+}
+
 const handleQuestionBank = () => {
     isModalShowed.value = !isModalShowed.value
 }
@@ -150,6 +167,9 @@ const insertQuestion = (params) => {
         findQuestion.key = params.key;
     }
 
+    console.log(question.value);
+
+
     handleAttemptQuestion(questionActive.value)
 }
 
@@ -165,8 +185,35 @@ const handleAttemptQuestion = (num) => {
     }
 }
 
+const fileToBase64 = (params) => new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(params);
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = error => reject(error);
+});
+
 const submit = async () => {
     errors.value = null;
+
+    // console.log(questions.value);
+
+    if (method.value == 5 && objectValue.value == 2) {
+        const formattingPromises = questions.value.map(async (item) => {
+            // Cek apakah 'item.question' BUKAN sebuah File object.
+            if (!(item.question instanceof File)) {
+                return item;
+            }
+            const base64File = await fileToBase64(item.question);
+            return {
+                ...item,
+                question: base64File
+            };
+        });
+
+        // 3. Tunggu semua promise selesai dan update array
+        questions.value = await Promise.all(formattingPromises);
+    }
+
 
     await api.post(`/exercise`, {
         childrenId: route.params.id,
@@ -177,7 +224,6 @@ const submit = async () => {
         questions: questions.value
     }).then(res => {
         router.push({ name: 'childs.detail', params: route.params.id })
-        console.log(res);
     }).catch(e => {
         if (e.status === 422) errors.value = e.response.data.errors;
     });
@@ -187,7 +233,7 @@ const submit = async () => {
 <template>
     <div class="container">
         <QuestionBankModal v-if="isModalShowed" :questions="questionBank" :method="method"
-            :methodLabel="methodLabel.label" :level="level" :insertQuestion="insertQuestion"
+            :methodLabel="methodLabel.label" :level="level" :questionType="objectValue" :insertQuestion="insertQuestion"
             :handleQuestionBank="handleQuestionBank" />
         <div class="page-header exercise">
             <router-link :to="{ name: 'childs.detail', params: route.params.id }">
@@ -203,6 +249,11 @@ const submit = async () => {
                                 class="req">*</span></label>
                         <CheckboxesComponent :data="methodSelected" :function="handleMethod"
                             :isInvalid="errors?.method ?? false" :invalidMsg="errors?.method ?? ''" />
+                        <!-- For Object Type (Rapid Naming) -->
+                        <label for="type" :class="{ 'invalid': errors?.method ?? false }" v-if="method == 5">Pilih tipe
+                            soal <span class="req">*</span></label>
+                        <CheckboxesComponent :data="typeOfObject" :function="handleObjectColor" :isInvalid="false"
+                            :invalidMsg="errors?.method ?? ''" v-if="method == 5" />
                     </div>
                     <div class="input-wrapper level-wrapper" :class="{ 'invalid': errors?.level ?? false }">
                         <label for="level">Level Latihan <span class="req">*</span></label>
@@ -229,6 +280,9 @@ const submit = async () => {
                         <div class="input-wrapper">
                             <label for="type" :class="{ 'invalid': errors?.method ?? false }">Tipe Soal</label>
                             <div class="method-selected">{{ methodLabel.label }}</div>
+                            <label for="type" :class="{ 'invalid': errors?.method ?? false }" v-if="objectValue">Tipe
+                                Objek</label>
+                            <div class="method-selected" v-if="objectValue">{{ objectValueLabel.label }}</div>
                         </div>
                         <div class="input-wrapper level-wrapper" :class="{ 'invalid': errors?.level ?? false }">
                             <label for="level">Level Latihan</label>
@@ -239,10 +293,26 @@ const submit = async () => {
                             </div>
                         </div>
                     </div>
-                    <div class="input-wrapper">
+                    <div class="input-wrapper" v-if="[1, 2, 3, 4].includes(method)">
                         <label for="editor">Soal</label>
                         <textarea v-model="question" id="textarea" class="textarea"></textarea>
                         <!-- <WysiwygEditorComponent v-model="question" class="textarea" /> -->
+                    </div>
+                    <!-- kalau method 5 dan warna -->
+                    <input-component v-if="method == 5 && objectValue == 1" label="Pilih Warna" :required="true"
+                        type="color" placeholder="Pilih Warna" id="color" class="input" v-model="question"
+                        :isInvalid="errors?.color ?? false" :invalidMsg="errors?.color ?? ''" />
+                    <!-- kalau method 5 dan objek gambar -->
+                    <div class="input-wrapper" v-if="method == 5 && objectValue == 2">
+                        {{ question }}
+                        <!-- cek, kalau misalnya string (isinya path yang dari bank soal), maka tampilkan preview-->
+                        <div class="question-from-bank" v-if="(typeof question == 'string' && question != '')">
+                            <p>Upload gambar baru jika ingin mengganti gambar</p>
+                            <img :src="`${baseUrl}/api/v1/${question}`" alt="Question from bank">
+                        </div>
+                        <label for="file">Upload gambar objek</label>
+                        <FileUploadComponent v-model="question" :id="'file'" :infoText="'Upload gambar objek'"
+                            accept="image/*" />
                     </div>
                     <input-component label="Kunci Jawaban" :required="true" type="text" placeholder="Kunci Jawaban"
                         id="key" class="input" v-model="key" :isInvalid="errors?.key ?? false"
@@ -398,6 +468,17 @@ textarea.textarea {
             margin-top: 10px;
         }
     }
+
+    .question-from-bank {
+        color: var(--Danger-900);
+        margin-bottom: 15px;
+
+        img {
+            width: 30%;
+            border-radius: 10px;
+            margin-top: 10px;
+        }
+    }
 }
 
 .workspace {
@@ -414,6 +495,7 @@ textarea.textarea {
         background-color: var(--Primary-900) !important;
         color: var(--White) !important;
         width: fit-content;
+        margin-bottom: 30px;
     }
 }
 

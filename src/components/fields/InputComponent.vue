@@ -37,7 +37,8 @@ const emit = defineEmits(['update:modelValue'])
             {{ props.label }}
             <span v-if="props.required" class="req">*</span>
         </label>
-        <input :type="props.type" :placeholder="props.placeholder" :id="props.id" class="input" :value="modelValue"
+        <input :type="props.type" :placeholder="props.placeholder" :id="props.id"
+            :class="['input', { 'input-color': props.type == 'color' }]" :value="modelValue"
             @input="$emit('update:modelValue', $event.target.value)">
         <div class="invalid-msg">{{ props.invalidMsg }}</div>
     </div>
@@ -61,6 +62,10 @@ const emit = defineEmits(['update:modelValue'])
         border-radius: 5px;
         outline: 0;
         border: none;
+
+        &.input-color {
+            height: 100px;
+        }
     }
 
     input::placeholder {

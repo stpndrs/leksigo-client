@@ -3,16 +3,25 @@ import { onMounted, ref, watch } from 'vue';
 import InputComponent from '../fields/InputComponent.vue';
 import ButtonComponent from '../buttons/ButtonComponent.vue';
 import api from '@/utils/api';
+import { formatDate } from '@/helpers/formatDate';
 
 const search = ref()
 
-const props = defineProps(['method', 'methodLabel', 'level', 'insertQuestion', 'handleQuestionBank'])
+const baseUrl = import.meta.env.VITE_APP_API_URL
+const props = defineProps(['method', 'methodLabel', 'level', 'questionType', 'insertQuestion', 'handleQuestionBank'])
 const questionBank = ref([])
 
 onMounted(async () => {
     await api.get(`/questions?level=${props.level}&method=${props.method}`)
         .then(res => {
             questionBank.value = res.data.data
+            if (props.questionType == 1) {
+                questionBank.value = res.data.data.filter(d => d.question.type == 'hex')
+            } else if (props.questionType == 2) {
+                questionBank.value = res.data.data.filter(d => d.question.type == 'path')
+            }
+
+            // PERBAIKI QUESTION BANK UNTUK METODE GAMBAR
         }).catch(e => {
             console.log(e);
         })
@@ -34,8 +43,9 @@ watch(() => props => () => {
                 <div class="questions-container">
                     <div class="question-item" v-for="(item, index) in questionBank" :key="index">
                         <div class="question-header">
-                            <h2 class="question">{{ item?.question?.value }}</h2>
-                            <p class="date">{{ item?.createdAt }}</p>
+                            <img :src="`${baseUrl}/api/v1/${item?.question?.value}`" alt="Pertanyaan" v-if="item?.question?.type == 'path'">
+                            <h2 class="question" v-else>{{ item?.question?.value }}</h2>
+                            <p class="date">{{ formatDate(item?.createdAt) }}</p>
                         </div>
                         <div class="question-body">
                             <p class="key">Kunci : {{ item?.key }}</p>
@@ -121,6 +131,11 @@ watch(() => props => () => {
                     border: 2px solid var(--Secondary-900);
                     padding: 10px;
                     border-radius: 5px;
+
+                    img {
+                        width: 50%;
+                        border-radius: 10px;
+                    }
                 }
 
                 .question-header {
