@@ -14,6 +14,7 @@ const data = ref([])
 const history = ref({})
 const id = route.params.id
 const historyId = route.params.historyId
+const correctAnswer = ref(0)
 
 onMounted(async () => {
     api.get(`/exercise/${id}`)
@@ -22,6 +23,10 @@ onMounted(async () => {
             history.value = res.data.data.workHistories.find(d => d._id == historyId)
             // console.log(history.value.answers.length);
 
+            console.log(history.value);
+            history.value.answers.map(d => {
+                if (d.similarityPoint > 0) correctAnswer.value++
+            })
         })
         .catch((err) => {
             console.log(err);
@@ -60,6 +65,11 @@ onMounted(async () => {
                         <p>Perolehan Poin : <span>{{ parseInt(history?.exercisePoint) }} Poin</span></p>
                         <p>Soal Dikerjakan : <span>{{ history?.answers?.length }} Soal</span></p>
                         <p>Soal Tidak Dikerjakan : <span>{{ data?.questions?.length - history?.answers?.length }}
+                                Soal</span></p>
+                        <br>
+                        <p>Soal Benar : <span>{{ correctAnswer }}
+                                Soal</span></p>
+                        <p>Soal Salah : <span>{{ history?.answers?.length - correctAnswer }}
                                 Soal</span></p>
                         <h1 v-html="history?.exercisePoint >= 60 ? 'Lulus' : 'Tidak Lulus'"></h1>
                     </div>
@@ -184,7 +194,7 @@ onMounted(async () => {
                     justify-content: space-between;
                     align-items: center;
                     width: 100%;
-                    
+
                     span {
                         font-weight: bold;
                     }

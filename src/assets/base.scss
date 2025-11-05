@@ -22,6 +22,15 @@
     --Neutral-100: #E9E9E9;
     --Neutral-300: #A6A6A6;
     --Neutral-700: #4D4D4D;
+
+    --toast-success: #4CAF50;
+    --toast-error: #CC1D1D;
+    --toast-info: #2196F3;
+    --color-white: #fff;
+    --color-text: #333;
+    --color-text-light: #666;
+    --shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    --border-radius: 8px;
 }
 
 
@@ -38,4 +47,9 @@ h3 {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+}
+
+@font-face {
+    font-family: 'OpenDyslexic';
+    src: url('./fonts/OpenDyslexic-Regular.otf') format('opentype');
 }

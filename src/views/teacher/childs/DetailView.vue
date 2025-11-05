@@ -1,6 +1,7 @@
 <script setup>
 import child from '@/assets/images/child.png'
 import ButtonComponent from '@/components/buttons/ButtonComponent.vue';
+import ConfirmComponent from '@/components/confirm/ConfirmComponent.vue';
 import FilterModal from '@/components/modal/FilterModal.vue';
 import ChevronLeftIcon from '@/components/shape/ChevronLeft.Icon.vue';
 import FilterIcon from '@/components/shape/FilterIcon.vue';

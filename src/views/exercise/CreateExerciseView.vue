@@ -1,24 +1,61 @@
 <script setup>
+// START SCRIPT SETUP
+
+// --- 1. Imports ---
+// Vue & Router
+import { ref, computed, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
+
+// Utils
+import api from '@/utils/api';
+
+// Components
 import ChevronLeftIcon from '@/components/shape/ChevronLeft.Icon.vue';
 import InputComponent from '@/components/fields/InputComponent.vue';
 import WysiwygEditorComponent from '@/components/fields/WysiwygEditorComponent.vue';
 import FileUploadComponent from '@/components/fields/FileUploadComponent.vue';
 import ButtonComponent from '@/components/buttons/ButtonComponent.vue';
 import CheckboxesComponent from '@/components/fields/CheckboxesComponent.vue';
-
-import api from '@/utils/api';
-import { ref, computed, onMounted } from 'vue';
-import { useRoute, useRouter } from 'vue-router';
 import QuestionBankModal from '@/components/modal/QuestionBankModal.vue';
+import ToastComponent from '@/components/toast/ToastComponent.vue';
+import ConfirmComponent from '@/components/confirm/ConfirmComponent.vue';
+// --- End Imports ---
 
-const baseUrl = import.meta.env.VITE_APP_API_URL
-const isModalShowed = ref(false)
+// --- 2. State (Refs & Computed) ---
+
+// Environment
+const baseUrl = import.meta.env.VITE_APP_API_URL;
+
+// Router
 const route = useRoute();
-const router = useRouter()
-const questionBank = ref([])
+const router = useRouter();
 
+// Modal & Toast State
+const isModalShowed = ref(false); // Bank Soal
+const isConfirmOpen = ref(false); // Konfirmasi Submit
+const confirmMsg = ref(''); // (Tidak terpakai, tapi ada)
+const isShowToast = ref(false);
+const toastMsg = ref('');
+const toastType = ref('success');
+
+// Form Step 1: Data Latihan
 const name = ref('');
 const description = ref('');
+const method = ref(null);
+const level = ref(null);
+const objectValue = ref(null); // Khusus untuk method 5
+const isDataSaved = ref(false); // Flag untuk pindah ke step 2
+const errors = ref({}); // Validasi error (diubah ke object)
+
+// Form Step 2: Data Pertanyaan
+const numberOfQuestion = ref(1);
+const questions = ref([]); // Array untuk menampung semua soal
+const question = ref('');  // v-model untuk soal aktif
+const key = ref('');       // v-model untuk kunci jawaban aktif
+const questionActive = ref(1); // Navigasi soal
+
+// Data Statis untuk Form
+const questionBank = ref([]); // (Di-fetch nanti, jika perlu)
 const methodOfArray = ref([
     {
         level: 1,
@@ -52,113 +89,147 @@ const methodSelected = ref([
     { label: 'Menulis Ulang', value: 2 },
     { label: 'Membaca', value: 3 },
 ]);
-
 const typeOfObject = ref([
     { label: 'Warna', value: 1 },
     { label: 'Objek', value: 2 },
 ]);
 
-const objectValue = ref(null)
+// Computed Properties
 const objectValueLabel = computed(() => {
     return typeOfObject.value.find(d => d.value == objectValue.value) || { label: '' };
 });
-const method = ref(null);
-const level = ref(null);
-
-const numberOfQuestion = ref(1);
-const questions = ref([]);
-const question = ref('');
-const key = ref('');
-const questionActive = ref(1);
-
-const isDataSaved = ref(false);
-const errors = ref([]);
-
 const methodLabel = computed(() => {
     return methodSelected.value.find(d => d.value == method.value) || { label: '' };
 });
+// --- End State ---
 
+// --- 3. Methods ---
+
+// START saveData (Validasi Form Step 1)
 const saveData = () => {
-    isDataSaved.value = true;
+    try {
+        errors.value = {}; // Reset errors
+        if (!name.value || !method.value || !level.value) {
+            if (!name.value) {
+                errors.value.name = 'Nama latihan wajib diisi';
+            }
+            if (!method.value) {
+                errors.value.method = 'Metode latihan wajib diisi';
+            }
+            if (!level.value) {
+                errors.value.level = 'Level latihan wajib diisi';
+            }
+            return;
+        }
+        isDataSaved.value = true;
+        handleToast('Berhasil menyimpan data');
+    } catch (e) {
+        handleToast('Gagal menyimpan jawaban', 'error')
+    }
 };
+// END saveData
 
+// START addQuestion (Navigasi: Tambah Soal)
 const addQuestion = () => {
+    // Cek apakah soal saat ini sudah disimpan
     if (!questions.value.find(d => d.index == questionActive.value)) {
-        return alert("Isi dan simpan soal saat ini terlebih dahulu");
+        handleToast('Isi dan simpan pertanyaan saat ini terlebih dahulu!', 'error');
+        return;
     }
 
+    // Reset v-model dan tambah nomor soal
     question.value = '';
     key.value = '';
     numberOfQuestion.value += 1;
     questionActive.value = numberOfQuestion.value;
 };
+// END addQuestion
 
+// START openQuestion (Navigasi: Buka Soal)
 const openQuestion = (num) => {
     if (num < 1 || num > numberOfQuestion.value) return;
 
     questionActive.value = num;
-    handleAttemptQuestion(num)
+    handleAttemptQuestion(num); // Muat data soal
 };
+// END openQuestion
 
+// START pushQuestion (Simpan Soal Aktif ke Array)
 const pushQuestion = () => {
-    const isQuestionEmpty = !question.value;
-    const isKeyEmpty = !key.value;
-
-    if (isQuestionEmpty) {
-        return alert('Isi soal woy');
+    errors.value = {}; // Reset errors
+    if (!question.value || !key.value) {
+        if (!question.value) {
+            errors.value.question = 'Isi pertanyaan terlebih dahulu';
+        }
+        if (!key.value) {
+            errors.value.key = 'Isi kunci jawaban terlebih dahulu';
+        }
+        return;
     }
-    if (isKeyEmpty) {
-        return alert('Isi kunci jawaban woy');
-    }
 
+    // Cari apakah soal sudah ada di array
     const findQuestion = questions.value.find(d => d.index == questionActive.value);
 
     if (!findQuestion) {
+        // Jika belum ada, push baru
         questions.value.push({
             question: question.value,
             key: key.value,
             index: questionActive.value
         });
     } else {
+        // Jika sudah ada, update
         findQuestion.question = question.value;
         findQuestion.key = key.value;
     }
+    handleToast('Berhasil menyimpan soal!');
 };
+// END pushQuestion
 
+// START handleMethod (Handler untuk Checkbox Tipe Soal)
 const handleMethod = (val) => {
     method.value = val;
 };
+// END handleMethod
 
+// START handleLevel (Handler untuk Pilihan Level)
 const handleLevel = (val) => {
     const foundLevel = methodOfArray.value.find(d => d.level == val);
 
     if (foundLevel) {
         level.value = val;
-        // cek, kalau sama gausah ubah value, supaya method yang kepilih gaperlu pilih ulang
-        const isDataSame = JSON.stringify(methodSelected.value) == JSON.stringify(foundLevel.data)
+        // Cek jika data method sama, tidak perlu reset pilihan method
+        const isDataSame = JSON.stringify(methodSelected.value) == JSON.stringify(foundLevel.data);
         methodSelected.value = isDataSame ? methodSelected.value : foundLevel.data;
         method.value = isDataSame ? method.value : null;
     }
 };
+// END handleLevel
 
+// START handleObjectColor (Handler untuk Pilihan Tipe Objek)
 const handleObjectColor = (val) => {
-    objectValue.value = val
-    if (objectValue == 1)
-        question.value = '#000000'
-}
+    objectValue.value = val;
+    if (objectValue.value == 1) { // Jika pilih 'Warna'
+        question.value = '#000000'; // Set default color
+    }
+};
+// END handleObjectColor
 
+// START handleQuestionBank (Buka/Tutup Modal Bank Soal)
 const handleQuestionBank = () => {
-    isModalShowed.value = !isModalShowed.value
-}
+    isModalShowed.value = !isModalShowed.value;
+};
+// END handleQuestionBank
 
-// Insert question from question bank while selected
+// START insertQuestion (Handler dari Modal Bank Soal)
 const insertQuestion = (params) => {
-    isModalShowed.value = false
+    isModalShowed.value = false;
 
+    // Logika mirip pushQuestion, tapi data dari bank soal
     const findQuestion = questions.value.find(d => d.index == questionActive.value);
     if (!findQuestion) {
         questions.value.push({
-            question: params.question.value,
+            question: params.question.value, // 'question.value' dari bank soal
             key: params.key,
             index: questionActive.value
         });
@@ -167,42 +238,83 @@ const insertQuestion = (params) => {
         findQuestion.key = params.key;
     }
 
-    console.log(question.value);
+    handleToast('Berhasil menyimpan soal!');
+    handleAttemptQuestion(questionActive.value); // Tampilkan data di form
+};
+// END insertQuestion
 
-
-    handleAttemptQuestion(questionActive.value)
-}
-
+// START handleAttemptQuestion (Muat Data Soal ke Form)
 const handleAttemptQuestion = (num) => {
     const findQuestion = questions.value.find(d => d.index == num);
 
     if (findQuestion) {
+        // Jika soal ada di array, muat ke v-model
         question.value = findQuestion.question;
         key.value = findQuestion.key;
     } else {
+        // Jika tidak ada (soal baru), kosongkan v-model
         question.value = '';
         key.value = '';
     }
-}
+};
+// END handleAttemptQuestion
 
+// START Confirmation Modal Handlers
+const showConfirmation = () => {
+    isConfirmOpen.value = true;
+};
+
+const handleConfirmAction = () => {
+    submit(); // Panggil fungsi submit utama
+    isConfirmOpen.value = false; // Tutup modal
+};
+
+const handleCancelAction = () => {
+    isConfirmOpen.value = false; // Tutup modal
+};
+// END Confirmation Modal Handlers
+
+// START handleToast (Helper untuk Menampilkan Toast)
+const handleToast = (msg, type) => {
+    isShowToast.value = true;
+    toastMsg.value = msg;
+    toastType.value = type ?? 'success';
+};
+// END handleToast
+
+// START Watcher untuk Toast
+// (Menggunakan sistem 1 toast, bukan antrian array)
+watch(() => isShowToast.value, () => {
+    if (isShowToast.value == true) {
+        setTimeout(() => {
+            isShowToast.value = false;
+        }, 3000);
+    }
+});
+// END Watcher untuk Toast
+
+// START fileToBase64 (Utility Function)
 const fileToBase64 = (params) => new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.readAsDataURL(params);
     reader.onload = () => resolve(reader.result);
     reader.onerror = error => reject(error);
 });
+// END fileToBase64
 
+// START submit (Fungsi Submit Utama ke API)
 const submit = async () => {
-    errors.value = null;
+    errors.value = {}; // Reset errors
 
-    // console.log(questions.value);
-
+    // Jika method 5 (Tebak Cepat) & object 2 (Gambar)
     if (method.value == 5 && objectValue.value == 2) {
+        // Ubah semua file baru (instanceof File) menjadi Base64
+        // Soal dari bank soal (string path) akan diabaikan
         const formattingPromises = questions.value.map(async (item) => {
-            // Cek apakah 'item.question' BUKAN sebuah File object.
             if (!(item.question instanceof File)) {
-                return item;
+                return item; // Ini adalah string path, biarkan
             }
+            // Ini adalah File, konversi
             const base64File = await fileToBase64(item.question);
             return {
                 ...item,
@@ -210,11 +322,11 @@ const submit = async () => {
             };
         });
 
-        // 3. Tunggu semua promise selesai dan update array
+        // Tunggu semua konversi selesai sebelum lanjut
         questions.value = await Promise.all(formattingPromises);
     }
 
-
+    // Kirim data ke API
     await api.post(`/exercise`, {
         childrenId: route.params.id,
         name: name.value,
@@ -223,15 +335,27 @@ const submit = async () => {
         method: method.value,
         questions: questions.value
     }).then(res => {
-        router.push({ name: 'childs.detail', params: route.params.id })
+        router.push({ name: 'childs.detail', params: route.params.id });
     }).catch(e => {
         if (e.status === 422) errors.value = e.response.data.errors;
     });
 };
+// END submit
+
+// --- End Methods ---
+
+// END SCRIPT SETUP
 </script>
 
 <template>
     <div class="container">
+
+        <ConfirmComponent v-if="isConfirmOpen" title="Simpan soal?"
+            message="Apakah Anda yakin untuk menyimpan soal latihan?" confirmText="Simpan" cancelText="Batal"
+            @confirm="handleConfirmAction" @cancel="handleCancelAction" />
+
+        <ToastComponent :message="toastMsg" :type="toastType" v-show="isShowToast" />
+
         <QuestionBankModal v-if="isModalShowed" :questions="questionBank" :method="method"
             :methodLabel="methodLabel.label" :level="level" :questionType="objectValue" :insertQuestion="insertQuestion"
             :handleQuestionBank="handleQuestionBank" />
@@ -242,6 +366,7 @@ const submit = async () => {
             <h1 class="page-title">Buat Latihan Baru</h1>
         </div>
         <div class="page-body">
+
             <div class="form" v-if="!isDataSaved">
                 <div class="input-flex">
                     <div class="input-wrapper">
@@ -249,7 +374,7 @@ const submit = async () => {
                                 class="req">*</span></label>
                         <CheckboxesComponent :data="methodSelected" :function="handleMethod"
                             :isInvalid="errors?.method ?? false" :invalidMsg="errors?.method ?? ''" />
-                        <!-- For Object Type (Rapid Naming) -->
+
                         <label for="type" :class="{ 'invalid': errors?.method ?? false }" v-if="method == 5">Pilih tipe
                             soal <span class="req">*</span></label>
                         <CheckboxesComponent :data="typeOfObject" :function="handleObjectColor" :isInvalid="false"
@@ -265,26 +390,29 @@ const submit = async () => {
                         <div class="invalid-msg">{{ errors?.level }}</div>
                     </div>
                 </div>
+
                 <input-component label="Judul Latihan" :required="true" type="text" placeholder="Judul latihan"
                     id="name" class="input" v-model="name" :isInvalid="errors?.name ?? false"
                     :invalidMsg="errors?.name ?? ''" />
+
                 <div class="input-wrapper">
                     <label for="editor">Deskripsi</label>
                     <WysiwygEditorComponent v-model="description" class="textarea" />
                 </div>
+
                 <ButtonComponent label="Selanjutnya" size="full" class="secondary" @click="saveData" />
             </div>
             <div class="workspace" v-if="isDataSaved">
+
                 <div class="form">
                     <div class="input-flex">
                         <div class="input-wrapper">
-                            <label for="type" :class="{ 'invalid': errors?.method ?? false }">Tipe Soal</label>
+                            <label for="type">Tipe Soal</label>
                             <div class="method-selected">{{ methodLabel.label }}</div>
-                            <label for="type" :class="{ 'invalid': errors?.method ?? false }" v-if="objectValue">Tipe
-                                Objek</label>
+                            <label for="type" v-if="objectValue">Tipe Objek</label>
                             <div class="method-selected" v-if="objectValue">{{ objectValueLabel.label }}</div>
                         </div>
-                        <div class="input-wrapper level-wrapper" :class="{ 'invalid': errors?.level ?? false }">
+                        <div class="input-wrapper level-wrapper">
                             <label for="level">Level Latihan</label>
                             <div class="level-container">
                                 <div :class="['item', level == 1 ? 'active' : '']" v-if="level == 1">1</div>
@@ -293,19 +421,20 @@ const submit = async () => {
                             </div>
                         </div>
                     </div>
-                    <div class="input-wrapper" v-if="[1, 2, 3, 4].includes(method)">
-                        <label for="editor">Soal</label>
-                        <textarea v-model="question" id="textarea" class="textarea"></textarea>
-                        <!-- <WysiwygEditorComponent v-model="question" class="textarea" /> -->
+
+                    <div class="input-wrapper" v-if="[1, 2, 3, 4].includes(method)"
+                        :class="{ 'invalid': errors?.question ?? false }">
+                        <label for="textarea">Pertanyaan</label>
+                        <textarea v-model="question" id="textarea" placeholder="Masukkan pertanyaan"
+                            :class="['textarea', { 'invalid': errors?.question ?? false }]"></textarea>
+                        <div class="invalid-msg">{{ errors?.question }}</div>
                     </div>
-                    <!-- kalau method 5 dan warna -->
+
                     <input-component v-if="method == 5 && objectValue == 1" label="Pilih Warna" :required="true"
                         type="color" placeholder="Pilih Warna" id="color" class="input" v-model="question"
-                        :isInvalid="errors?.color ?? false" :invalidMsg="errors?.color ?? ''" />
-                    <!-- kalau method 5 dan objek gambar -->
+                        :isInvalid="errors?.question ?? false" :invalidMsg="errors?.question ?? ''" />
+
                     <div class="input-wrapper" v-if="method == 5 && objectValue == 2">
-                        {{ question }}
-                        <!-- cek, kalau misalnya string (isinya path yang dari bank soal), maka tampilkan preview-->
                         <div class="question-from-bank" v-if="(typeof question == 'string' && question != '')">
                             <p>Upload gambar baru jika ingin mengganti gambar</p>
                             <img :src="`${baseUrl}/api/v1/${question}`" alt="Question from bank">
@@ -314,11 +443,14 @@ const submit = async () => {
                         <FileUploadComponent v-model="question" :id="'file'" :infoText="'Upload gambar objek'"
                             accept="image/*" />
                     </div>
+
                     <input-component label="Kunci Jawaban" :required="true" type="text" placeholder="Kunci Jawaban"
                         id="key" class="input" v-model="key" :isInvalid="errors?.key ?? false"
                         :invalidMsg="errors?.key ?? ''" />
+
                     <ButtonComponent label="Simpan" size="full" class="secondary" @click="pushQuestion" />
                 </div>
+
                 <div class="navigation-container">
                     <div class="navigation">
                         <div class="navigation-header">
@@ -345,7 +477,7 @@ const submit = async () => {
                             @click="isModalShowed = true" />
                         <br>
                         <ButtonComponent label="Selesaikan penyimpanan soal" class="secondary" size="full"
-                            display="border" @click="submit" />
+                            display="border" @click="showConfirmation" />
                     </div>
                 </div>
             </div>
@@ -354,6 +486,9 @@ const submit = async () => {
 </template>
 
 <style lang="scss" scoped>
+/* START STYLES */
+
+/* --- Input Umum --- */
 .input {
     margin-bottom: 30px;
 }
@@ -363,12 +498,14 @@ const submit = async () => {
 }
 
 textarea.textarea {
+    margin: auto;
     width: 100%;
     min-height: 50vh;
     border: 1px solid black;
     outline: none;
     border-radius: 10px;
     padding: 15px;
+    background: unset;
 }
 
 .input-flex {
@@ -380,6 +517,9 @@ textarea.textarea {
     }
 }
 
+/* --- End Input Umum --- */
+
+/* --- Wrapper Input & Level --- */
 .input-wrapper {
     margin-bottom: 30px;
 
@@ -391,6 +531,7 @@ textarea.textarea {
         font-size: medium;
     }
 
+    /* Level Selector */
     &.level-wrapper {
         .level-container {
             display: grid;
@@ -440,8 +581,7 @@ textarea.textarea {
         }
     }
 
-
-
+    /* --- Status Invalid (Error) --- */
     .invalid-msg {
         display: none;
     }
@@ -451,12 +591,16 @@ textarea.textarea {
     }
 
     &.invalid {
-
         label {
-            color: var(--Danger-900, #CC1D1D);
+            color: var(--Danger-9G00, #CC1D1D);
+        }
+
+        textarea {
+            border: 2px solid var(--Danger-900);
         }
 
         .item {
+            // Untuk level
             border-color: var(--Danger-900) !important;
             background-color: unset;
         }
@@ -469,6 +613,9 @@ textarea.textarea {
         }
     }
 
+    /* --- End Status Invalid --- */
+
+    /* Preview Gambar dari Bank Soal */
     .question-from-bank {
         color: var(--Danger-900);
         margin-bottom: 15px;
@@ -481,6 +628,10 @@ textarea.textarea {
     }
 }
 
+/* --- End Wrapper Input & Level --- */
+
+
+/* --- Workspace (Form Step 2) --- */
 .workspace {
     display: grid;
     grid-template-columns: 75% auto;
@@ -499,6 +650,9 @@ textarea.textarea {
     }
 }
 
+/* --- End Workspace --- */
+
+/* --- Navigasi Soal --- */
 .navigation {
     background-color: var(--White);
     padding: 30px;
@@ -562,4 +716,8 @@ textarea.textarea {
         gap: 10px;
     }
 }
+
+/* --- End Navigasi Soal --- */
+
+/* END STYLES */
 </style>

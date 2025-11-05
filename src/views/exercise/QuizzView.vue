@@ -1,9 +1,11 @@
 <script setup>
 import ButtonComponent from '@/components/buttons/ButtonComponent.vue';
+import ConfirmComponent from '@/components/confirm/ConfirmComponent.vue';
 import AudioPlayerComponent from '@/components/fields/AudioPlayerComponent.vue';
 import AudioRecorderComponent from '@/components/fields/AudioRecorderComponent.vue';
 import FileUploadComponent from '@/components/fields/FileUploadComponent.vue';
 import ChevronLeftIcon from '@/components/shape/ChevronLeft.Icon.vue';
+import ToastComponent from '@/components/toast/ToastComponent.vue';
 import { formatMethodLabel } from '@/helpers/formatMethodLabel';
 import api from '@/utils/api';
 import { onMounted, ref, watch } from 'vue';
@@ -12,6 +14,14 @@ import { useRoute, useRouter } from 'vue-router';
 const baseUrl = import.meta.env.VITE_APP_API_URL
 const route = useRoute()
 const router = useRouter()
+
+// Modal & Toast State
+const isModalShowed = ref(false); // Bank Soal
+const isConfirmOpen = ref(false); // Konfirmasi Submit
+const confirmMsg = ref(''); // (Tidak terpakai, tapi ada)
+const isShowToast = ref(false);
+const toastMsg = ref('');
+const toastType = ref('success');
 
 const id = route.params.id
 const quizData = ref([])
@@ -65,38 +75,43 @@ const openQuestion = (id, index) => {
     }
 }
 
-const saveAnswerAndNext = () => {
-    const currentQuestionId = questionActive.value._id;
+const saveAnswer = () => {
+    try {
+        handleToast('Berhasil menyimpan jawaban');
 
-    const timeAnswered = new Date();
-    const duration = timeAnswered - currentQuestionStartTime.value;
+        const currentQuestionId = questionActive.value._id;
 
-    let fileType = 'image/jpeg';
-    if ([3, 5].includes(quizData?.value?.method)) {
-        fileType = 'audio/wav';
-    }
+        const timeAnswered = new Date();
+        const duration = timeAnswered - currentQuestionStartTime.value;
 
-    const answerData = {
-        questionId: currentQuestionId,
-        fileType: fileType,
-        answer: file.value,
-        duration: duration,
-        timeOpened: currentQuestionStartTime.value,
-        timeAnswered: timeAnswered,
-    };
+        let fileType = 'image/jpeg';
+        if ([3, 5].includes(quizData?.value?.method)) {
+            fileType = 'audio/wav';
+        }
 
-    const findAnswer = answers.value.find(d => d.questionId == currentQuestionId);
-    console.log(findAnswer);
+        const answerData = {
+            questionId: currentQuestionId,
+            fileType: fileType,
+            answer: file.value,
+            duration: duration,
+            timeOpened: currentQuestionStartTime.value,
+            timeAnswered: timeAnswered,
+        };
 
-    if (findAnswer) {
-        findAnswer.answer = file.value;
-        findAnswer.duration = duration;
-        findAnswer.timeAnswered = timeAnswered;
-        console.log("Jawaban diperbarui:", file.value);
+        const findAnswer = answers.value.find(d => d.questionId == currentQuestionId);
+        console.log(findAnswer);
 
-    } else {
-        answers.value.push(answerData);
-        console.log("Jawaban baru ditambahkan");
+        if (findAnswer) {
+            findAnswer.answer = file.value;
+            findAnswer.duration = duration;
+            findAnswer.timeAnswered = timeAnswered;
+            console.log("Jawaban diperbarui:", file.value);
+        } else {
+            answers.value.push(answerData);
+            console.log("Jawaban baru ditambahkan");
+        }
+    } catch (e) {
+        handleToast('Gagal menyimpan jawaban', 'error')
     }
 }
 
@@ -129,6 +144,40 @@ const finishQuiz = async () => {
     })
 }
 
+// START Confirmation Modal Handlers
+const showConfirmation = () => {
+    isConfirmOpen.value = true;
+};
+
+const handleConfirmAction = () => {
+    finishQuiz(); // Panggil fungsi submit utama
+    isConfirmOpen.value = false; // Tutup modal
+};
+
+const handleCancelAction = () => {
+    isConfirmOpen.value = false; // Tutup modal
+};
+// END Confirmation Modal Handlers
+
+// START handleToast (Helper untuk Menampilkan Toast)
+const handleToast = (msg, type) => {
+    isShowToast.value = true;
+    toastMsg.value = msg;
+    toastType.value = type ?? 'success';
+};
+// END handleToast
+
+// START Watcher untuk Toast
+// (Menggunakan sistem 1 toast, bukan antrian array)
+watch(() => isShowToast.value, () => {
+    if (isShowToast.value == true) {
+        setTimeout(() => {
+            isShowToast.value = false;
+        }, 3000);
+    }
+});
+// END Watcher untuk Toast
+
 watch(() => questionActiveIndex, () => {
     currentQuestionStartTime.value = new Date()
 }, {
@@ -146,6 +195,12 @@ watch(() => questionActiveIndex, () => {
             <h1 class="page-title">Soal</h1>
         </div>
         <div class="page-body">
+            <ConfirmComponent v-if="isConfirmOpen" title="Selesaikan Latihan?"
+                message="Apakah Anda Yakin Untuk Menyelesaikan Sesi Latihan?" confirmText="Simpan" cancelText="Batal"
+                @confirm="handleConfirmAction" @cancel="handleCancelAction" />
+
+            <ToastComponent :message="toastMsg" :type="toastType" v-show="isShowToast" />
+
             <div class="grid-container">
                 <div class="workspace">
                     <div class="method">{{ formatMethodLabel(quizData?.method) }}</div>
@@ -185,7 +240,7 @@ watch(() => questionActiveIndex, () => {
                                 v-model="file" />
                         </div>
                     </div>
-                    <ButtonComponent label="Simpan Jawaban" @click="saveAnswerAndNext" />
+                    <ButtonComponent label="Simpan Jawaban" @click="saveAnswer" />
                 </div>
 
                 <div class="navigation-container">
@@ -212,7 +267,7 @@ watch(() => questionActiveIndex, () => {
                     </div>
                     <div class="question-bank">
                         <ButtonComponent label="Selesaikan soal" class="secondary" size="full" display="border"
-                            @click="finishQuiz" />
+                            @click="showConfirmation" />
                     </div>
                 </div>
             </div>
@@ -282,9 +337,13 @@ watch(() => questionActiveIndex, () => {
         }
 
 
-        .question {
+        .question-display {
             font-size: 40px;
             margin-bottom: 20px;
+
+            h2 {
+                font-family: 'OpenDyslexic';
+            }
         }
 
         .answer-box {
