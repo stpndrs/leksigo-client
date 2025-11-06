@@ -96,7 +96,7 @@ const visibility = async () => {
                         </div>
                     </div>
                     <div class="action">
-                        <ButtonComponent label="Mulai Mengerjakan"
+                        <ButtonComponent label="Mulai Mengerjakan" class="secondary"
                             @click="router.push({ name: 'exercise.quiz', params: { id: route.params.id } })" />
                     </div>
                 </div>
@@ -259,6 +259,10 @@ const visibility = async () => {
 
             .action {
                 justify-items: end;
+
+                button {
+                    margin-bottom: 15px;
+                }
             }
         }
 

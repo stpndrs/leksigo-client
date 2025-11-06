@@ -28,5 +28,6 @@ const props = defineProps({
 <style>
 .ql-editor {
     min-height: 200px;
+    background: var(--Neutral-100);
 }
 </style>

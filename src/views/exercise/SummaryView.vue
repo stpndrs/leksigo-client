@@ -81,6 +81,8 @@ onMounted(async () => {
                             <ButtonComponent label="Selesai" class="secondary"
                                 @click="router.push({ name: 'exercise.overview', params: { id: id } })" />
                         </div>
+                        <ButtonComponent label="Penilaian Perilaku" class="secondary" display="border"
+                            @click="router.push({ name: 'exercise.attitude', params: { id: route.params.id, historyId: historyId } })" size="full" />
                     </div>
                 </div>
             </div>
@@ -232,6 +234,7 @@ onMounted(async () => {
                     justify-content: space-between;
                     align-items: center;
                     gap: 15px;
+                    margin-bottom: 30px;
                 }
 
                 // justify-items: end;
