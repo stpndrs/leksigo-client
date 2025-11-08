@@ -37,27 +37,19 @@ const router = createRouter({
 						{
 							path: '',
 							name: 'childs.index',
-							component: () => {
-								const roleFolder = authStore.user.role === 1 ? 'teacher' : 'parent';
-								return import(`../views/${roleFolder}/childs/ListView.vue`);
-							}
+							component: () => import(`../views/childs/ListView.vue`)
 						},
 						{
 							path: '/dashboard/childs/create',
 							name: 'childs.create',
-							component: () => {
-								const roleFolder = authStore.user.role === 1 ? 'teacher' : 'parent';
-								return import(`../views/${roleFolder}/childs/CreateView.vue`);
-							}
+							component: () => import(`../views/childs/CreateView.vue`)
 						},
 						{
 							path: '/dashboard/childs/:id',
 							name: 'childs.detail',
-							component: () => {
-								const roleFolder = authStore.user.role === 1 ? 'teacher' : 'parent';
-								return import(`../views/${roleFolder}/childs/DetailView.vue`);
-							}
+							component: () => import(`../views/childs/DetailView.vue`)
 						},
+						// dibawah harusnya untuk liat progress, tapi diganti jadi seperti hasil belajar di lms quiz 
 						{
 							path: '/dashboard/childs/:id/work',
 							name: 'childs.work',
