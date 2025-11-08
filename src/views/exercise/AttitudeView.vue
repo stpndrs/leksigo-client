@@ -13,7 +13,7 @@ const route = useRoute()
 const router = useRouter()
 
 const id = route.params.id
-const historyId = route.params.historyId
+const quizId = route.params.quizId
 const isConfirmOpen = ref(false); // Konfirmasi Submit
 
 const data = ref({})
@@ -40,12 +40,12 @@ onMounted(async () => {
 const submit = async () => {
     await api.post('/exercise/attitude', {
         exerciseId: id,
-        historyId: historyId,
+        quizId: quizId,
         note: note.value,
         point: point.value
     }).then(res => {
         console.log(res);
-        router.push({ name: 'exercise.summary', params: { id: id, historyId: historyId } })
+        router.push({ name: 'exercise.quiz.summary', params: { id: id, quizId: quizId } })
     }).catch(err => {
         console.log(err);
     })
@@ -72,7 +72,7 @@ const handleCancelAction = () => {
 <template>
     <div class="container">
         <div class="page-header">
-            <router-link :to="{ name: 'exercise.summary', params: { id: id, historyId: historyId } }">
+            <router-link :to="{ name: 'exercise.quiz.summary', params: { id: id, quizId: quizId } }">
                 <ChevronLeftIcon />
             </router-link>
             <h1 class="page-title">Penilaian Perilaku</h1>

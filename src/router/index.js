@@ -75,22 +75,32 @@ const router = createRouter({
 							name: 'exercise.work',
 							children: [
 								{
-									path: '',
-									name: 'exercise.overview',
+									path: '/exercise/quiz/list/:id',
+									name: 'exercise.quiz.list',
+									component: () => import('../views/exercise/QuizListView.vue')
+								},
+								{
+									path: '/exercise/quiz/create/:id',
+									name: 'exercise.quiz.create',
+									component: () => import('../views/exercise/CreateQuizView.vue')
+								},
+								{
+									path: '/exercise/quiz/overview/:id/:quizId',
+									name: 'exercise.quiz.overview',
 									component: () => import('../views/exercise/OverView.vue')
 								},
 								{
-									path: '/exercise/quiz/:id',
-									name: 'exercise.quiz',
+									path: '/exercise/quiz/work/:id/:quizId',
+									name: 'exercise.quiz.work',
 									component: () => import('../views/exercise/QuizzView.vue')
 								},
 								{
-									path: '/exercise/summary/:id/:historyId',
-									name: 'exercise.summary',
+									path: '/exercise/summary/:id/:quizId',
+									name: 'exercise.quiz.summary',
 									component: () => import('../views/exercise/SummaryView.vue')
 								},
 								{
-									path: '/exercise/attitude/:id/:historyId',
+									path: '/exercise/attitude/:id/:quizId',
 									name: 'exercise.attitude',
 									component: () => import('../views/exercise/AttitudeView.vue')
 								}

@@ -30,14 +30,14 @@ onMounted(async () => {
             console.log(err);
         })
     // OLAH DATA UNTUK TAMPILKAN POIN DI SETIAP LATIHAN
-    data.value.exercises.map(element => {
-        let exercisePoint = 0
-        element.workHistories.map(d => {
-            points.value += parseInt(d.exercisePoint) ?? 0
-            exercisePoint += parseInt(d.exercisePoint) ?? 0
-        })
-        return element.exercisePoint = exercisePoint
-    })
+    // data.value.exercises.map(element => {
+    //     let exercisePoint = 0
+    //     element.workHistories.map(d => {
+    //         points.value += parseInt(d.exercisePoint) ?? 0
+    //         exercisePoint += parseInt(d.exercisePoint) ?? 0
+    //     })
+    //     return element.exercisePoint = exercisePoint
+    // })
     console.log(data.value);
 })
 
@@ -156,12 +156,12 @@ const handleStatusFilter = (params) => {
                             </div>
                             <div class="card-body">
                                 <div class="item" v-for="(item, index) in data?.exercises" :key="index"
-                                    @click="$router.push({ name: 'exercise.overview', params: { id: item._id } })">
+                                    @click="$router.push({ name: 'exercise.quiz.list', params: { id: item._id } })">
                                     <div class="point">{{ item?.exercisePoint ?? 0 }}</div>
                                     <div class="identity">
                                         <p class="title">{{ item.name }}</p>
                                         <p class="date">{{ formatDate(item.createdAt) }}</p>
-                                        <div class="category">{{ item.method }}</div>
+                                        <!-- <div class="category">{{ item.method }}</div> -->
                                     </div>
                                     <!-- <div class="question">
                                         <span class="worked" v-if="points">{{ item?.workHistories?.answers?.length

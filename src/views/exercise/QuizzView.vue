@@ -24,6 +24,7 @@ const toastMsg = ref('');
 const toastType = ref('success');
 
 const id = route.params.id
+const quizId = route.params.quizId
 const quizData = ref([])
 const questionsData = ref([])
 const questionActive = ref({})
@@ -33,7 +34,7 @@ const file = ref()
 const currentQuestionStartTime = ref(null)
 
 onMounted(async () => {
-    await api.get(`/exercise/${id}`)
+    await api.get(`/exercise/${id}/quiz/${quizId}`)
         .then((res) => {
             quizData.value = res.data.data
             initQuiz()
@@ -46,14 +47,6 @@ onMounted(async () => {
 const initQuiz = async () => {
     questionsData.value = quizData.value.questions
     questionActive.value = questionsData.value[0]
-
-    await api.post(`exercise/history`, {
-        exerciseId: quizData.value._id
-    }).then(res => {
-        quizData.value.historyId = res.data.data.history._id
-    }).catch(e => {
-        console.log(e);
-    })
 }
 
 const openQuestion = (id, index) => {
@@ -134,10 +127,10 @@ const finishQuiz = async () => {
 
     await api.post('/exercise/answer', {
         exerciseId: id,
-        historyId: quizData.value.historyId,
+        quizId: quizData.value._id,
         answers: formattedAnswers
     }).then(res => {
-        router.push({ name: 'exercise.summary', params: { id: id, historyId: quizData.value.historyId } })
+        router.push({ name: 'exercise.quiz.summary', params: { id: id, quizId: quizData.value.quizId } })
         console.log(res);
     }).catch(e => {
         console.log(e);
@@ -189,7 +182,7 @@ watch(() => questionActiveIndex, () => {
 <template>
     <div class="container">
         <div class="page-header">
-            <router-link :to="{ name: 'exercise.overview', params: id }">
+            <router-link :to="{ name: 'exercise.quiz.overview', params: {id, quizId} }">
                 <ChevronLeftIcon />
             </router-link>
             <h1 class="page-title">Soal</h1>
@@ -203,22 +196,22 @@ watch(() => questionActiveIndex, () => {
 
             <div class="grid-container">
                 <div class="workspace">
-                    <div class="method">{{ formatMethodLabel(quizData?.method) }}</div>
+                    <div class="method">{{ formatMethodLabel(questionActive?.method) }}</div>
                     <p class="guide">
-                        <span v-if="[1, 2, 4].includes(quizData?.method)">Tulislah jawaban di kertas, lalu upload
+                        <span v-if="[1, 2, 4].includes(questionActive?.method)">Tulislah jawaban di kertas, lalu upload
                             sebagai foto/gambar.</span>
-                        <span v-if="[3, 5].includes(quizData?.method)">Rekam suara Anda sebagai jawaban.</span>
+                        <span v-if="[3, 5].includes(questionActive?.method)">Rekam suara Anda sebagai jawaban.</span>
                     </p>
                     <div class="workspace-body">
                         <div class="question-display">
                             {{ questionActive?.question?.value }}
                             <!-- if 1 = tampilkan tag audio -->
-                            <AudioPlayerComponent v-if="quizData?.method == 1"
+                            <AudioPlayerComponent v-if="questionActive?.method == 1"
                                 :text="questionActive?.question?.value" />
                             <!-- if 2 = tampilkan text untuk ditulis ulang -->
                             <!-- if 3 = tampilkan text dan recorder untuk dibaca -->
                             <!-- if 4 = mengurutkan kata -->
-                            <h2 v-else-if="quizData?.method == 2 || quizData?.method == 3 || quizData?.method == 4">{{
+                            <h2 v-else-if="questionActive?.method == 2 || questionActive?.method == 3 || questionActive?.method == 4">{{
                                 questionActive?.question.value }}</h2>
                             <!-- if 5 = menebak cepat -->
                             <!-- if isHexColor true -->
@@ -233,10 +226,10 @@ watch(() => questionActiveIndex, () => {
                         <div class="answer-box">
                             <h3>Jawaban</h3>
                             <!-- if 1 = tampilkan field upload gambar -->
-                            <FileUploadComponent v-if="[1, 2, 4].includes(quizData?.method)" v-model="file" :id="'file'"
+                            <FileUploadComponent v-if="[1, 2, 4].includes(questionActive?.method)" v-model="file" :id="'file'"
                                 :infoText="'Upload gambar tulisan'" accept="image/*" />
                             <!-- else -->
-                            <AudioRecorderComponent v-if="quizData?.method == 3 || quizData?.method == 5"
+                            <AudioRecorderComponent v-if="questionActive?.method == 3 || questionActive?.method == 5"
                                 v-model="file" />
                         </div>
                     </div>

@@ -11,20 +11,18 @@ import { useRoute, useRouter } from 'vue-router';
 const route = useRoute()
 const router = useRouter()
 const data = ref([])
-const history = ref({})
+const quiz = ref({})
 const id = route.params.id
-const historyId = route.params.historyId
+const quizId = route.params.quizId
 const correctAnswer = ref(0)
 
 onMounted(async () => {
-    api.get(`/exercise/${id}`)
+    api.get(`/exercise/${id}/quiz/${quizId}`)
         .then((res) => {
             data.value = res.data.data
-            history.value = res.data.data.workHistories.find(d => d._id == historyId)
-            // console.log(history.value.answers.length);
 
-            console.log(history.value);
-            history.value.answers.map(d => {
+            console.log(quiz.value);
+            quiz.value.answers.map(d => {
                 if (d.similarityPoint > 0) correctAnswer.value++
             })
         })
@@ -37,7 +35,7 @@ onMounted(async () => {
 <template>
     <div class="container">
         <div class="page-header">
-            <router-link :to="{ name: 'exercise.overview', params: { id: id } }">
+            <router-link :to="{ name: 'exercise.quiz.overview', params: { id: id } }">
                 <ChevronLeftIcon />
             </router-link>
             <h1 class="page-title">Hasil Latihan</h1>
@@ -57,21 +55,21 @@ onMounted(async () => {
                         <div v-html="data?.description"></div>
                     </div>
                     <div class="data">
-                        <div class="date">Tanggal Dikerjakan : <span>{{ formatDate(history?.date) }}</span></div>
+                        <div class="date">Tanggal Dikerjakan : <span>{{ formatDate(data?.date) }}</span></div>
                         <div class="questionTotal">Jumlah Soal : <span>{{ data?.questions?.length }} Soal</span></div>
                         <div class="point">Poin Lolos : <span>60 Poin</span></div>
                     </div>
                     <div class="summary-data">
-                        <p>Perolehan Poin : <span>{{ parseInt(history?.exercisePoint) }} Poin</span></p>
-                        <p>Soal Dikerjakan : <span>{{ history?.answers?.length }} Soal</span></p>
-                        <p>Soal Tidak Dikerjakan : <span>{{ data?.questions?.length - history?.answers?.length }}
+                        <p>Perolehan Poin : <span>{{ parseInt(data?.quizPoint) }} Poin</span></p>
+                        <p>Soal Dikerjakan : <span>{{ data?.answers?.length }} Soal</span></p>
+                        <p>Soal Tidak Dikerjakan : <span>{{ data?.questions?.length - data?.answers?.length }}
                                 Soal</span></p>
                         <br>
                         <p>Soal Benar : <span>{{ correctAnswer }}
                                 Soal</span></p>
-                        <p>Soal Salah : <span>{{ history?.answers?.length - correctAnswer }}
+                        <p>Soal Salah : <span>{{ data?.answers?.length - correctAnswer }}
                                 Soal</span></p>
-                        <h1 v-html="history?.exercisePoint >= 60 ? 'Lulus' : 'Tidak Lulus'"></h1>
+                        <h1 v-html="data?.exercisePoint >= 60 ? 'Lulus' : 'Tidak Lulus'"></h1>
                     </div>
                     <div class="action">
                         <HorrayIcon class="icon" />
@@ -82,7 +80,8 @@ onMounted(async () => {
                                 @click="router.push({ name: 'exercise.overview', params: { id: id } })" />
                         </div>
                         <ButtonComponent label="Penilaian Perilaku" class="secondary" display="border"
-                            @click="router.push({ name: 'exercise.attitude', params: { id: route.params.id, historyId: historyId } })" size="full" />
+                            @click="router.push({ name: 'exercise.attitude', params: { id: route.params.id, quizId: quizId } })"
+                            size="full" />
                     </div>
                 </div>
             </div>
@@ -247,7 +246,7 @@ onMounted(async () => {
                 margin: 10px 0;
             }
 
-            .history-container {
+            .quiz-container {
                 .nodata {
                     text-align: center;
                     color: var(--Secondary-900);

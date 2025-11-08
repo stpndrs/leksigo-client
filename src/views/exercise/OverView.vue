@@ -12,35 +12,19 @@ import { useRoute, useRouter } from 'vue-router';
 const router = useRouter()
 const route = useRoute()
 const id = route.params.id
+const quizId = route.params.quizId
 const data = ref([])
-const childId = ref(null)
-const histories = ref([])
-const newHistories = ref([])
-
-const analyzeExerciseHistory = () => {
-    histories.value.forEach(d => {
-        newHistories.value.push({
-            date: d.date,
-            exercisePoint: d.exercisePoint,
-            attitudePoint: d.attitudePoint,
-            answeredCount: d.answers.length,
-            notAnsweredCount: data.value.questions.length - d.answers.length
-        })
-    })
-}
 
 onMounted(async () => {
     getData()
 })
 
 const getData = async () => {
-    await api.get(`/exercise/${id}`)
+    await api.get(`/exercise/${id}/quiz/${quizId}`)
         .then((res) => {
             data.value = res.data.data
-            childId.value = res.data.data.childrenId
-            histories.value = res.data.data.workHistories
 
-            analyzeExerciseHistory()
+            // analyzeExerciseHistory()
         })
         .catch((err) => {
             console.log(err);
@@ -62,7 +46,7 @@ const visibility = async () => {
 <template>
     <div class="container">
         <div class="page-header">
-            <router-link :to="{ name: 'childs.detail', params: { id: childId } }">
+            <router-link :to="{ name: 'exercise.quiz.list', params: { id: id } }">
                 <ChevronLeftIcon />
             </router-link>
             <h1 class="page-title">Mengerjakan Latihan</h1>
@@ -85,36 +69,13 @@ const visibility = async () => {
                         <div v-html="data?.description"></div>
                     </div>
                     <div class="data">
-                        <div class="date">Tanggal Ditambahkan : <span>{{ formatDate(data?.createdAt) }}</span></div>
+                        <div class="date">Tanggal Ditambahkan : <span>{{ formatDate(data?.date) }}</span></div>
                         <div class="questionTotal">Jumlah Soal : <span>{{ data?.questions?.length }}</span></div>
                         <div class="point">Poin Lolos : <span>60</span></div>
                     </div>
-                    <div class="categories">
-                        <p>Tipe Latihan</p>
-                        <div class="categories-grid">
-                            <div class="category active">{{ data?.methodLabel }}</div>
-                        </div>
-                    </div>
                     <div class="action">
                         <ButtonComponent label="Mulai Mengerjakan" class="secondary"
-                            @click="router.push({ name: 'exercise.quiz', params: { id: route.params.id } })" />
-                    </div>
-                </div>
-                <div class="card-footer">
-                    <h3>Riwayat Pengerjaan</h3>
-                    <hr>
-                    <div class="history-container">
-                        <p class="nodata" v-if="histories.length == 0">Belum ada riwayat pengerjaan</p>
-                        <div class="item" v-else v-for="(item, index) in newHistories" :key="index">
-                            <div class="left">
-                                <h3 class="point">{{ parseInt(item.exercisePoint) }} Point</h3>
-                                <p class="date">Tanggal : {{ formatDate(item.date) }}</p>
-                            </div>
-                            <div class="right">
-                                <div class="worked">Soal Dikerjakan : {{ item.answeredCount }}</div>
-                                <div class="notworked">Soal Tidak Dikerjakan : {{ item.notAnsweredCount }}</div>
-                            </div>
-                        </div>
+                            @click="router.push({ name: 'exercise.quiz.work', params: { id: id, quizId: quizId } })" />
                     </div>
                 </div>
             </div>
@@ -258,55 +219,10 @@ const visibility = async () => {
             }
 
             .action {
-                justify-items: end;
+                justify-items: start;
 
                 button {
                     margin-bottom: 15px;
-                }
-            }
-        }
-
-        .card-footer {
-            hr {
-                border: 1px solid var(--Secondary-900);
-                margin: 10px 0;
-                margin-bottom: 30px;
-            }
-
-            .history-container {
-                .nodata {
-                    text-align: center;
-                    color: var(--Secondary-900);
-                    font-size: 20px;
-                }
-
-                .item {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    padding: 30px;
-                    border: 2px solid var(--Secondary-900);
-                    border-radius: 10px;
-                    margin-bottom: 10px;
-
-                    .point {
-                        font-weight: bold;
-                    }
-
-                    .date {
-                        font-size: 20px;
-                        color: var(--Secondary-900);
-                    }
-
-                    .worked {
-                        color: var(--Secondary-900);
-                        font-size: 20px;
-                    }
-
-                    .notworked {
-                        color: var(--Primary-900);
-                        font-size: 20px;
-                    }
                 }
             }
         }
