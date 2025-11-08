@@ -2,9 +2,21 @@
 import ButtonComponent from '@/components/buttons/ButtonComponent.vue';
 import child from '@/assets/images/child.png'
 import CopyIcon from '@/components/shape/CopyIcon.vue';
+import { useRouter } from 'vue-router';
+import { workStore } from '@/stores/WorkStore';
 
 const props = defineProps(['id', 'level', 'name', 'code', 'parentName', 'method'])
-console.log(props);
+const router = useRouter()
+
+const handleWorkMode = (params) => {
+    if (params == 'detail') {
+        workStore.exitWorkMode()
+        router.push({ name: 'childs.detail', params: { id: props.id } })
+    } else {
+        workStore.enterWorkMode()
+        router.push({ name: 'childs.detail', params: { id: props.id } })
+    }
+}
 
 </script>
 
@@ -24,9 +36,9 @@ console.log(props);
             </div>
         </div>
         <div class="card-footer">
-            <button-component label="Detail" size="full"
-                @click="$router.push({ name: 'childs.detail', params: { id: props.id } })" />
-            <button-component label="Hapus" display="border" size="full" @click="props.method(props.code)" />
+            <button-component label="Detail" size="full" @click="handleWorkMode('detail')" />
+            <button-component label="Kerjakan Tugas" size="full" @click="handleWorkMode('work')" />
+            <button-component label="Hapus" display="border" size="full" @click="props.method(props.id)" />
         </div>
     </div>
 </template>

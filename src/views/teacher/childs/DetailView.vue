@@ -6,6 +6,7 @@ import FilterModal from '@/components/modal/FilterModal.vue';
 import ChevronLeftIcon from '@/components/shape/ChevronLeft.Icon.vue';
 import FilterIcon from '@/components/shape/FilterIcon.vue';
 import { formatDate } from '@/helpers/formatDate';
+import { workStore } from '@/stores/WorkStore';
 import api from '@/utils/api';
 import { onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
@@ -20,6 +21,7 @@ const data = ref()
 const points = ref(0)
 const dataContainer = ref(null)
 const activeSlide = ref(0)
+const isWorkMode = workStore.isWorkMode
 
 onMounted(async () => {
     await api(`/childs/${id}`)
@@ -29,16 +31,6 @@ onMounted(async () => {
         }).catch((err) => {
             console.log(err);
         })
-    // OLAH DATA UNTUK TAMPILKAN POIN DI SETIAP LATIHAN
-    // data.value.exercises.map(element => {
-    //     let exercisePoint = 0
-    //     element.workHistories.map(d => {
-    //         points.value += parseInt(d.exercisePoint) ?? 0
-    //         exercisePoint += parseInt(d.exercisePoint) ?? 0
-    //     })
-    //     return element.exercisePoint = exercisePoint
-    // })
-    console.log(data.value);
 })
 
 /**
@@ -170,7 +162,7 @@ const handleStatusFilter = (params) => {
                                     </div> -->
                                 </div>
                             </div>
-                            <div class="card-footer">
+                            <div class="card-footer" v-if="!isWorkMode">
                                 <ButtonComponent label="Buat Soal" class="secondary" size="large"
                                     @click="$router.push({ name: 'exercise.create', params: id })" />
                             </div>
@@ -193,7 +185,7 @@ const handleStatusFilter = (params) => {
                                     <div class="category">{{ item.method }}</div>
                                 </div>
                             </div>
-                            <div class="card-footer">
+                            <div class="card-footer" v-if="!isWorkMode">
                                 <ButtonComponent label="Buat Materi" class="primary" size="large"
                                     @click="$router.push({ name: 'material.create', params: id })" />
                             </div>

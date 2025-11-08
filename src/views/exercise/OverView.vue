@@ -5,12 +5,14 @@ import EyeIcon from '@/components/shape/EyeIcon.vue';
 import EyeSlashIcon from '@/components/shape/EyeSlashIcon.vue';
 import { formatDate } from '@/helpers/formatDate';
 import { useQuizStore } from '@/stores/quiz';
+import { workStore } from '@/stores/WorkStore';
 import api from '@/utils/api';
 import { onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 const router = useRouter()
 const route = useRoute()
+const isWorkMode = workStore.isWorkMode
 const id = route.params.id
 const quizId = route.params.quizId
 const data = ref([])
@@ -23,8 +25,6 @@ const getData = async () => {
     await api.get(`/exercise/${id}/quiz/${quizId}`)
         .then((res) => {
             data.value = res.data.data
-
-            // analyzeExerciseHistory()
         })
         .catch((err) => {
             console.log(err);
@@ -33,7 +33,7 @@ const getData = async () => {
 }
 
 const visibility = async () => {
-    await api.post(`exercise/${id}`)
+    await api.post(`exercise/${id}/quiz/${quizId}/visibility`)
         .then(res => {
             getData()
         })
@@ -62,7 +62,7 @@ const visibility = async () => {
                     </div>
                     <ButtonComponent :label="!data.isHidden ? 'Sembunyikan' : 'Tampilkan'"
                         :icon="!data.isHidden ? EyeSlashIcon : EyeIcon" class="secondary" size="small" display="border"
-                        @click="visibility" />
+                        @click="visibility" v-if="!isWorkMode" />
                 </div>
                 <div class="card-body">
                     <div class="description">

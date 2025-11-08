@@ -5,12 +5,15 @@ import DoneIcon from '@/components/shape/DoneIcon.vue';
 import LockIcon from '@/components/shape/LockIcon.vue';
 import LockOpenIcon from '@/components/shape/LockOpenIcon.vue';
 import { formatDate } from '@/helpers/formatDate';
+import { workStore } from '@/stores/WorkStore';
 import api from '@/utils/api';
 import { onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 const route = useRoute()
 const router = useRouter()
+
+const isWorkMode = workStore.isWorkMode
 
 const data = ref({})
 const id = route.params.id
@@ -19,18 +22,37 @@ const totalQuizPoint = ref(0)
 
 
 onMounted(async () => {
-    await api.get(`/exercise/${route.params.id}`)
-        .then((res) => {
-            console.log(res);
-            data.value = res.data.data
-            console.log(data.value);
-
-            data.value.quiz.forEach(item => {
-                totalQuizPoint.value += item.quizPoint || 0
-            });
-        }).catch(err => {
-            console.error(err)
+    if (isWorkMode) {
+        await api.get(`/exercise/${route.params.id}`, {
+            params: {
+                hidden: false
+            }
         })
+            .then((res) => {
+                console.log(res);
+                data.value = res.data.data
+                console.log(data.value);
+
+                data.value.quiz.forEach(item => {
+                    totalQuizPoint.value += item.quizPoint || 0
+                });
+            }).catch(err => {
+                console.error(err)
+            })
+    } else {
+        await api.get(`/exercise/${route.params.id}`)
+            .then((res) => {
+                console.log(res);
+                data.value = res.data.data
+                console.log(data.value);
+
+                data.value.quiz.forEach(item => {
+                    totalQuizPoint.value += item.quizPoint || 0
+                });
+            }).catch(err => {
+                console.error(err)
+            })
+    }
 })
 
 </script>
@@ -50,7 +72,7 @@ onMounted(async () => {
             <div class="action">
                 <p class="score">Total Skor : <strong>{{ totalQuizPoint }}</strong></p>
                 <ButtonComponent label="Buat Latihan" class="secondary"
-                    @click="router.push({ name: 'exercise.quiz.create', params: { id: id } })" />
+                    @click="router.push({ name: 'exercise.quiz.create', params: { id: id } })" v-if="!isWorkMode" />
             </div>
             <div class="quiz-container">
                 <div :class="['item', { disabled: index > 0 ? data?.quiz[index - 1]?.answers?.length == 0 || data?.quiz[index - 1]?.quizPoint < 60 : false }]"

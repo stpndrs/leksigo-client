@@ -23,9 +23,9 @@ const getData = async () => {
         })
 }
 
-const destroy = async (code) => {
+const destroy = async (id) => {
     if (confirm("Yakin ingin menghapus data?")) {
-        await api.delete(`/childs/${code}`)
+        await api.delete(`/childs/${id}`)
             .then((res) => {
                 console.log(res.data);
                 getData()

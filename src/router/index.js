@@ -58,6 +58,14 @@ const router = createRouter({
 								return import(`../views/${roleFolder}/childs/DetailView.vue`);
 							}
 						},
+						{
+							path: '/dashboard/childs/:id/work',
+							name: 'childs.work',
+							component: () => {
+								const roleFolder = authStore.user.role === 1 ? 'teacher' : 'parent';
+								return import(`../views/${roleFolder}/childs/WorkView.vue`);
+							}
+						},
 
 					]
 				},
