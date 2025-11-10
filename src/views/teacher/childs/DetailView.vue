@@ -153,17 +153,11 @@ const handleStatusFilter = (params) => {
                                     <div class="identity">
                                         <p class="title">{{ item.name }}</p>
                                         <p class="date">{{ formatDate(item.createdAt) }}</p>
-                                        <!-- <div class="category">{{ item.method }}</div> -->
                                     </div>
-                                    <!-- <div class="question">
-                                        <span class="worked" v-if="points">{{ item?.workHistories?.answers?.length
-                                        }}</span> <span v-show="points">/</span>
-                                        <span class="total">20</span>
-                                    </div> -->
                                 </div>
                             </div>
                             <div class="card-footer" v-if="!isWorkMode">
-                                <ButtonComponent label="Buat Soal" class="secondary" size="large"
+                                <ButtonComponent label="Buat Latihan" class="secondary" size="large"
                                     @click="$router.push({ name: 'exercise.create', params: id })" />
                             </div>
                         </div>
