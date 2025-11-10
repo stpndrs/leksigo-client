@@ -15,45 +15,40 @@ const router = useRouter()
 
 const isWorkMode = workStore.isWorkMode
 
-const data = ref({})
+const data = ref([])
 const id = route.params.id
 
 const totalQuizPoint = ref(0)
 
 
 onMounted(async () => {
+    let params
     if (isWorkMode) {
-        await api.get(`/exercise/${route.params.id}`, {
-            params: {
-                hidden: false
-            }
-        })
-            .then((res) => {
-                console.log(res);
-                data.value = res.data.data
-                console.log(data.value);
-
-                data.value.quiz.forEach(item => {
-                    totalQuizPoint.value += item.quizPoint || 0
-                });
-            }).catch(err => {
-                console.error(err)
-            })
-    } else {
-        await api.get(`/exercise/${route.params.id}`)
-            .then((res) => {
-                console.log(res);
-                data.value = res.data.data
-                console.log(data.value);
-
-                data.value.quiz.forEach(item => {
-                    totalQuizPoint.value += item.quizPoint || 0
-                });
-            }).catch(err => {
-                console.error(err)
-            })
+        params = {
+            hidden: false
+        }
     }
+
+    await api.get(`/exercise/${route.params.id}`, {
+        params: params
+    })
+        .then((res) => {
+            console.log(res);
+            data.value = res.data.data
+            console.log(data.value);
+
+            calculateTotalPoint()
+
+        }).catch(err => {
+            console.error(err)
+        })
 })
+
+const calculateTotalPoint = () => {
+    data.value.quiz.forEach(item => {
+        totalQuizPoint.value += parseInt(item.quizPoint) || 0
+    });
+}
 
 </script>
 

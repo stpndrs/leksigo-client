@@ -11,7 +11,6 @@ import { useRoute, useRouter } from 'vue-router';
 const route = useRoute()
 const router = useRouter()
 const data = ref([])
-const quiz = ref({})
 const id = route.params.id
 const quizId = route.params.quizId
 const correctAnswer = ref(0)
@@ -21,8 +20,7 @@ onMounted(async () => {
         .then((res) => {
             data.value = res.data.data
 
-            console.log(quiz.value);
-            quiz.value.answers.map(d => {
+            data.value.answers.map(d => {
                 if (d.similarityPoint > 0) correctAnswer.value++
             })
         })
@@ -60,7 +58,7 @@ onMounted(async () => {
                         <div class="point">Poin Lolos : <span>60 Poin</span></div>
                     </div>
                     <div class="summary-data">
-                        <p>Perolehan Poin : <span>{{ parseInt(data?.quizPoint) }} Poin</span></p>
+                        <p>Perolehan Poin : <span>{{ data?.quizPoint }} Poin</span></p>
                         <p>Soal Dikerjakan : <span>{{ data?.answers?.length }} Soal</span></p>
                         <p>Soal Tidak Dikerjakan : <span>{{ data?.questions?.length - data?.answers?.length }}
                                 Soal</span></p>
@@ -69,15 +67,15 @@ onMounted(async () => {
                                 Soal</span></p>
                         <p>Soal Salah : <span>{{ data?.answers?.length - correctAnswer }}
                                 Soal</span></p>
-                        <h1 v-html="data?.exercisePoint >= 60 ? 'Lulus' : 'Tidak Lulus'"></h1>
+                        <h1 v-html="data?.quizPoint >= 60 ? 'Lulus' : 'Tidak Lulus'"></h1>
                     </div>
                     <div class="action">
                         <HorrayIcon class="icon" />
                         <div class="btn-group">
                             <ButtonComponent label="Coba Lagi" display="border" class="secondary"
-                                @click="router.push({ name: 'exercise.quiz', params: { id: route.params.id } })" />
+                                @click="router.push({ name: 'exercise.quiz.overview', params: { id: id, quizId: quizId } })" />
                             <ButtonComponent label="Selesai" class="secondary"
-                                @click="router.push({ name: 'exercise.overview', params: { id: id } })" />
+                                @click="router.push({ name: 'exercise.quiz.list', params: { id: id } })" />
                         </div>
                         <ButtonComponent label="Penilaian Perilaku" class="secondary" display="border"
                             @click="router.push({ name: 'exercise.attitude', params: { id: route.params.id, quizId: quizId } })"
