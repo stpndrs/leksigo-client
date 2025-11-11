@@ -75,7 +75,7 @@ const saveAnswer = () => {
         const currentQuestionId = questionActive.value._id;
 
         const timeAnswered = new Date();
-        const duration = timeAnswered - currentQuestionStartTime.value;
+        const duration = (timeAnswered - currentQuestionStartTime.value) / 1000;
 
         let fileType = 'image/jpeg';
         if ([3, 5].includes(quizData?.value?.method)) {
@@ -204,10 +204,9 @@ watch(() => questionActiveIndex, () => {
                     </p>
                     <div class="workspace-body">
                         <div class="question-display">
-                            {{ questionActive?.question?.value }}
                             <!-- if 1 = tampilkan tag audio -->
                             <AudioPlayerComponent v-if="questionActive?.method == 1"
-                                :text="questionActive?.question?.value" />
+                                :text="questionActive?.question?.value" displayStyle="text" />
                             <!-- if 2 = tampilkan text untuk ditulis ulang -->
                             <!-- if 3 = tampilkan text dan recorder untuk dibaca -->
                             <!-- if 4 = mengurutkan kata -->

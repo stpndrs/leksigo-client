@@ -95,15 +95,20 @@ const router = createRouter({
 									component: () => import('../views/exercise/QuizzView.vue')
 								},
 								{
-									path: '/exercise/summary/:id/:quizId',
+									path: '/exercise/quiz/summary/:id/:quizId',
 									name: 'exercise.quiz.summary',
 									component: () => import('../views/exercise/SummaryView.vue')
+								},
+								{
+									path: '/exercise/quiz/review/:id/:quizId',
+									name: 'exercise.quiz.review',
+									component: () => import('../views/exercise/ReviewView.vue')
 								},
 								{
 									path: '/exercise/attitude/:id/:quizId',
 									name: 'exercise.attitude',
 									component: () => import('../views/exercise/AttitudeView.vue')
-								}
+								},
 							]
 						}
 					]
