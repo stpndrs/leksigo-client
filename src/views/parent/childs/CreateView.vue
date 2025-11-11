@@ -6,9 +6,12 @@ import child from '@/assets/images/child.png'
 import { useRouter } from 'vue-router';
 import { ref } from 'vue';
 import api from '@/utils/api';
+import InformationModal from '@/components/modal/InformationModal.vue';
+import InfoIcon from '@/components/shape/InfoIcon.vue';
 
 const router = useRouter()
 
+const isShowModal = ref(false)
 const fullName = ref('')
 const isScreening = ref(null)
 const level = ref()
@@ -35,10 +38,15 @@ async function submit() {
         if (e.status === 422) errors.value = e.response.data.errors
     })
 }
+
+const handleModal = () => {
+    isShowModal.value = !isShowModal.value
+}
 </script>
 
 <template>
     <div class="container">
+        <InformationModal v-if="isShowModal" :handleModal="handleModal" />
         <div class="page-header">
             <h1 class="page-title">Tambah Data Anak</h1>
             <button-component label="Kembali" size="small" display="border"
@@ -57,7 +65,10 @@ async function submit() {
                             class="input" :isInvalid="errors?.isScreening ?? false"
                             :invalidMsg="errors?.isScreening ?? ''" />
                         <div class="input-wrapper" v-if="isScreening" :class="{ 'invalid': errors?.level ?? false }">
-                            <label for="level">Level disleksia</label>
+                            <label for="level">
+                                Level disleksia 
+                                <InfoIcon @click="handleModal" class="info" />
+                            </label>
                             <div class="level-container">
                                 <div :class="['item', level == 1 ? 'active' : '']" @click="selectLevel(1)">1</div>
                                 <div :class="['item', level == 2 ? 'active' : '']" @click="selectLevel(2)">2</div>
@@ -172,6 +183,10 @@ async function submit() {
 
         .input {
             margin-bottom: 30px;
+        }
+
+        .info {
+            cursor: pointer;
         }
     }
 }
