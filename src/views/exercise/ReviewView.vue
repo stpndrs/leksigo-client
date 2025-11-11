@@ -154,12 +154,14 @@ const initAnswersData = () => {
 
 <style lang="scss" scoped>
 /* Tambahkan style untuk soal gambar dan warna */
+// Style ini tidak terpakai, pindahkan ke .object-image
 .question-image {
     max-width: 100%;
     max-height: 40vh;
     border-radius: 10px;
 }
 
+// Style ini tidak terpakai, pindahkan ke .object-color
 .question-color-box {
     width: 100%;
     height: 30vh;
@@ -169,7 +171,7 @@ const initAnswersData = () => {
 
 .grid-container {
     display: grid;
-    grid-template-columns: 75% auto;
+    grid-template-columns: 3fr 1fr; // <-- Diubah dari 75% auto
     gap: 30px;
 
     .answers-container {
@@ -191,6 +193,8 @@ const initAnswersData = () => {
                 justify-content: space-between;
                 align-items: center;
                 margin-bottom: 15px;
+                flex-wrap: wrap; // <-- Tambahkan wrap
+                gap: 10px; // <-- Tambahkan gap
 
                 .duration span {
                     font-weight: bold;
@@ -214,13 +218,36 @@ const initAnswersData = () => {
             }
 
             .answer {
+                margin-top: 20px; // <-- Beri jarak dari pertanyaan
+
+                p {
+                    font-weight: bold;
+                    font-size: 1.2rem;
+                    margin-bottom: 10px;
+                }
+
                 img {
                     width: 30%;
                     margin-top: 15px;
+                    border-radius: 10px; // <-- Tambahkan border radius
+                }
+
+                .transcript {
+                    margin-top: 15px;
+
+                    h3 {
+                        font-weight: bold;
+                        font-size: 1rem;
+                    }
+
+                    p {
+                        font-weight: normal;
+                        font-size: 1rem;
+                        color: var(--Neutral-700);
+                        font-style: italic;
+                    }
                 }
             }
-
-            // background-color: black;
 
             .guide {
                 color: var(--Info-200);
@@ -234,6 +261,7 @@ const initAnswersData = () => {
                 display: block;
                 background-color: white;
                 border-radius: 10px;
+                border: 1px solid var(--Neutral-300); // <-- Tambahkan border
             }
 
             .object-image {
@@ -242,6 +270,7 @@ const initAnswersData = () => {
                 img {
                     width: 100%;
                     border-radius: 10px;
+                    display: block; // <-- Tambahan
                 }
             }
 
@@ -252,13 +281,17 @@ const initAnswersData = () => {
             }
 
             button {
+                // Style ini tidak ada di HTML
                 bottom: 0;
             }
 
             .transcript {}
 
+            // Style ini kosong
+
             .unanswerd {
                 color: var(--Danger-900);
+                font-style: italic; // <-- Tambahan
             }
         }
 
@@ -272,6 +305,10 @@ const initAnswersData = () => {
         border-radius: 15px;
         border: 2px solid var(--Secondary-900);
         height: fit-content;
+        // Nempel saat scroll di desktop
+        position: sticky;
+        top: 20px;
+
 
         h3 {
             font-size: 25px;
@@ -287,8 +324,83 @@ const initAnswersData = () => {
 
         .description {
             color: var(--Neutral-700);
+
+            // Atur agar style HTML dari v-html terlihat
+            :deep(p) {
+                margin-bottom: 1rem;
+            }
+
+            :deep(ul) {
+                padding-left: 20px;
+            }
+        }
+    }
+}
+
+
+/* --- RESPONSIVE --- */
+
+/* Target Tablet Besar */
+@media (max-width: 1024px) {
+    .grid-container {
+        grid-template-columns: 1fr; // <-- Pecah jadi 1 kolom
+
+        .attitude {
+            order: -1; // <-- Pindahkan Penilaian ke atas
+            position: relative; // <-- Hapus sticky di mobile
+            top: 0;
+        }
+    }
+}
+
+/* Target Ponsel */
+@media (max-width: 768px) {
+    .grid-container .answers-container .item {
+        padding: 20px; // Kurangi padding
+
+        .time {
+            flex-direction: column; // Tumpuk vertikal
+            align-items: flex-start; // Ratakan kiri
+            gap: 15px;
+
+            .duration span {
+                font-size: 18px;
+            }
+        }
+
+        .score {
+            font-size: 20px;
+        }
+
+        .guide {
+            font-size: 16px;
+        }
+
+        .question {
+            font-size: 32px; // Kecilkan font soal
+        }
+
+        .object-color {
+            width: 100%; // Penuhi layar
+            height: 100px;
+        }
+
+        .object-image,
+        .answer img {
+            width: 100%; // Penuhi layar
         }
     }
 
+    .grid-container .attitude {
+        padding: 20px;
+
+        h3 {
+            font-size: 20px;
+        }
+
+        .point {
+            font-size: 24px;
+        }
+    }
 }
 </style>

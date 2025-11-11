@@ -102,7 +102,8 @@ const visibility = async () => {
         .btn-group {
             display: flex;
             justify-content: start;
-            gap: 10px;
+            flex-wrap: wrap; // <-- Tambahkan wrap
+            gap: 10px; // <-- Tambahkan gap
             align-items: center;
             width: 100%;
             margin-bottom: 30px;
@@ -113,6 +114,10 @@ const visibility = async () => {
         .images {
             img {
                 width: 100%;
+                max-width: 600px; // <-- Batasi lebar maks gambar
+                display: block; // <-- Tambahan
+                border-radius: 10px; // <-- Tambahan
+                margin-bottom: 10px; // <-- Tambahan
             }
         }
 
@@ -121,9 +126,22 @@ const visibility = async () => {
             margin-bottom: 10px;
             font-size: 25px;
             color: var(--Neutral-700);
+            word-break: break-word; // <-- Agar link tidak overflow
 
             a {
                 color: var(--Primary-900);
+            }
+        }
+
+        .description {
+
+            // Atur agar style HTML dari v-html terlihat
+            :deep(p) {
+                margin-bottom: 1rem;
+            }
+
+            :deep(ul) {
+                padding-left: 20px;
             }
         }
     }
@@ -131,7 +149,9 @@ const visibility = async () => {
 
 .flex {
     display: grid;
-    grid-template-columns: 70% auto;
+    grid-template-columns: 1fr auto; // <-- Diubah dari 70% auto
+    gap: 30px; // <-- Tambahkan gap
+    margin-bottom: 30px; // <-- Beri jarak ke body
 
     .method-wrapper {
         p {
@@ -155,13 +175,15 @@ const visibility = async () => {
             margin-bottom: 5px;
             color: var(--Secondary-900);
         }
-
     }
 
     .level-wrapper {
+
+        // Definisi duplikat, tapi kita ikuti struktur Anda
         .level-container {
             display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
+            // Kolom dibuat auto agar pas dengan 1 item
+            grid-template-columns: auto;
             gap: 20px;
 
             .item {
@@ -172,7 +194,7 @@ const visibility = async () => {
                 font-family: 'Ubuntu Sans';
                 border: 2px solid;
                 text-align: center;
-                cursor: pointer;
+                cursor: default; // <-- Tidak perlu diklik
 
                 &:nth-child(1) {
                     border-color: var(--Secondary-900);
@@ -207,5 +229,65 @@ const visibility = async () => {
         }
     }
 
+}
+
+
+/* --- RESPONSIVE --- */
+
+/* Target Tablet (dan di bawahnya) */
+@media (max-width: 768px) {
+    .material .material-header {
+        .material-title {
+            font-size: 32px; // Kecilkan font
+        }
+
+        .btn-group {
+            // Buat tombol memenuhi layar
+            flex-direction: column;
+
+            button {
+                width: 100%;
+            }
+        }
+    }
+
+    .flex {
+        grid-template-columns: 1fr; // <-- Pecah jadi 1 kolom
+        gap: 25px;
+
+        .level-wrapper {
+            justify-self: start; // <-- Ratakan kiri
+            order: -1; // <-- Pindahkan Level ke atas
+        }
+    }
+
+    .material .material-body {
+
+        .link,
+        .description {
+            font-size: 18px; // Kecilkan font
+        }
+
+        .images img {
+            max-width: 100%; // Penuhi layar
+        }
+    }
+}
+
+/* Target Ponsel Kecil */
+@media (max-width: 576px) {
+    .material .material-header .material-title {
+        font-size: 28px;
+    }
+
+    .flex .level-wrapper .level-container .item {
+        padding: 8px 20px; // Kecilkan padding box
+        font-size: 16px; // Kecilkan font
+    }
+
+    .flex .method-wrapper .method-selected {
+        padding: 8px 15px;
+        font-size: 14px;
+    }
 }
 </style>

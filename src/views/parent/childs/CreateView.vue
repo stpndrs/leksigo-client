@@ -66,7 +66,7 @@ const handleModal = () => {
                             :invalidMsg="errors?.isScreening ?? ''" />
                         <div class="input-wrapper" v-if="isScreening" :class="{ 'invalid': errors?.level ?? false }">
                             <label for="level">
-                                Level disleksia 
+                                Level disleksia
                                 <InfoIcon @click="handleModal" class="info" />
                             </label>
                             <div class="level-container">
@@ -93,11 +93,14 @@ const handleModal = () => {
 
     .card-body {
         display: grid;
-        grid-template-columns: 30% 70%;
+        grid-template-columns: 30% 70%; // <-- Layout default desktop
         gap: 20px;
+        align-items: center; // <-- Tambahan: agar form & gambar sejajar di tengah
 
         img {
             width: 100%;
+            max-width: 350px; // <-- Tambahan: batasi lebar gambar
+            justify-self: center; // <-- Tambahan: pusatkan gambar di grid
         }
 
         .input-wrapper {
@@ -113,7 +116,7 @@ const handleModal = () => {
 
             .level-container {
                 display: grid;
-                grid-template-columns: 10% 10% 10%;
+                grid-template-columns: 10% 10% 10%; // <-- Kolom default (Desktop)
                 gap: 20px;
 
                 .item {
@@ -187,6 +190,45 @@ const handleModal = () => {
 
         .info {
             cursor: pointer;
+        }
+    }
+}
+
+/* --- RESPONSIVE --- */
+
+/* Target tablet (dan di bawahnya) */
+@media (max-width: 992px) {
+    .card {
+        padding: 2rem; // Kurangi padding
+
+        .card-body {
+            grid-template-columns: 1fr; // Ubah jadi 1 kolom (vertikal)
+            gap: 40px; // Beri jarak lebih
+
+            img {
+                max-width: 250px; // Kecilkan gambar
+                order: -1; // Pindahkan gambar ke atas form
+            }
+        }
+    }
+}
+
+/* Target ponsel kecil */
+@media (max-width: 576px) {
+    .card {
+        padding: 1.5rem;
+        border-radius: 15px;
+
+        .card-body .input-wrapper .level-container {
+            // Ubah dari 10% 10% 10% menjadi 1fr 1fr 1fr
+            // agar box level mengisi ruang yang tersedia
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+
+            .item {
+                padding: 20px 15px; // Kecilkan padding box
+                font-size: 24px; // Kecilkan font
+            }
         }
     }
 }

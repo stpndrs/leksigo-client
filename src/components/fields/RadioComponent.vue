@@ -90,6 +90,7 @@ const computedValue = computed({
             cursor: pointer;
             position: relative;
             /* Untuk memposisikan pseudo-elemen di dalamnya */
+            flex-shrink: 0; // <-- Tambahan: Mencegah tombol radio gepeng
         }
 
 
@@ -107,28 +108,38 @@ const computedValue = computed({
             border-radius: 50%;
         }
 
-
         label {
             cursor: pointer;
             color: #333;
             margin: unset;
+            font-size: 1rem; // <-- Set base font size
         }
     }
-
-
 
     .invalid-msg {
         display: none;
     }
 
     &.invalid {
-        label {
+
+        // Label utama
+        >label {
+            color: var(--Danger-900, #CC1D1D);
+        }
+
+        // Label radio item
+        .radio-wrapper label {
             color: var(--Danger-900, #CC1D1D);
         }
 
         input {
             border: 2px solid var(--Danger-900);
             background-color: unset;
+        }
+
+        // <-- Tambahan: Buat titiknya merah saat invalid
+        input:checked::before {
+            background-color: var(--Danger-900);
         }
 
         .invalid-msg {
@@ -138,7 +149,23 @@ const computedValue = computed({
             margin-top: 10px;
         }
     }
+}
 
+/* --- RESPONSIVE --- */
 
+/* Target Ponsel Kecil */
+@media (max-width: 576px) {
+    .input-wrapper {
+
+        // Label utama
+        >label {
+            font-size: small; // <-- Kecilkan font
+        }
+
+        // Label radio item
+        .radio-wrapper label {
+            font-size: 0.9rem; // <-- Kecilkan font
+        }
+    }
 }
 </style>

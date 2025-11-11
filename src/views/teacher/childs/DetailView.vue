@@ -199,7 +199,7 @@ const handleStatusFilter = (params) => {
 <style lang="scss" scoped>
 .page-body {
     display: grid;
-    grid-template-columns: 1fr 2fr;
+    grid-template-columns: 1fr 2fr; // <-- Kolom default (Desktop)
     justify-content: space-between;
     color: var(--Neutral-700);
     gap: 30px;
@@ -208,7 +208,7 @@ const handleStatusFilter = (params) => {
     .detail {
         display: flex;
         justify-content: center;
-        align-items: center;
+        align-items: center; // <-- Pusatkan gambar & biodata (Desktop)
         flex-direction: column;
         margin-bottom: 30px;
     }
@@ -253,6 +253,7 @@ const handleStatusFilter = (params) => {
                 font-family: 'Ubuntu Sans';
                 border: 2px solid;
                 text-align: center;
+                cursor: pointer; // Tambahkan cursor pointer
 
                 &:nth-child(1) {
                     border-color: var(--Secondary-900);
@@ -295,6 +296,7 @@ const handleStatusFilter = (params) => {
     .data-wrapper {
         display: flex;
         flex-direction: column;
+        overflow: hidden; // Sembunyikan overflow di wrapper
     }
 
     .data-swiper {
@@ -316,7 +318,7 @@ const handleStatusFilter = (params) => {
 
         .swiper-slide-manual {
             flex-shrink: 0; // Penting: mencegah slide mengecil
-            width: 80%; // Setiap slide mengambil 100% lebar container yang terlihat
+            width: 80%; // <-- Setiap slide mengambil 80% lebar (Desktop)
             scroll-snap-align: start; // Kunci snap di awal slide
 
             // Atur agar card memenuhi slide
@@ -349,7 +351,7 @@ const handleStatusFilter = (params) => {
 
                 .card-body .item {
                     display: grid;
-                    grid-template-columns: 20% 60% 20%;
+                    grid-template-columns: 20% 80%; // <-- Perbaikan: 2 kolom (point, identity)
                     gap: 10px;
                     align-items: center;
                     border: 3px solid var(--Secondary-900);
@@ -369,12 +371,14 @@ const handleStatusFilter = (params) => {
                     .identity {
                         font-size: 20px;
                         color: var(--Secondary-900);
+                        padding-left: 20px; // Beri padding agar tidak menempel
 
                         .title {
                             font-weight: bold;
                         }
 
                         .category {
+                            // Style ini tidak ada di HTML Anda, tapi ada di CSS
                             padding: 5px 15px;
                             border-radius: 10px;
                             margin-top: 10px;
@@ -386,6 +390,7 @@ const handleStatusFilter = (params) => {
                     }
 
                     .question {
+                        // Style ini tidak ada di HTML Anda, tapi ada di CSS
                         text-align: center;
                         font-size: 30px;
                         color: var(--Info-200);
@@ -437,6 +442,9 @@ const handleStatusFilter = (params) => {
                         background: var(--Primary-900);
                         color: var(--White);
                         border-radius: 10px;
+                        text-align: center;
+                        flex-shrink: 0; // <-- Tambahan: cegah teks mengecil
+                        margin-left: 10px; // <-- Tambahan: beri jarak
                     }
                 }
             }
@@ -464,5 +472,91 @@ const handleStatusFilter = (params) => {
         }
     }
 
+    /* --- RESPONSIVE --- */
+
+    /* Target Tablet (Medium) */
+    @media (max-width: 1024px) {
+        grid-template-columns: 1fr; // <-- Pecah layout utama jadi 1 kolom
+        gap: 40px;
+
+        .detail {
+            align-items: flex-start; // <-- Jangan pusatkan di mode 1 kolom
+            flex-direction: row; // <-- Kembalikan ke horizontal
+            gap: 30px;
+            align-items: center;
+        }
+
+        .data-swiper .swiper-slide-manual {
+            width: 100%; // <-- Slide memenuhi layar
+        }
+    }
+
+    /* Target Ponsel (Kecil) */
+    @media (max-width: 768px) {
+        .detail {
+            flex-direction: column; // <-- Pecah biodata jadi vertikal
+            align-items: center; // <-- Pusatkan gambar
+        }
+
+        img {
+            width: 15rem; // Kecilkan gambar
+        }
+
+        .biodata {
+            span {
+                font-size: 16px; // Kecilkan font biodata
+            }
+
+            .score {
+                font-size: 28px; // Kecilkan font skor
+            }
+
+            .level-container .item {
+                padding: 15px 10px; // Kecilkan box level
+                font-size: 24px;
+            }
+        }
+
+        .data-swiper .swiper-slide-manual {
+            .card {
+                padding: 20px;
+                min-height: 80vh; // Kurangi tinggi
+
+                .card-header {
+                    font-size: 24px;
+                }
+            }
+
+            // Perbaiki layout item Latihan di mobile
+            .exercises.card .card-body .item {
+                grid-template-columns: 1fr; // <-- Tumpuk vertikal
+                gap: 15px;
+                padding: 15px;
+
+                .point {
+                    font-size: 40px;
+                    border-right: none; // Hapus garis
+                    padding: 0;
+                    text-align: left; // Ratakan kiri
+                }
+
+                .identity {
+                    font-size: 16px;
+                    padding-left: 0; // Hapus padding
+                }
+            }
+
+            // Perbaiki layout item Materi di mobile
+            .materials.card .item {
+                flex-direction: column; // Tumpuk vertikal
+                gap: 10px;
+                align-items: flex-start; // Rata kiri
+
+                .category {
+                    font-size: 12px;
+                }
+            }
+        }
+    }
 }
 </style>

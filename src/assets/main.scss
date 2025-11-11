@@ -6,7 +6,7 @@ section {
     flex-direction: column;
 
     @media screen and (max-width: 767.98px) {
-        padding: 1rem;
+        padding: 1.5rem 1rem; // <-- Sesuaikan padding vertikal & horizontal
     }
 }
 
@@ -18,7 +18,12 @@ section {
         color: var(--Primary-900, #FF3C8A);
 
         @media screen and (max-width: 767.98px) {
-            font-size: 40px;
+            font-size: 32px; // <-- Diubah dari 40px
+        }
+
+        @media screen and (max-width: 576px) {
+            // <-- Tambahan
+            font-size: 28px;
         }
     }
 }
@@ -35,11 +40,26 @@ section {
         svg path {
             fill: var(--Primary-900);
         }
+
+        @media screen and (max-width: 767.98px) {
+            // <-- Tambahan
+            gap: 20px; // <-- Kurangi gap di mobile
+        }
     }
 }
 
 .container {
     padding: 0 3rem;
+
+    @media screen and (max-width: 767.98px) {
+        // <-- Tambahan
+        padding: 0 1.5rem; // <-- Kurangi padding di mobile
+    }
+
+    @media screen and (max-width: 576px) {
+        // <-- Tambahan
+        padding: 0 1rem;
+    }
 }
 
 .page-header {
@@ -48,6 +68,8 @@ section {
     align-items: center;
     width: 100%;
     padding: 20px 0;
+    flex-wrap: wrap; // <-- Tambahan: Izinkan wrap
+    gap: 15px; // <-- Tambahan: Beri jarak jika wrap
 
     &.exercise .page-title {
         color: var(--Secondary-900);
@@ -58,16 +80,32 @@ section {
         font-weight: 700;
         font-family: "Ubuntu Sans";
         color: var(--Primary-900, #FF3C8A);
+        line-height: 1.2; // <-- Tambahan: Perbaiki line-height
 
         @media screen and (max-width: 767.98px) {
-            font-size: 40px;
+            font-size: 32px; // <-- Diubah dari 40px
         }
 
+        @media screen and (max-width: 576px) {
+            // <-- Tambahan
+            font-size: 28px;
+        }
     }
 
     .page-description {
         font-size: 30px;
         color: var(--Neutral-700);
+        width: 100%; // <-- Pastikan mengambil lebar penuh saat wrap
+
+        @media screen and (max-width: 767.98px) {
+            // <-- Tambahan
+            font-size: 20px;
+        }
+
+        @media screen and (max-width: 576px) {
+            // <-- Tambahan
+            font-size: 16px;
+        }
     }
 }
 

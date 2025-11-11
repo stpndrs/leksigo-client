@@ -97,6 +97,8 @@ const calculateTotalPoint = () => {
     justify-content: space-between;
     align-items: center;
     margin-bottom: 30px;
+    flex-wrap: wrap; // <-- Tambahan: agar rapi jika menyempit
+    gap: 15px; // <-- Tambahan: beri jarak jika wrap
 
     p {
         font-size: 35px;
@@ -107,7 +109,8 @@ const calculateTotalPoint = () => {
 .quiz-container {
     .item {
         display: grid;
-        grid-template-columns: 10% 70% 20%;
+        // Gunakan unit fr dan atur lebar kolom
+        grid-template-columns: 100px 1fr 100px; // <-- Diubah dari %
         gap: 40px;
         align-items: center;
         border: 3px solid var(--Secondary-900);
@@ -116,6 +119,11 @@ const calculateTotalPoint = () => {
         margin-bottom: 30px;
         cursor: pointer;
         background: var(--White);
+        transition: background-color 0.2s; // <-- Tambahkan transisi
+
+        &:hover {
+            background-color: var(--Neutral-100); // <-- Efek hover
+        }
 
         .point {
             font-size: 50px;
@@ -144,7 +152,13 @@ const calculateTotalPoint = () => {
             }
         }
 
+        .status {
+            // <-- Tambahan style untuk perataan status
+            justify-self: center; // Pusatkan ikon
+        }
+
         .question {
+            // Style ini tidak ada di HTML Anda
             text-align: center;
             font-size: 30px;
             color: var(--Info-200);
@@ -161,6 +175,57 @@ const calculateTotalPoint = () => {
         &.disabled {
             cursor: not-allowed;
             opacity: 50%;
+            background-color: var(--Neutral-100); // Abu-abu saat disabled
+
+            &:hover {
+                background-color: var(--Neutral-100); // Tidak ada efek hover
+            }
+        }
+    }
+}
+
+/* --- RESPONSIVE --- */
+
+/* Target Tablet */
+@media (max-width: 768px) {
+    .action {
+        flex-direction: column; // <-- Pecah jadi vertikal
+        align-items: flex-start; // <-- Ratakan kiri
+
+        p {
+            font-size: 28px; // Kecilkan font
+        }
+
+        button {
+            width: 100%; // Penuhi layar
+        }
+    }
+
+    .quiz-container .item {
+        // Ubah layout grid untuk mobile
+        grid-template-columns: 70px 1fr; // <-- 2 kolom (point, identity)
+        grid-template-rows: auto 1fr; // <-- 2 baris
+        gap: 15px;
+        padding: 15px;
+
+        .point {
+            grid-row: 1 / 3; // <-- Ambil 2 baris
+            font-size: 40px;
+            padding: 0;
+            border-right: 2px dashed var(--Info-200);
+        }
+
+        .identity {
+            grid-column: 2 / 3; // <-- Kolom 2
+            grid-row: 1 / 2; // <-- Baris 1
+            font-size: 18px;
+        }
+
+        .status {
+            grid-column: 2 / 3; // <-- Kolom 2
+            grid-row: 2 / 3; // <-- Baris 2
+            justify-self: flex-start; // Ratakan kiri
+            padding-top: 10px;
         }
     }
 }

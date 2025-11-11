@@ -106,11 +106,20 @@ const handleCancelAction = () => {
 
     p {
         font-size: 25px;
+        font-weight: 600;
+        font-family: 'Ubuntu Sans', sans-serif;
     }
 }
 
 .input-wrapper {
     margin-bottom: 80px;
+
+    // Style labelnya sekalian
+    label {
+        display: block;
+        font-weight: 500;
+        font-size: medium;
+    }
 
     .textarea {
         margin-top: 15px;
@@ -118,6 +127,35 @@ const handleCancelAction = () => {
 
     span.req {
         color: red;
+    }
+}
+
+/* --- RESPONSIVE --- */
+
+/* Target Tablet (dan di bawahnya) */
+@media (max-width: 768px) {
+    .identity {
+        flex-direction: column; // <-- Pecah jadi vertikal
+        align-items: flex-start; // <-- Ratakan kiri
+        gap: 5px; // <-- Beri jarak
+        margin-bottom: 25px;
+
+        p {
+            font-size: 20px; // Kecilkan font
+        }
+    }
+
+    .input-wrapper {
+        margin-bottom: 40px; // Kurangi margin
+    }
+}
+
+/* Target Ponsel Kecil */
+@media (max-width: 576px) {
+    .identity {
+        p {
+            font-size: 18px;
+        }
     }
 }
 </style>

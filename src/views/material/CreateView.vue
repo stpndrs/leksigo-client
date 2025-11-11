@@ -190,7 +190,8 @@ const submit = async () => {
 
 .input-flex {
     display: grid;
-    grid-template-columns: 70% auto;
+    grid-template-columns: 1fr auto; // <-- Diubah dari 70% auto
+    gap: 30px; // <-- Tambahkan gap
 }
 
 .input-wrapper {
@@ -205,7 +206,7 @@ const submit = async () => {
     }
 
     &.level-wrapper {
-        justify-self: end;
+        justify-self: end; // <-- Biarkan di desktop
 
         .level-container {
             display: grid;
@@ -221,6 +222,7 @@ const submit = async () => {
                 border: 2px solid;
                 text-align: center;
                 cursor: pointer;
+                transition: background-color 0.2s, color 0.2s; // <-- Tambahkan transisi
 
                 &:nth-child(1) {
                     border-color: var(--Secondary-900);
@@ -256,7 +258,6 @@ const submit = async () => {
     }
 
 
-
     .invalid-msg {
         display: none;
     }
@@ -265,8 +266,8 @@ const submit = async () => {
         color: var(--Danger-900, #CC1D1D);
     }
 
+    // Seharusnya ini ada di .input-wrapper, bukan di root style
     &.invalid {
-
         label {
             color: var(--Danger-900, #CC1D1D);
         }
@@ -281,6 +282,51 @@ const submit = async () => {
             color: var(--Danger-900);
             font-size: small;
             margin-top: 10px;
+        }
+    }
+}
+
+/* --- RESPONSIVE --- */
+
+/* Target Tablet (dan di bawahnya) */
+@media (max-width: 1024px) {
+    .input-flex {
+        grid-template-columns: 1fr; // <-- Pecah jadi 1 kolom
+    }
+
+    .input-wrapper {
+        &.level-wrapper {
+            justify-self: start; // <-- Ratakan kiri di mobile
+            order: -1; // <-- Pindahkan Level ke atas Tipe Materi
+
+            .level-container {
+                // Atur agar box tidak terlalu lebar di mobile
+                grid-template-columns: repeat(3, minmax(80px, 120px));
+            }
+        }
+    }
+}
+
+/* Target Ponsel Kecil */
+@media (max-width: 576px) {
+    .input {
+        margin-bottom: 20px;
+    }
+
+    .textarea {
+        margin-bottom: 30px;
+    }
+
+    .input-wrapper {
+        margin-bottom: 20px;
+
+        &.level-wrapper .level-container {
+            gap: 10px;
+
+            .item {
+                padding: 8px 15px; // Kecilkan padding box
+                font-size: 16px; // Kecilkan font
+            }
         }
     }
 }

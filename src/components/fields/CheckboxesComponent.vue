@@ -58,8 +58,9 @@ const handleClick = (value) => {
 
     .checkbox-container {
         display: flex;
-        justify-content: space-between;
-        width: fit-content;
+        flex-wrap: wrap; // <-- PERUBAHAN UTAMA: Izinkan item turun baris
+        // width: fit-content; // <-- Dihapus
+        // justify-content: space-between; // <-- Dihapus
         gap: 10px;
         margin: 0;
         padding: 0;
@@ -69,10 +70,11 @@ const handleClick = (value) => {
             padding: 5px 15px;
             border-radius: 10px;
             cursor: pointer;
-
             border: 2px solid;
             border-color: var(--Primary-900);
             color: var(--Primary-900);
+            transition: background-color 0.2s, color 0.2s; // <-- Tambahan: transisi
+            user-select: none; // <-- Tambahan: cegah teks ter-highlight
 
             &.active {
                 border-color: var(--Primary-900) !important;
@@ -83,25 +85,35 @@ const handleClick = (value) => {
 
         &.invalid {
             .checkbox-item {
-                list-style: none;
-                padding: 5px 15px;
-                border-radius: 10px;
-                cursor: pointer;
-
-                border: 2px solid;
+                // Hanya ubah yang perlu (border dan color)
                 border-color: var(--Danger-900);
                 color: var(--Danger-900);
-            }
 
+                &.active {
+                    // Pastikan state active tetap menimpa saat invalid
+                    border-color: var(--Danger-900) !important;
+                    background-color: var(--Danger-900) !important;
+                    color: var(--White) !important;
+                }
+            }
         }
     }
 
     .invalid-msg {
-        display: block;
+        display: block; // v-if/v-show yang akan mengontrol ini
         color: var(--Danger-900);
         font-size: small;
         margin-top: 10px;
     }
+}
 
+/* --- RESPONSIVE --- */
+
+/* Target Ponsel Kecil */
+@media (max-width: 576px) {
+    .input-wrapper .checkbox-container .checkbox-item {
+        padding: 4px 10px; // <-- Padding lebih kecil
+        font-size: 0.9rem; // <-- Font lebih kecil
+    }
 }
 </style>

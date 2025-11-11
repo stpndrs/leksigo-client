@@ -500,17 +500,24 @@ const submit = async () => {
 textarea.textarea {
     margin: auto;
     width: 100%;
-    min-height: 50vh;
-    border: 1px solid black;
+    min-height: 250px; // <-- Kurangi tinggi minimum
+    border: 1px solid var(--Neutral-400); // <-- Gunakan variabel warna
     outline: none;
     border-radius: 10px;
     padding: 15px;
     background: unset;
+    font-family: 'Ubuntu Sans', sans-serif;
+    font-size: 1rem;
+
+    &.invalid {
+        border-color: var(--Danger-900);
+    }
 }
 
 .input-flex {
     display: grid;
-    grid-template-columns: 70% auto;
+    grid-template-columns: 1fr auto; // <-- Diubah ke 1fr auto
+    gap: 20px;
 
     &.level-wrapper {
         justify-self: end;
@@ -547,6 +554,7 @@ textarea.textarea {
                 border: 2px solid;
                 text-align: center;
                 cursor: pointer;
+                transition: background-color 0.2s, color 0.2s; // <-- Tambahkan transisi
 
                 &:nth-child(1) {
                     border-color: var(--Secondary-900);
@@ -582,6 +590,7 @@ textarea.textarea {
     }
 
     /* --- Status Invalid (Error) --- */
+    // Dipindahkan ke luar .input-wrapper agar bisa dipakai global
     .invalid-msg {
         display: none;
     }
@@ -590,9 +599,10 @@ textarea.textarea {
         color: var(--Danger-900, #CC1D1D);
     }
 
+    // Seharusnya ini ada di .input-wrapper, bukan di root style
     &.invalid {
         label {
-            color: var(--Danger-9G00, #CC1D1D);
+            color: var(--Danger-900, #CC1D1D);
         }
 
         textarea {
@@ -615,13 +625,14 @@ textarea.textarea {
 
     /* --- End Status Invalid --- */
 
+
     /* Preview Gambar dari Bank Soal */
     .question-from-bank {
         color: var(--Danger-900);
         margin-bottom: 15px;
 
         img {
-            width: 30%;
+            width: 30%; // <-- Default desktop
             border-radius: 10px;
             margin-top: 10px;
         }
@@ -634,7 +645,7 @@ textarea.textarea {
 /* --- Workspace (Form Step 2) --- */
 .workspace {
     display: grid;
-    grid-template-columns: 75% auto;
+    grid-template-columns: 3fr 1fr; // <-- Diubah jadi 3fr 1fr (lebih umum)
     gap: 50px;
 
     .method-selected {
@@ -658,6 +669,9 @@ textarea.textarea {
     padding: 30px;
     border-radius: 10px;
     margin-bottom: 30px;
+    // Tambahkan ini agar nempel di atas saat scroll (jika diinginkan)
+    position: sticky;
+    top: 20px;
 
     .navigation-header {
         margin-bottom: 10px;
@@ -673,7 +687,8 @@ textarea.textarea {
 
         .numbers {
             display: grid;
-            grid-template-columns: repeat(5, 1fr);
+            // Gunakan auto-fit agar otomatis mengisi kolom
+            grid-template-columns: repeat(auto-fit, minmax(40px, 1fr));
             gap: 5px;
             margin-bottom: 10px;
 
@@ -682,16 +697,19 @@ textarea.textarea {
                 color: var(--Secondary-900);
                 border: 2px solid var(--Secondary-900);
                 border-radius: 5px;
-                width: 45px;
-                height: 45px;
-                text-align: center;
-                align-content: center;
+                width: 45px; // Lebar tetap
+                height: 45px; // Tinggi tetap
+                display: flex; // <-- Gunakan flex
+                align-items: center; // <-- Pusatkan vertikal
+                justify-content: center; // <-- Pusatkan horizontal
                 font-weight: bold;
                 cursor: pointer;
+                transition: background-color 0.2s, color 0.2s; // <-- Tambahkan transisi
 
                 &.active {
                     background-color: var(--Info-200);
                     color: var(--White);
+                    border-color: var(--Info-200); // <-- Samakan border
                 }
             }
 
@@ -706,6 +724,11 @@ textarea.textarea {
             font-size: 30px;
             cursor: pointer;
             background-color: unset;
+            transition: background-color 0.2s; // <-- Tambahkan transisi
+
+            &:hover {
+                background-color: var(--Neutral-100);
+            }
         }
     }
 
@@ -718,6 +741,61 @@ textarea.textarea {
 }
 
 /* --- End Navigasi Soal --- */
+
+
+/* --- RESPONSIVE --- */
+
+/* Target Tablet Besar */
+@media (max-width: 1024px) {
+    .workspace {
+        grid-template-columns: 1fr; // <-- Pecah jadi 1 kolom
+        gap: 30px;
+    }
+
+    .navigation-container {
+        order: -1; // <-- Pindahkan navigasi ke atas form soal
+    }
+
+    .navigation {
+        position: relative; // <-- Hapus sticky di mobile
+        top: 0;
+    }
+}
+
+/* Target Ponsel */
+@media (max-width: 576px) {
+    .input {
+        margin-bottom: 20px;
+    }
+
+    .textarea {
+        margin-bottom: 30px;
+        min-height: 200px; // Kurangi tinggi textarea di ponsel
+    }
+
+    .input-wrapper {
+        margin-bottom: 20px;
+
+        &.level-wrapper {
+            .level-container {
+                gap: 10px;
+
+                .item {
+                    padding: 8px 15px; // Kecilkan padding
+                    font-size: 16px; // Kecilkan font
+                }
+            }
+        }
+
+        .question-from-bank img {
+            width: 100%; // <-- Penuhi layar
+        }
+    }
+
+    .navigation {
+        padding: 20px; // Kurangi padding
+    }
+}
 
 /* END STYLES */
 </style>

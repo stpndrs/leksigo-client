@@ -77,7 +77,8 @@ const visibility = async () => {
                         <ButtonComponent label="Mulai Mengerjakan" class="secondary"
                             @click="router.push({ name: 'exercise.quiz.work', params: { id: id, quizId: quizId } })" />
                         <ButtonComponent label="Review pengerjaan sebelumnya" class="primary" display="border"
-                            @click="router.push({ name: 'exercise.quiz.review', params: { id: id, quizId: quizId } })" v-if="data?.answers?.length > 0" />
+                            @click="router.push({ name: 'exercise.quiz.review', params: { id: id, quizId: quizId } })"
+                            v-if="data?.answers?.length > 0" />
                     </div>
                 </div>
             </div>
@@ -94,8 +95,6 @@ const visibility = async () => {
     svg path {
         fill: var(--Secondary-900) !important;
     }
-
-
 }
 
 .page-body {
@@ -113,14 +112,16 @@ const visibility = async () => {
 
         .card-header {
             display: grid;
-            grid-template-columns: 80% auto;
+            grid-template-columns: 1fr auto; // <-- Diubah dari 80%
             align-items: center;
             margin-bottom: 40px;
+            gap: 30px; // <-- Tambahkan gap
 
             .level-container {
                 display: grid;
                 grid-template-columns: auto auto auto;
                 gap: 20px;
+                justify-content: end; // <-- Pastikan rata kanan
 
                 .item {
                     padding: 25px 20px;
@@ -130,6 +131,7 @@ const visibility = async () => {
                     font-family: 'Ubuntu Sans';
                     border: 2px solid;
                     text-align: center;
+                    cursor: default; // Tidak perlu diklik di halaman ini
 
                     &:nth-child(1) {
                         border-color: var(--Secondary-900);
@@ -166,15 +168,23 @@ const visibility = async () => {
 
         .card-body {
             display: grid;
-            grid-template-columns: 50% 49%;
+            grid-template-columns: 1fr 1fr; // <-- Diubah dari 50% 49%
             gap: 50px;
-            // background: red;
             position: relative;
             margin-bottom: 40px;
 
             .description {
                 font-size: 20px;
                 color: var(--Neutral-700);
+
+                // Atur agar style HTML dari v-html terlihat
+                :deep(p) {
+                    margin-bottom: 1rem;
+                }
+
+                :deep(ul) {
+                    padding-left: 20px;
+                }
             }
 
             .data {
@@ -191,10 +201,12 @@ const visibility = async () => {
                     justify-content: space-between;
                     align-items: center;
                     width: 100%;
+                    margin-bottom: 10px; // <-- Tambah jarak
                 }
             }
 
             .categories {
+                // Style ini tidak ada di HTML Anda
                 font-size: 20px;
                 color: var(--Neutral-700);
 
@@ -229,6 +241,68 @@ const visibility = async () => {
             }
         }
     }
+}
 
+
+/* --- RESPONSIVE --- */
+
+/* Target Tablet (Large) */
+@media (max-width: 1024px) {
+    .page-body .card {
+        padding: 3rem; // Kurangi padding
+
+        .card-header {
+            grid-template-columns: 1fr; // <-- Pecah header jadi 1 kolom
+            gap: 25px;
+            justify-items: start; // Ratakan kiri
+
+            .level-container {
+                justify-content: start; // Ratakan kiri
+            }
+        }
+
+        .card-body {
+            grid-template-columns: 1fr; // <-- Pecah body jadi 1 kolom
+            gap: 30px;
+        }
+    }
+}
+
+/* Target Ponsel */
+@media (max-width: 576px) {
+    .page-body {
+        h3 {
+            font-size: 24px; // Kecilkan font
+        }
+
+        .card {
+            padding: 1.5rem; // Padding super kecil
+
+            .card-header .level-container {
+                gap: 10px; // Kurangi gap
+
+                .item {
+                    padding: 15px 10px; // Kecilkan box
+                    font-size: 22px; // Kecilkan font
+                }
+            }
+
+            .card-body {
+                gap: 40px; // Beri jarak lebih antar section
+
+                .description {
+                    font-size: 16px; // Kecilkan font
+                }
+
+                .data {
+                    font-size: 18px; // Kecilkan font
+                }
+
+                .action button {
+                    width: 100%; // Penuhi layar
+                }
+            }
+        }
+    }
 }
 </style>

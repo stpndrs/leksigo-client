@@ -250,4 +250,51 @@ onBeforeUnmount(() => {
 .error-text {
     color: #d9534f;
 }
+
+/* --- RESPONSIVE --- */
+
+/* Target Tablet */
+@media (max-width: 768px) {
+    .tts-text-button .text {
+        font-size: 40px;
+        /* <-- Kecilkan dari 65px */
+    }
+
+    .tts-text-button .icon {
+        font-size: 1.5rem;
+        /* <-- Kecilkan ikon */
+    }
+}
+
+/* Target Ponsel */
+@media (max-width: 576px) {
+    .custom-player {
+        padding: 4px 8px;
+        /* <-- Buat lebih ramping */
+    }
+
+    .play-btn {
+        width: 28px;
+        height: 28px;
+        font-size: 12px;
+    }
+
+    .icon-pause {
+        font-size: 10px;
+    }
+
+    .progress-track {
+        height: 5px;
+    }
+
+    .tts-text-button .text {
+        font-size: 32px;
+        /* <-- Kecilkan lagi */
+        line-height: 1.2;
+    }
+
+    .tts-text-button .icon {
+        font-size: 1.2rem;
+    }
+}
 </style>

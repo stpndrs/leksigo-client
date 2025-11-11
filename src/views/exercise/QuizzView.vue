@@ -182,7 +182,7 @@ watch(() => questionActiveIndex, () => {
 <template>
     <div class="container">
         <div class="page-header">
-            <router-link :to="{ name: 'exercise.quiz.overview', params: {id, quizId} }">
+            <router-link :to="{ name: 'exercise.quiz.overview', params: { id, quizId } }">
                 <ChevronLeftIcon />
             </router-link>
             <h1 class="page-title">Soal</h1>
@@ -210,8 +210,10 @@ watch(() => questionActiveIndex, () => {
                             <!-- if 2 = tampilkan text untuk ditulis ulang -->
                             <!-- if 3 = tampilkan text dan recorder untuk dibaca -->
                             <!-- if 4 = mengurutkan kata -->
-                            <h2 v-else-if="questionActive?.method == 2 || questionActive?.method == 3 || questionActive?.method == 4">{{
-                                questionActive?.question.value }}</h2>
+                            <h2
+                                v-else-if="questionActive?.method == 2 || questionActive?.method == 3 || questionActive?.method == 4">
+                                {{
+                                    questionActive?.question.value }}</h2>
                             <!-- if 5 = menebak cepat -->
                             <!-- if isHexColor true -->
                             <div class="object-color" v-if="questionActive?.question?.type == 'hex'"
@@ -225,8 +227,8 @@ watch(() => questionActiveIndex, () => {
                         <div class="answer-box">
                             <h3>Jawaban</h3>
                             <!-- if 1 = tampilkan field upload gambar -->
-                            <FileUploadComponent v-if="[1, 2, 4].includes(questionActive?.method)" v-model="file" :id="'file'"
-                                :infoText="'Upload gambar tulisan'" accept="image/*" />
+                            <FileUploadComponent v-if="[1, 2, 4].includes(questionActive?.method)" v-model="file"
+                                :id="'file'" :infoText="'Upload gambar tulisan'" accept="image/*" />
                             <!-- else -->
                             <AudioRecorderComponent v-if="questionActive?.method == 3 || questionActive?.method == 5"
                                 v-model="file" />
@@ -269,12 +271,14 @@ watch(() => questionActiveIndex, () => {
 
 <style lang="scss" scoped>
 /* Tambahkan style untuk soal gambar dan warna */
+// Style ini sepertinya tidak terpakai, pindahkan ke .object-image
 .question-image {
     max-width: 100%;
     max-height: 40vh;
     border-radius: 10px;
 }
 
+// Style ini sepertinya tidak terpakai, pindahkan ke .object-color
 .question-color-box {
     width: 100%;
     height: 30vh;
@@ -284,7 +288,7 @@ watch(() => questionActiveIndex, () => {
 
 .grid-container {
     display: grid;
-    grid-template-columns: 75% auto;
+    grid-template-columns: 3fr 1fr; // <-- Diubah dari 75% auto
     gap: 30px;
 
     .method {
@@ -303,8 +307,6 @@ watch(() => questionActiveIndex, () => {
             min-height: 60vh;
         }
 
-        // background-color: black;
-
         .guide {
             color: var(--Info-200);
             font-size: 20px;
@@ -317,6 +319,7 @@ watch(() => questionActiveIndex, () => {
             display: block;
             background-color: white;
             border-radius: 10px;
+            border: 1px solid var(--Neutral-300); // Tambahkan border
         }
 
         .object-image {
@@ -325,9 +328,9 @@ watch(() => questionActiveIndex, () => {
             img {
                 width: 100%;
                 border-radius: 10px;
+                display: block; // <-- Tambahan
             }
         }
-
 
         .question-display {
             font-size: 40px;
@@ -349,15 +352,28 @@ watch(() => questionActiveIndex, () => {
         }
 
         button {
-            bottom: 0;
+            // 'bottom: 0' tidak berfungsi tanpa 'position: absolute'
+            // Hapus saja atau tambahkan position: relative di parent
         }
+    }
+
+    .navigation-container {
+        // <-- Tambahkan wrapper ini di style
+        display: flex;
+        flex-direction: column;
+        gap: 30px;
+
+        // Nempel saat scroll di desktop
+        position: sticky;
+        top: 20px;
+        height: fit-content; // <-- Penting untuk sticky
     }
 
     .navigation {
         background-color: var(--White);
         padding: 30px;
         border-radius: 10px;
-        margin-bottom: 30px;
+        // margin-bottom: 30px; // <-- Dihapus, diganti gap di parent
 
         .navigation-header {
             margin-bottom: 10px;
@@ -373,7 +389,7 @@ watch(() => questionActiveIndex, () => {
 
             .numbers {
                 display: grid;
-                grid-template-columns: repeat(5, 1fr);
+                grid-template-columns: repeat(5, 1fr); // <-- Default desktop
                 gap: 5px;
                 margin-bottom: 10px;
 
@@ -384,20 +400,25 @@ watch(() => questionActiveIndex, () => {
                     border-radius: 5px;
                     width: 45px;
                     height: 45px;
-                    text-align: center;
-                    align-content: center;
                     font-weight: bold;
                     cursor: pointer;
+                    // Pusatkan nomor dengan flex
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    transition: background-color 0.2s, color 0.2s; // <-- Tambahkan transisi
 
                     &.active {
                         background-color: var(--Info-200);
                         color: var(--White);
+                        border-color: var(--Info-200); // <-- Samakan border
                     }
                 }
 
             }
 
             .add-number {
+                // Style ini tidak ada di HTML Anda
                 color: var(--Secondary-900);
                 border: 2px dashed var(--Secondary-900);
                 border-radius: 5px;
@@ -417,11 +438,76 @@ watch(() => questionActiveIndex, () => {
         }
     }
 
-    .endsession {
+    .question-bank {
+        // <-- Ganti nama class dari 'endsession'
         background-color: var(--White);
         padding: 30px;
         border-radius: 10px;
     }
 
+}
+
+/* --- RESPONSIVE --- */
+
+/* Target Tablet Besar */
+@media (max-width: 1024px) {
+    .grid-container {
+        grid-template-columns: 1fr; // <-- Pecah jadi 1 kolom
+
+        .navigation-container {
+            order: -1; // <-- Pindahkan navigasi ke atas
+            position: relative; // <-- Hapus sticky di mobile
+            top: 0;
+        }
+    }
+}
+
+/* Target Ponsel */
+@media (max-width: 768px) {
+    .grid-container {
+        gap: 20px;
+
+        .workspace {
+            .guide {
+                font-size: 16px;
+            }
+
+            .question-display {
+                font-size: 28px; // Kecilkan font soal
+            }
+
+            .object-color {
+                width: 100%; // Penuhi layar
+                height: 100px; // Kurangi tinggi
+            }
+
+            .object-image {
+                width: 100%; // Penuhi layar
+            }
+
+            .answer-box {
+                font-size: 18px;
+                margin-top: 20px;
+                margin-bottom: 20px;
+
+                h3 {
+                    margin-bottom: 15px;
+                }
+            }
+        }
+
+        .navigation {
+            padding: 20px; // Kurangi padding
+
+            .navigation-body .numbers {
+                // Gunakan auto-fit agar otomatis mengisi kolom
+                grid-template-columns: repeat(auto-fit, minmax(40px, 1fr));
+            }
+        }
+
+        .question-bank {
+            padding: 20px;
+        }
+    }
 }
 </style>

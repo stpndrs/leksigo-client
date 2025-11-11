@@ -114,6 +114,8 @@ const submit = async () => {
     margin-bottom: 50px;
 }
 
+// Style ini sepertinya tidak terpakai karena Anda menggunakan WysiwygEditorComponent
+// Tapi saya biarkan jika Anda membutuhkannya
 textarea.textarea {
     margin: auto;
     width: 100%;
@@ -127,7 +129,8 @@ textarea.textarea {
 
 .input-flex {
     display: grid;
-    grid-template-columns: 70% auto;
+    grid-template-columns: 1fr auto; // <-- Diubah ke 1fr auto
+    gap: 20px; // <-- Tambahkan gap
 
     &.level-wrapper {
         justify-self: end;
@@ -164,6 +167,7 @@ textarea.textarea {
                 border: 2px solid;
                 text-align: center;
                 cursor: pointer;
+                transition: background-color 0.2s, color 0.2s; // <-- Tambahkan transisi
 
                 &:nth-child(1) {
                     border-color: var(--Secondary-900);
@@ -199,6 +203,7 @@ textarea.textarea {
     }
 
     /* --- Status Invalid (Error) --- */
+    // Dipindahkan ke luar .input-wrapper agar bisa dipakai global
     .invalid-msg {
         display: none;
     }
@@ -207,9 +212,10 @@ textarea.textarea {
         color: var(--Danger-900, #CC1D1D);
     }
 
+    // Seharusnya ini ada di .input-wrapper, bukan di root style
     &.invalid {
         label {
-            color: var(--Danger-9G00, #CC1D1D);
+            color: var(--Danger-900, #CC1D1D);
         }
 
         textarea {
@@ -232,15 +238,62 @@ textarea.textarea {
 
     /* --- End Status Invalid --- */
 
+
     /* Preview Gambar dari Bank Soal */
     .question-from-bank {
         color: var(--Danger-900);
         margin-bottom: 15px;
 
         img {
-            width: 30%;
+            width: 30%; // <-- Default desktop
             border-radius: 10px;
             margin-top: 10px;
+        }
+    }
+}
+
+
+/* --- RESPONSIVE --- */
+
+/* Target Tablet */
+@media (max-width: 768px) {
+    .input-flex {
+        grid-template-columns: 1fr; // <-- Pecah jadi 1 kolom
+    }
+
+    .input-wrapper {
+        .question-from-bank img {
+            width: 50%; // <-- Besarkan gambar preview
+        }
+    }
+}
+
+/* Target Ponsel */
+@media (max-width: 576px) {
+    .input {
+        margin-bottom: 20px;
+    }
+
+    .textarea {
+        margin-bottom: 30px;
+    }
+
+    .input-wrapper {
+        margin-bottom: 20px;
+
+        &.level-wrapper {
+            .level-container {
+                gap: 10px;
+
+                .item {
+                    padding: 8px 15px; // Kecilkan padding
+                    font-size: 16px; // Kecilkan font
+                }
+            }
+        }
+
+        .question-from-bank img {
+            width: 100%; // <-- Penuhi layar
         }
     }
 }

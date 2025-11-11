@@ -57,16 +57,20 @@ const destroy = async (id) => {
 <style lang="scss" scoped>
 .grid-container {
     display: grid;
-    grid-template-columns: repeat(4, 24%);
+    // Gunakan 1fr (fraction) sebagai ganti %
+    // Ini otomatis menghitung ruang untuk 'gap'
+    grid-template-columns: repeat(4, 1fr); // <-- 4 kolom (Desktop)
     gap: 15px;
     margin-top: 30px;
 
+    // Tablet: Ubah ke 2 kolom
     @media screen and (max-width: 991.98px) {
-        grid-template-columns: repeat(2, 50%);
+        grid-template-columns: repeat(2, 1fr);
     }
 
+    // Ponsel: Ubah ke 1 kolom
     @media screen and (max-width: 767.98px) {
-        grid-template-columns: repeat(1, 100%);
+        grid-template-columns: 1fr; // <-- 'repeat(1, 100%)' bisa disingkat jadi '1fr'
     }
 }
 </style>

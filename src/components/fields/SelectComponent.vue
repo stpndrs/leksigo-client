@@ -69,10 +69,12 @@ const emit = defineEmits(['update:modelValue'])
         width: 100%;
         display: block;
         background-color: var(--Neutral-100);
-        padding: 20px 15px;
+        padding: 20px 15px; // <-- Padding desktop
         border-radius: 5px;
         outline: 0;
         border: none;
+        font-size: 1rem; // <-- Tambahan: set font-size
+        cursor: pointer; // <-- Tambahan: tunjukkan bisa diklik
     }
 
     .invalid-msg {
@@ -94,6 +96,24 @@ const emit = defineEmits(['update:modelValue'])
             color: var(--Danger-900);
             font-size: small;
             margin-top: 10px;
+        }
+    }
+}
+
+/* --- RESPONSIVE --- */
+
+/* Target Ponsel Kecil */
+@media (max-width: 576px) {
+    .select-wrapper {
+        margin-bottom: 20px; // <-- Kurangi margin
+
+        label {
+            font-size: small; // <-- Kecilkan font label
+            margin-bottom: 8px;
+        }
+
+        select {
+            padding: 16px 12px; // <-- Kurangi padding di ponsel
         }
     }
 }

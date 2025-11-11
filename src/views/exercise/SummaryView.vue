@@ -96,8 +96,6 @@ onMounted(async () => {
     svg path {
         fill: var(--Secondary-900) !important;
     }
-
-
 }
 
 .page-body {
@@ -115,14 +113,16 @@ onMounted(async () => {
 
         .card-header {
             display: grid;
-            grid-template-columns: 80% auto;
+            grid-template-columns: 1fr auto; // <-- Diubah dari 80%
             align-items: center;
             margin-bottom: 40px;
+            gap: 30px; // <-- Tambahkan gap
 
             .level-container {
                 display: grid;
                 grid-template-columns: auto auto auto;
                 gap: 20px;
+                justify-content: end; // <-- Pastikan rata kanan
 
                 .item {
                     padding: 25px 20px;
@@ -132,6 +132,7 @@ onMounted(async () => {
                     font-family: 'Ubuntu Sans';
                     border: 2px solid;
                     text-align: center;
+                    cursor: default; // <-- Tidak perlu diklik
 
                     &:nth-child(1) {
                         border-color: var(--Secondary-900);
@@ -170,13 +171,21 @@ onMounted(async () => {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 50px;
-            // background: red;
             position: relative;
             margin-bottom: 40px;
 
             .description {
                 font-size: 20px;
                 color: var(--Neutral-700);
+
+                // Atur agar style HTML dari v-html terlihat
+                :deep(p) {
+                    margin-bottom: 1rem;
+                }
+
+                :deep(ul) {
+                    padding-left: 20px;
+                }
             }
 
             .data {
@@ -193,6 +202,7 @@ onMounted(async () => {
                     justify-content: space-between;
                     align-items: center;
                     width: 100%;
+                    margin-bottom: 5px; // <-- Tambah jarak kecil
 
                     span {
                         font-weight: bold;
@@ -207,6 +217,7 @@ onMounted(async () => {
                     justify-content: space-between;
                     align-items: center;
                     font-size: 25px;
+                    margin-bottom: 5px; // <-- Tambah jarak kecil
 
                     span {
                         font-size: 25px;
@@ -222,6 +233,10 @@ onMounted(async () => {
             }
 
             .action {
+                display: flex; // <-- Tambahan
+                flex-direction: column; // <-- Tambahan
+                justify-content: space-between; // <-- Tambahan
+
                 .icon {
                     width: 100%;
                 }
@@ -233,12 +248,12 @@ onMounted(async () => {
                     gap: 15px;
                     margin-bottom: 30px;
                 }
-
-                // justify-items: end;
             }
         }
 
         .card-footer {
+
+            // Style ini tidak ada di HTML Anda
             hr {
                 border: 1px solid var(--Secondary-900);
                 margin: 10px 0;
@@ -253,6 +268,95 @@ onMounted(async () => {
             }
         }
     }
+}
 
+
+/* --- RESPONSIVE --- */
+
+/* Target Tablet (Large) */
+@media (max-width: 1024px) {
+    .page-body .card {
+        padding: 3rem; // Kurangi padding
+
+        .card-header {
+            grid-template-columns: 1fr; // <-- Pecah header jadi 1 kolom
+            gap: 25px;
+            justify-items: start; // Ratakan kiri
+
+            .level-container {
+                justify-content: start; // Ratakan kiri
+            }
+        }
+
+        .card-body {
+            grid-template-columns: 1fr; // <-- Pecah body jadi 1 kolom
+            gap: 30px;
+
+            .action {
+                .icon {
+                    max-width: 300px; // <-- Batasi lebar ikon
+                    align-self: center; // <-- Pusatkan ikon
+                    order: -1; // <-- Pindahkan ikon ke atas
+                    margin-bottom: 30px;
+                }
+
+                .btn-group {
+                    margin-bottom: 15px; // Kurangi margin
+                }
+            }
+        }
+    }
+}
+
+/* Target Ponsel */
+@media (max-width: 576px) {
+    .page-body {
+        h3 {
+            font-size: 24px; // Kecilkan font
+        }
+
+        .card {
+            padding: 1.5rem; // Padding super kecil
+
+            .card-header .level-container {
+                gap: 10px; // Kurangi gap
+
+                .item {
+                    padding: 15px 10px; // Kecilkan box
+                    font-size: 22px; // Kecilkan font
+                }
+            }
+
+            .card-body {
+                gap: 40px; // Beri jarak lebih antar section
+
+                .description,
+                .data,
+                .summary-data p {
+                    font-size: 16px; // Kecilkan font
+                }
+
+                .data span,
+                .summary-data p span {
+                    font-size: 16px; // Samakan font
+                }
+
+                .summary-data h1 {
+                    font-size: 32px; // Kecilkan font Lulus
+                }
+
+                .action {
+                    .btn-group {
+                        flex-direction: column; // Tumpuk tombol
+                        width: 100%;
+
+                        button {
+                            width: 100%; // Penuhi layar
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 </style>

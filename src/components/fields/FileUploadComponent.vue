@@ -118,9 +118,9 @@ $border-color: #e0e0e0;
 $border-dashed-color: #c7c7c7;
 $text-color-light: #888;
 $text-color-dark: #555;
-$brand-color: #007bff; // Warna biru untuk "Browse"
+$brand-color: var(--Primary-900, #007bff); // <-- Menggunakan variabel CSS Anda
 $background-color: #f9f9f9;
-$font-family: sans-serif;
+$font-family: 'Ubuntu Sans', sans-serif; // <-- Menyesuaikan font
 
 .file-upload-wrapper {
     font-family: $font-family;
@@ -139,6 +139,7 @@ $font-family: sans-serif;
         border-radius: 8px;
         cursor: pointer;
         transition: border-color 0.2s, background-color 0.2s;
+        text-align: center; // <-- Tambahan: pastikan teks di tengah
 
         // 🎨 GAYA BARU: Saat pengguna menyeret file ke atas area ini
         &.is-dragging {
@@ -156,13 +157,14 @@ $font-family: sans-serif;
     .file-msg {
         color: $text-color-light;
         font-size: 16px;
-    }
+        line-height: 1.4; // <-- Tambahan: perbaiki spasi baris
 
-    // Teks "Browse" yang dibuat seperti link
-    .file-browse {
-        color: $brand-color;
-        font-weight: bold;
-        text-decoration: underline;
+        // Ganti cara styling .file-browse agar bisa diakses v-html
+        :deep(.file-browse) {
+            color: $brand-color;
+            font-weight: bold;
+            text-decoration: underline;
+        }
     }
 
     // Info tambahan di bawah area drop
@@ -185,6 +187,25 @@ $font-family: sans-serif;
         clip: rect(0, 0, 0, 0);
         white-space: nowrap;
         border: 0;
+    }
+}
+
+/* --- RESPONSIVE --- */
+
+/* Target Ponsel */
+@media (max-width: 576px) {
+    .file-upload-wrapper {
+        .file-drop-area {
+            padding: 25px 15px; // <-- Kurangi padding
+        }
+
+        .file-msg {
+            font-size: 14px; // <-- Kecilkan font
+        }
+
+        .file-info {
+            font-size: 11px; // <-- Kecilkan font
+        }
     }
 }
 </style>

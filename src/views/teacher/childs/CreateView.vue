@@ -64,23 +64,52 @@ async function submit() {
 
 <style lang="scss" scoped>
 .card {
-    background-color: var(--White);
-    padding: 3rem;
-    border-radius: 20px;
-    box-shadow: 0 5.192px 31.153px 0 rgba(0, 0, 0, 0.25);
+  background-color: var(--White);
+  padding: 3rem;
+  border-radius: 20px;
+  box-shadow: 0 5.192px 31.153px 0 rgba(0, 0, 0, 0.25);
+
+  .card-body {
+    display: grid;
+    grid-template-columns: 30% 70%; // <-- Layout default desktop
+    gap: 20px;
+    align-items: center; // <-- Tambahan: agar form & gambar sejajar di tengah
+
+    img {
+      width: 100%;
+      max-width: 350px; // <-- Tambahan: batasi lebar gambar
+      justify-self: center; // <-- Tambahan: pusatkan gambar di grid
+    }
+
+    .input {
+      margin-bottom: 30px;
+    }
+  }
+}
+
+/* --- RESPONSIVE --- 
+Target tablet (dan di bawahnya)
+*/
+@media (max-width: 992px) {
+  .card {
+    padding: 2rem; // Kurangi padding di layar lebih kecil
 
     .card-body {
-        display: grid;
-        grid-template-columns: 30% 70%;
-        gap: 20px;
-
-        img {
-            width: 100%;
-        }
-
-        .input {
-            margin-bottom: 30px;
-        }
+      grid-template-columns: 1fr; // Ubah jadi 1 kolom (vertikal)
+      gap: 40px; // Beri jarak lebih untuk tumpukan
+      
+      img {
+        max-width: 250px; // Kecilkan gambar di mobile
+      }
     }
+  }
+}
+
+/* Target ponsel kecil */
+@media (max-width: 576px) {
+  .card {
+    padding: 1.5rem;
+    border-radius: 15px;
+  }
 }
 </style>
