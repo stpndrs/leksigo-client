@@ -27,7 +27,7 @@ const getData = async () => {
             data.value = res.data.data
 
             console.log(data.value.answers.length);
-
+            
         })
         .catch((err) => {
             console.log(err);
@@ -80,7 +80,8 @@ const visibility = async () => {
                         <ButtonComponent label="Mulai Mengerjakan" class="secondary"
                             @click="router.push({ name: 'exercise.quiz.work', params: { id: id, quizId: quizId } })" />
                         <ButtonComponent label="Review pengerjaan sebelumnya" class="primary" display="border"
-                            @click="router.push({ name: 'exercise.quiz.review', params: { id: id, quizId: quizId } })" />
+                            @click="router.push({ name: 'exercise.quiz.review', params: { id: id, quizId: quizId } })"
+                            v-if="data?.answers?.length > 0" />
                     </div>
                 </div>
             </div>
