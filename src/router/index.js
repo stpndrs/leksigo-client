@@ -8,17 +8,26 @@ const router = createRouter({
 		{
 			path: '/',
 			name: 'home',
-			redirect: '/login'
+			redirect: '/login',
+			beforeEnter: (to, from, next) => {
+				if (authStore.isLogin) next({ name: 'dashboard' })
+			}
 		},
 		{
 			path: '/register',
 			name: 'register',
 			component: () => import('../views/auth/RegisterView.vue'),
+			beforeEnter: (to, from, next) => {
+				if (authStore.isLogin) next({ name: 'dashboard' })
+			}
 		},
 		{
 			path: '/login',
 			name: 'login',
 			component: () => import('../views/auth/LoginView.vue'),
+			beforeEnter: (to, from, next) => {
+				if (authStore.isLogin) next({ name: 'dashboard' })
+			}
 		},
 		{
 			path: '/dashboard',
