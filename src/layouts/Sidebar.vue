@@ -7,8 +7,11 @@ import { useRoute } from 'vue-router';
 import { ref } from 'vue'; // 👈 1. Import 'ref'
 import { authStore } from '@/stores/AuthStore';
 import router from '@/router';
+import LogoutIcon from '@/components/shape/LogoutIcon.vue';
+import ConfirmComponent from '@/components/confirm/ConfirmComponent.vue';
 
 const route = useRoute();
+const isConfirmOpen = ref(false); // Konfirmasi Submit
 
 // 2. Buat state untuk mengontrol visibilitas sidebar
 const isSidebarOpen = ref(false);
@@ -19,17 +22,33 @@ const toggleSidebar = () => {
 };
 
 
+// START Confirmation Modal Handlers
+const showConfirmation = () => {
+    isConfirmOpen.value = true;
+};
+
+const handleConfirmAction = () => {
+    logout(); // Panggil fungsi submit utama
+    isConfirmOpen.value = false; // Tutup modal
+};
+
+const handleCancelAction = () => {
+    isConfirmOpen.value = false; // Tutup modal
+};
+
 
 // fungsi logout
 const logout = () => {
-    if (confirm('Yakin ingin keluar aplikasi')) {
-        authStore.clearToken()
-        router.push({ name: 'login' })
-    }
+    authStore.clearToken()
+    router.push({ name: 'login' })
 }
 </script>
 
 <template>
+    <ConfirmComponent v-if="isConfirmOpen" title="Ingin Keluar?"
+        message="Apakah Anda Yakin Untuk Keluar Dari Aplikasi?" confirmText="Keluar" cancelText="Batal"
+        @confirm="handleConfirmAction" @cancel="handleCancelAction" />
+
     <button @click="toggleSidebar" class="hamburger-menu">
         <span></span>
         <span></span>
@@ -48,12 +67,12 @@ const logout = () => {
                 </li>
                 <li :class="['menu', { 'active': route.name === 'childs.index' }]">
                     <router-link :to="{ name: 'childs.index' }" class="menu-link">
-                        <UserIcon /> Data anak didik
+                        <UserIcon /> {{ authStore.user.role == 1 ? 'Data Anak Didik' : 'Data Anak' }}
                     </router-link>
                 </li>
                 <li :class="['menu']">
-                    <router-link to="#" class="menu-link" @click="logout">
-                        <UserIcon /> Logout
+                    <router-link to="#" class="menu-link" @click="showConfirmation">
+                        <LogoutIcon /> Logout
                     </router-link>
                 </li>
             </ul>

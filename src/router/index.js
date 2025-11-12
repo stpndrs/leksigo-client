@@ -11,6 +11,7 @@ const router = createRouter({
 			redirect: '/login',
 			beforeEnter: (to, from, next) => {
 				if (authStore.isLogin) next({ name: 'dashboard' })
+				else next()
 			}
 		},
 		{
@@ -19,6 +20,7 @@ const router = createRouter({
 			component: () => import('../views/auth/RegisterView.vue'),
 			beforeEnter: (to, from, next) => {
 				if (authStore.isLogin) next({ name: 'dashboard' })
+				else next()
 			}
 		},
 		{
@@ -27,6 +29,7 @@ const router = createRouter({
 			component: () => import('../views/auth/LoginView.vue'),
 			beforeEnter: (to, from, next) => {
 				if (authStore.isLogin) next({ name: 'dashboard' })
+				else next()
 			}
 		},
 		{
