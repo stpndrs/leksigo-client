@@ -74,6 +74,7 @@ const visibility = async () => {
                         <div class="point">Poin Lolos : <span>60</span></div>
                     </div>
                     <div class="action">
+                    {{ data?.answers?.length }}
                         <ButtonComponent label="Mulai Mengerjakan" class="secondary"
                             @click="router.push({ name: 'exercise.quiz.work', params: { id: id, quizId: quizId } })" />
                         <ButtonComponent label="Review pengerjaan sebelumnya" class="primary" display="border"
