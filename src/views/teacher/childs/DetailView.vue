@@ -131,7 +131,6 @@ const handleStatusFilter = (params) => {
                             <div :class="['item', { active: data?.child?.level == 3 }]">3</div>
                         </div>
                     </span>
-                    <ButtonComponent label="Laporan Perilaku" class="secondary" size="full" display="border" />
                 </div>
             </div>
             <div class="data-wrapper">

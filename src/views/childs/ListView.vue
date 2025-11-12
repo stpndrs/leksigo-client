@@ -6,9 +6,12 @@ import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import api from '@/utils/api';
 import { authStore } from '@/stores/AuthStore';
+import ConfirmComponent from '@/components/confirm/ConfirmComponent.vue';
 
 const router = useRouter()
 const search = ref('')
+const isConfirmOpen = ref(false); // Konfirmasi Submit
+const idToDelete = ref(null)
 
 const childs = ref([])
 onMounted(async () => {
@@ -42,21 +45,37 @@ const filteredChilds = computed(() => {
     });
 });
 
-const destroy = async (id) => {
-    if (confirm("Yakin ingin menghapus data?")) {
-        await api.delete(`/childs/${id}`)
-            .then((res) => {
-                console.log(res.data);
-                getData()
-            }).catch((err) => {
-                console.log(err);
-            })
-    }
+const showConfirmation = (id) => {
+    isConfirmOpen.value = true;
+    idToDelete.value = id
+};
+
+const handleConfirmAction = () => {
+    destroy(); // Panggil fungsi submit utama
+    isConfirmOpen.value = false; // Tutup modal
+};
+
+const handleCancelAction = () => {
+    isConfirmOpen.value = false; // Tutup modal
+};
+
+const destroy = async () => {
+    await api.delete(`/childs/${idToDelete.value}`)
+        .then((res) => {
+            console.log(res.data);
+            getData()
+        }).catch((err) => {
+            console.log(err);
+        })
 }
 </script>
 
 <template>
     <div class="container">
+        <ConfirmComponent v-if="isConfirmOpen" title="Hapus Data?"
+            message="Apakah Anda Yakin Untuk Menghapus Anak?" confirmText="Hapus" cancelText="Batal"
+            @confirm="handleConfirmAction" @cancel="handleCancelAction" />
+
         <div class="page-header">
             <h1 class="page-title">Data Anak {{ authStore.user.role == 1 ? 'Didik' : '' }}</h1>
             <button-component label="Tambah Anak" size="small" @click="router.push({ name: 'childs.create' })" />
@@ -67,7 +86,7 @@ const destroy = async (id) => {
             <div class="grid-container">
                 <div class="item" v-for="(item, index) in filteredChilds" :key="index">
                     <child-component :id="item.child._id" :level="item.child.level ?? null" :name="item.child.fullName"
-                        :code="item.child.code" :parentName="item.parentName ?? null" :method="destroy" />
+                        :code="item.child.code" :parentName="item.parentName ?? null" :method="showConfirmation" />
                 </div>
 
                 <div v-if="filteredChilds.length === 0" class="empty-state">
