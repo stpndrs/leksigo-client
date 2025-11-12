@@ -73,7 +73,7 @@ const calculateTotalPoint = () => {
             <div class="quiz-container">
                 <div :class="['item', { disabled: index > 0 ? data?.quiz[index - 1]?.answers?.length == 0 || data?.quiz[index - 1]?.quizPoint < 60 : false }]"
                     v-for="(item, index) in data?.quiz" :key="index"
-                    @click="(index > 0 ? data?.quiz[index - 1]?.answers?.length == 0 || data?.quiz[index - 1]?.quizPoint > 60 : false) ? null : $router.push({ name: 'exercise.quiz.overview', params: { id: id, quizId: item._id } })">
+                    @click="(index > 0 ? data?.quiz[index - 1]?.answers?.length == 0 || data?.quiz[index - 1]?.quizPoint < 60 : false) ? null : $router.push({ name: 'exercise.quiz.overview', params: { id: id, quizId: item._id } })">
                     <div class="point">{{ item?.quizPoint ?? 0 }}</div>
                     <div class="identity">
                         <p class="title">{{ item.name }}</p>
