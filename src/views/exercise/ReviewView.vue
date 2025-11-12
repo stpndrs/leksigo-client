@@ -101,7 +101,7 @@ const initAnswersData = () => {
                                 <div class="answered">Dijawab {{ formatDate(item.timeAnswered, 'long') }}</div>
                             </div>
                             <div class="duration">Total Durasi <br> <span>{{ formatDurationVerbose(item.duration)
-                            }}</span></div>
+                                    }}</span></div>
                         </div>
                         <div class="method">{{ formatMethodLabel(item.method) }}</div>
                         <div class="guide">
@@ -131,7 +131,7 @@ const initAnswersData = () => {
                             <div class="answered" v-if="item?.answer?.file">
                                 <img :src="item.answer.file" alt="Answer Image" v-if="[1, 2, 4].includes(item?.method)">
                                 <AudioPlayerComponent v-else-if="[3, 5].includes(item?.method)" :autoplay="false"
-                                    displayStyle="text" />
+                                    :text="item?.answer?.file" :isBase64="true" displayStyle="player" />
                                 <div class="transcript">
                                     <h3>Transkrip</h3>
                                     <p>{{ item.answer.text }}</p>
@@ -244,7 +244,7 @@ const initAnswersData = () => {
                         font-weight: normal;
                         font-size: 1rem;
                         color: var(--Neutral-700);
-                        font-style: italic;
+
                     }
                 }
             }

@@ -1,18 +1,23 @@
-/**
- * Mengubah string Base64 menjadi Blob.
- * @param {string} base64 - String data Base64.
- * @param {string} contentType - Tipe MIME dari file, e.g., 'audio/mpeg'.
- * @returns {Blob}
- */
-export function base64ToBlob(base64, contentType = '') {
-    // atob() adalah fungsi browser untuk men-decode string Base64
-    const byteCharacters = atob(base64);
-    const byteNumbers = new Array(byteCharacters.length);
-    for (let i = 0; i < byteCharacters.length; i++) {
-        byteNumbers[i] = byteCharacters.charCodeAt(i);
+export function base64ToBlob(base64, type = 'application/octet-stream') {
+    // 1. Cek apakah ada prefix "data:...", jika ada, kita split dan ambil bagian belakangnya saja
+    let base64Data = base64;
+
+    if (base64.includes(',')) {
+        // Mengambil bagian setelah koma (raw base64 nya)
+        base64Data = base64.split(',')[1];
     }
-    // Ubah array byte menjadi data biner sungguhan
-    const byteArray = new Uint8Array(byteNumbers);
-    // Buat Blob dari data biner
-    return new Blob([byteArray], { type: contentType });
-};
+
+    // 2. Bersihkan dari spasi atau enter (newline) yang mungkin terbawa
+    base64Data = base64Data.replace(/\s/g, '');
+
+    // 3. Proses decoding (ini baris yang sebelumnya error)
+    const binStr = atob(base64Data);
+
+    const len = binStr.length;
+    const arr = new Uint8Array(len);
+    for (let i = 0; i < len; i++) {
+        arr[i] = binStr.charCodeAt(i);
+    }
+
+    return new Blob([arr], { type: type });
+}

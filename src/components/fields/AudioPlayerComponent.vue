@@ -1,7 +1,6 @@
 <script setup>
-import { base64ToBlob } from '@/helpers/base64ToBlob'; // Asumsi helper ini ada
+import { base64ToBlob } from '@/helpers/base64ToBlob';
 import ai from '@/utils/ai';
-import api from '@/utils/api'; // Asumsi API util Anda
 import { ref, watch, onBeforeUnmount } from 'vue';
 
 // === PROPS ===
@@ -18,6 +17,11 @@ const props = defineProps({
         type: String,
         default: 'player',
         validator: (value) => ['player', 'text'].includes(value)
+    },
+    // Prop opsional: Jika true, 'text' dianggap sebagai base64 audio langsung
+    isBase64: {
+        type: Boolean,
+        default: false
     }
 });
 
@@ -25,52 +29,90 @@ const props = defineProps({
 const isLoading = ref(false);
 const audioUrl = ref(null);
 const errorMsg = ref(null);
-const audioRef = ref(null); // Ref untuk elemen <audio>
-
-// State baru untuk custom player
+const audioRef = ref(null);
 const isPlaying = ref(false);
 const progressPercent = ref(0);
 
-// === FUNGSI API ===
+// === FUNGSI API (Hanya dipanggil jika input adalah Teks) ===
 async function fetchAudioFromAI(textToSpeech) {
     try {
         const response = await ai.post('/text-to-speech', { text: textToSpeech });
         const base64Audio = response.data.audioContent;
-        if (!base64Audio) {
-            throw new Error("API tidak mengembalikan audioContent.");
-        }
-        const audioBlob = base64ToBlob(base64Audio, 'audio/mpeg');
-        return audioBlob;
+        if (!base64Audio) throw new Error("API tidak mengembalikan audioContent.");
+        return base64ToBlob(base64Audio, 'audio/mpeg');
     } catch (error) {
         console.error("Gagal saat memanggil API TTS:", error);
         throw error;
     }
 }
 
-// === WATCHER (untuk memuat audio) ===
-watch(() => props.text, async (newText) => {
-    if (!newText) return;
+// === WATCHER UTAMA ===
+watch(() => props.text, async (newInput) => {
+    if (!newInput) return;
+
+    // Reset state
     isLoading.value = true;
     errorMsg.value = null;
-    // Hapus URL blob lama jika ada
     if (audioUrl.value) {
         URL.revokeObjectURL(audioUrl.value);
+        audioUrl.value = null;
     }
+
     try {
-        const audioBlob = await fetchAudioFromAI(newText);
+        let audioBlob;
+
+        // 1. JIKA INPUT ADALAH BASE64 (Langsung Audio)
+        // Kita cek prop isBase64 ATAU deteksi pola base64 sederhana (opsional)
+        if (props.isBase64 || isLikelyBase64(newInput)) {
+            // Langsung konversi string input ke Blob
+            // Asumsi format audio/mpeg (MP3) atau audio/wav, sesuaikan jika perlu
+            audioBlob = base64ToBlob(newInput, 'audio/mpeg');
+        }
+        // 2. JIKA INPUT ADALAH TEKS (Panggil API)
+        else {
+            audioBlob = await fetchAudioFromAI(newInput);
+        }
+
+        // Buat URL objek dari Blob
         audioUrl.value = URL.createObjectURL(audioBlob);
-        // Reset state player
+
+        // Reset player UI
         isPlaying.value = false;
         progressPercent.value = 0;
+
     } catch (err) {
-        console.error("Gagal mengambil audio dari AI:", err);
+        console.error("Gagal memuat audio:", err);
         errorMsg.value = "Gagal memuat audio.";
     } finally {
         isLoading.value = false;
     }
 }, { immediate: true });
 
-// === METHODS (untuk mengontrol player) ===
+// Helper sederhana untuk mendeteksi apakah string kemungkinan Base64
+// (String panjang, tanpa spasi, karakter base64 valid)
+function isLikelyBase64(str) {
+    if (!str || typeof str !== 'string') return false;
+
+    // 1. Base64 biasanya sangat panjang (lebih dari 100 karakter)
+    // 2. Base64 TIDAK BOLEH punya spasi (kecuali di ujung)
+    // 3. Base64 valid hanya berisi karakter A-Z, a-z, 0-9, +, /, =
+
+    // Cek apakah ada spasi di tengah kalimat (tanda ini teks biasa, bukan audio)
+    if (/\s/.test(str.trim())) {
+        return false;
+    }
+
+    // Cek panjang minimum dan karakter valid
+    // Regex ini mengecek apakah string HANYA berisi karakter base64
+    const base64Regex = /^[A-Za-z0-9+/]*={0,2}$/;
+
+    // Jika ada header data URI, kita anggap valid dulu
+    if (str.startsWith('data:audio')) return true;
+
+    return str.length > 100 && base64Regex.test(str);
+}
+
+// === METHODS PLAYER (Sama seperti sebelumnya) ===
 function togglePlayPause() {
     if (!audioRef.value) return;
     if (audioRef.value.paused) {
@@ -80,26 +122,20 @@ function togglePlayPause() {
     }
 }
 
-// Fungsi untuk seek (pindah) audio saat progress bar diklik
 function handleSeek(event) {
     if (!audioRef.value || !audioRef.value.duration) return;
-
     const bar = event.currentTarget;
-    // Dapatkan posisi klik X relatif terhadap elemen
     const clickX = event.offsetX;
     const barWidth = bar.clientWidth;
-
-    // Hitung waktu baru
     const newTime = (clickX / barWidth) * audioRef.value.duration;
     audioRef.value.currentTime = newTime;
 }
 
-// === HANDLER EVENT AUDIO (untuk sinkronisasi UI) ===
 function onPlay() { isPlaying.value = true; }
 function onPause() { isPlaying.value = false; }
 function onEnded() {
     isPlaying.value = false;
-    progressPercent.value = 0; // Reset bar saat selesai
+    progressPercent.value = 0;
 }
 function onTimeUpdate() {
     if (!audioRef.value) return;
@@ -111,7 +147,6 @@ function onTimeUpdate() {
     }
 }
 
-// Pastikan untuk membersihkan ObjectURL saat komponen dihancurkan
 onBeforeUnmount(() => {
     if (audioUrl.value) {
         URL.revokeObjectURL(audioUrl.value);
@@ -122,11 +157,9 @@ onBeforeUnmount(() => {
 <template>
     <div class="tts-component">
         <div v-if="isLoading" class="status-text">Memuat audio...</div>
-
         <div v-if="errorMsg" class="error-text">{{ errorMsg }}</div>
 
         <div v-if="audioUrl" class="audio-container">
-
             <audio ref="audioRef" :src="audioUrl" :autoplay="props.autoplay" @play="onPlay" @pause="onPause"
                 @ended="onEnded" @timeupdate="onTimeUpdate" style="display: none;"></audio>
 
@@ -135,7 +168,6 @@ onBeforeUnmount(() => {
                     <span v-if="!isPlaying" class="icon-play">►</span>
                     <span v-else class="icon-pause">❚❚</span>
                 </button>
-
                 <div class="progress-track" @click="handleSeek">
                     <div class="progress-fill" :style="{ width: progressPercent + '%' }"></div>
                 </div>
@@ -143,15 +175,17 @@ onBeforeUnmount(() => {
 
             <div v-if="props.displayStyle === 'text'" class="tts-text-button" @click="togglePlayPause"
                 title="Putar audio">
-                <span class="text">{{ props.text }}</span>
+                <span class="text" v-if="!isBase64 && !isLikelyBase64(props.text)">{{ props.text }}</span>
+                <span class="text" v-else>Putar Audio</span>
                 <span class="icon">🔊</span>
             </div>
-
         </div>
     </div>
 </template>
 
 <style scoped>
+/* ... (GUNAKAN STYLE YANG SAMA DENGAN SEBELUMNYA) ... */
+/* Salin style CSS responsif dari jawaban sebelumnya di sini */
 /* === STYLE 1: CUSTOM PLAYER (Mirip Gambar) === */
 .custom-player {
     box-sizing: border-box;

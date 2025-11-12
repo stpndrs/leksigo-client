@@ -78,7 +78,7 @@ const saveAnswer = () => {
         const duration = (timeAnswered - currentQuestionStartTime.value) / 1000;
 
         let fileType = 'image/jpeg';
-        if ([3, 5].includes(quizData?.value?.method)) {
+        if ([3, 5].includes(questionActive?.value?.method)) {
             fileType = 'audio/wav';
         }
 
