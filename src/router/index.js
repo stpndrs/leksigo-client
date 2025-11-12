@@ -1,6 +1,7 @@
 import { authStore } from '@/stores/AuthStore';
 import { createRouter, createWebHistory, useRouter } from 'vue-router'
 import middleware from './middleware';
+import teacherMiddleware from './teacherMiddleware';
 
 const router = createRouter({
 	history: createWebHistory(import.meta.env.BASE_URL),
@@ -61,15 +62,6 @@ const router = createRouter({
 							name: 'childs.detail',
 							component: () => import(`../views/childs/DetailView.vue`)
 						},
-						// dibawah harusnya untuk liat progress, tapi diganti jadi seperti hasil belajar di lms quiz 
-						{
-							path: '/dashboard/childs/:id/work',
-							name: 'childs.work',
-							component: () => {
-								const roleFolder = authStore.user.role === 1 ? 'teacher' : 'parent';
-								return import(`../views/${roleFolder}/childs/WorkView.vue`);
-							}
-						},
 
 					]
 				},
@@ -80,7 +72,8 @@ const router = createRouter({
 						{
 							path: '/exercise/create/:id',
 							name: 'exercise.create',
-							component: () => import('../views/exercise/CreateExerciseView.vue')
+							component: () => import('../views/exercise/CreateExerciseView.vue'),
+							beforeEnter: teacherMiddleware
 						},
 						{
 							path: '/exercise/work/:id',
@@ -89,37 +82,41 @@ const router = createRouter({
 								{
 									path: '/exercise/quiz/list/:id',
 									name: 'exercise.quiz.list',
-									component: () => import('../views/exercise/QuizListView.vue')
+									component: () => import('../views/exercise/QuizListView.vue'),
 								},
 								{
 									path: '/exercise/quiz/create/:id',
 									name: 'exercise.quiz.create',
-									component: () => import('../views/exercise/CreateQuizView.vue')
+									component: () => import('../views/exercise/CreateQuizView.vue'),
+									beforeEnter: teacherMiddleware
 								},
 								{
 									path: '/exercise/quiz/overview/:id/:quizId',
 									name: 'exercise.quiz.overview',
-									component: () => import('../views/exercise/OverView.vue')
+									component: () => import('../views/exercise/OverView.vue'),
 								},
 								{
 									path: '/exercise/quiz/work/:id/:quizId',
 									name: 'exercise.quiz.work',
-									component: () => import('../views/exercise/QuizzView.vue')
+									component: () => import('../views/exercise/QuizzView.vue'),
+									beforeEnter: teacherMiddleware
 								},
 								{
 									path: '/exercise/quiz/summary/:id/:quizId',
 									name: 'exercise.quiz.summary',
-									component: () => import('../views/exercise/SummaryView.vue')
+									component: () => import('../views/exercise/SummaryView.vue'),
+									beforeEnter: teacherMiddleware
 								},
 								{
 									path: '/exercise/quiz/review/:id/:quizId',
 									name: 'exercise.quiz.review',
-									component: () => import('../views/exercise/ReviewView.vue')
+									component: () => import('../views/exercise/ReviewView.vue'),
 								},
 								{
 									path: '/exercise/attitude/:id/:quizId',
 									name: 'exercise.attitude',
-									component: () => import('../views/exercise/AttitudeView.vue')
+									component: () => import('../views/exercise/AttitudeView.vue'),
+									beforeEnter: teacherMiddleware
 								},
 							]
 						}
@@ -132,12 +129,14 @@ const router = createRouter({
 						{
 							path: '/material/:id/create',
 							name: 'material.create',
-							component: () => import('../views/material/CreateView.vue')
+							component: () => import('../views/material/CreateView.vue'),
+							beforeEnter: teacherMiddleware
 						},
 						{
 							path: '/material/:id/edit/:materialId',
 							name: 'material.edit',
-							component: () => import('../views/material/EditView.vue')
+							component: () => import('../views/material/EditView.vue'),
+							beforeEnter: teacherMiddleware
 						},
 						{
 							path: '/material/:id/overview/:materialId',
@@ -148,16 +147,6 @@ const router = createRouter({
 				},
 
 			]
-		},
-		{
-			path: '/test-stt',
-			name: 'test',
-			component: () => import('../views/test.vue')
-		},
-		{
-			path: '/test-tts',
-			name: 'tesat',
-			component: () => import('../views/test2.vue')
 		},
 	],
 })

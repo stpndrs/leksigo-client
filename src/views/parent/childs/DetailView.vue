@@ -101,7 +101,7 @@ const handleStatusFilter = (params) => {
             <router-link :to="{ name: 'childs.index' }">
                 <ChevronLeftIcon />
             </router-link>
-            <h1 class="page-title">Data Anak Didik Guru</h1>
+            <h1 class="page-title">Detail Data Anak</h1>
         </div>
         <div class="page-body">
             <div class="detail">
@@ -131,7 +131,6 @@ const handleStatusFilter = (params) => {
                             <div :class="['item', { active: data?.child?.level == 3 }]">3</div>
                         </div>
                     </span>
-                    <ButtonComponent label="Laporan Perilaku" class="secondary" size="full" display="border" />
                 </div>
             </div>
             <div class="data-wrapper">
@@ -156,10 +155,6 @@ const handleStatusFilter = (params) => {
                                     </div>
                                 </div>
                             </div>
-                            <div class="card-footer" v-if="!isWorkMode">
-                                <ButtonComponent label="Buat Latihan" class="secondary" size="large"
-                                    @click="$router.push({ name: 'exercise.create', params: id })" />
-                            </div>
                         </div>
                     </div>
 
@@ -178,10 +173,6 @@ const handleStatusFilter = (params) => {
                                     <p class="title">{{ item.title }}</p>
                                     <div class="category">{{ item.method }}</div>
                                 </div>
-                            </div>
-                            <div class="card-footer" v-if="!isWorkMode">
-                                <ButtonComponent label="Buat Materi" class="primary" size="large"
-                                    @click="$router.push({ name: 'material.create', params: id })" />
                             </div>
                         </div>
                     </div>

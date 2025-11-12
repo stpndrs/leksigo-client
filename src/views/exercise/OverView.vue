@@ -4,6 +4,7 @@ import ChevronLeftIcon from '@/components/shape/ChevronLeft.Icon.vue';
 import EyeIcon from '@/components/shape/EyeIcon.vue';
 import EyeSlashIcon from '@/components/shape/EyeSlashIcon.vue';
 import { formatDate } from '@/helpers/formatDate';
+import { authStore } from '@/stores/AuthStore';
 import { useQuizStore } from '@/stores/quiz';
 import { workStore } from '@/stores/WorkStore';
 import api from '@/utils/api';
@@ -65,7 +66,7 @@ const visibility = async () => {
                     </div>
                     <ButtonComponent :label="!data.isHidden ? 'Sembunyikan' : 'Tampilkan'"
                         :icon="!data.isHidden ? EyeSlashIcon : EyeIcon" class="secondary" size="small" display="border"
-                        @click="visibility" v-if="!isWorkMode" />
+                        @click="visibility" v-if="!isWorkMode && authStore.user.role == 1" />
                 </div>
                 <div class="card-body">
                     <div class="description">
@@ -78,8 +79,8 @@ const visibility = async () => {
                     </div>
                     <div class="action">
                         <ButtonComponent label="Mulai Mengerjakan" class="secondary"
-                            @click="router.push({ name: 'exercise.quiz.work', params: { id: id, quizId: quizId } })" />
-                        <ButtonComponent label="Review pengerjaan sebelumnya" class="primary" display="border"
+                            @click="router.push({ name: 'exercise.quiz.work', params: { id: id, quizId: quizId } })" v-if="authStore?.user?.role == 1" />
+                        <ButtonComponent :label="authStore?.user?.role == 1 ? 'Review pengerjaan sebelumnya' : 'Review pengerjaan'" class="primary" display="border"
                             @click="router.push({ name: 'exercise.quiz.review', params: { id: id, quizId: quizId } })"
                             v-if="data?.answers?.length > 0" />
                     </div>

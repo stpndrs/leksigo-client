@@ -5,6 +5,7 @@ import ChildComponent from '@/components/cards/ChildComponent.vue';
 import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import api from '@/utils/api';
+import { authStore } from '@/stores/AuthStore';
 
 const router = useRouter()
 const search = ref('')
@@ -39,7 +40,7 @@ const destroy = async (id) => {
 <template>
     <div class="container">
         <div class="page-header">
-            <h1 class="page-title">Data Anak Didik</h1>
+            <h1 class="page-title">Data Anak {{ authStore.user.role == 1 ? 'Didik' : '' }}</h1>
             <button-component label="Tambah Anak" size="small" @click="router.push({ name: 'childs.create' })" />
         </div>
         <div class="page-body">

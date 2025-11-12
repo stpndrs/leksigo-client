@@ -5,6 +5,7 @@ import DoneIcon from '@/components/shape/DoneIcon.vue';
 import LockIcon from '@/components/shape/LockIcon.vue';
 import LockOpenIcon from '@/components/shape/LockOpenIcon.vue';
 import { formatDate } from '@/helpers/formatDate';
+import { authStore } from '@/stores/AuthStore';
 import { workStore } from '@/stores/WorkStore';
 import api from '@/utils/api';
 import { onMounted, ref } from 'vue';
@@ -67,7 +68,7 @@ const calculateTotalPoint = () => {
             <div class="action">
                 <p class="score">Total Skor : <strong>{{ totalQuizPoint }}</strong></p>
                 <ButtonComponent label="Buat Latihan" class="secondary"
-                    @click="router.push({ name: 'exercise.quiz.create', params: { id: id } })" v-if="!isWorkMode" />
+                    @click="router.push({ name: 'exercise.quiz.create', params: { id: id } })" v-if="!isWorkMode && authStore?.user?.role == 1" />
             </div>
             <div class="quiz-container">
                 <div :class="['item', { disabled: index > 0 ? data?.quiz[index - 1]?.answers?.length == 0 || data?.quiz[index - 1]?.quizPoint < 60 : false }]"
