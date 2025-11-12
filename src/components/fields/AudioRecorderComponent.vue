@@ -66,12 +66,13 @@ const toggleRecording = async () => {
 </template>
 
 <style lang="scss" scoped>
-// Tentukan warna utama (biru) dan warna stop (merah)
-// Saya gunakan variabel --Secondary-900 (biru) dan --Danger-900 (merah)
-// yang sepertinya Anda gunakan di proyek.
-$record-color: var(--Secondary-900, #007bff);
-$stop-color: var(--Danger-900, #dc3545);
-$text-color: var(--Neutral-700, #444);
+// Tentukan HANYA WARNA FALLBACK di variabel Sass
+$record-color: #007bff;
+/* <--- BERUBAH */
+$stop-color: #dc3545;
+/* <--- BERUBAH */
+$text-color: #444;
+/* <--- BERUBAH */
 
 .recorder-btn {
     // Layouting: Ikon + Teks
@@ -81,13 +82,16 @@ $text-color: var(--Neutral-700, #444);
     gap: 10px; // Jarak antara ikon dan teks
 
     // Bentuk dan Border (sesuai gambar)
-    border: 2px solid $record-color;
+    // Gunakan var() di sini, dengan variabel Sass sebagai fallback
+    border: 2px solid var(--Secondary-900, $record-color);
+    /* <--- BERUBAH */
     border-radius: 50px; // Sangat bulat
     padding: 10px 24px;
 
     // Warna (sesuai gambar)
     background-color: var(--White, #ffffff);
-    color: $record-color;
+    color: var(--Secondary-900, $record-color);
+    /* <--- BERUBAH */
 
     // Teks
     font-size: 1.1rem;
@@ -109,13 +113,17 @@ $text-color: var(--Neutral-700, #444);
 
     // Efek hover (opsional, tapi bagus)
     &:hover {
+        // Sekarang lighten() bisa bekerja karena $record-color adalah warna asli
         background-color: lighten($record-color, 40%);
+        /* <--- INI SEKARANG AMAN */
     }
 
     // --- STATE SAAT MEREKAM ---
     &.is-recording {
-        border-color: $stop-color;
-        background-color: $stop-color;
+        border-color: var(--Danger-900, $stop-color);
+        /* <--- BERUBAH */
+        background-color: var(--Danger-900, $stop-color);
+        /* <--- BERUBAH */
         color: var(--White, #ffffff);
 
         .icon {
@@ -124,7 +132,9 @@ $text-color: var(--Neutral-700, #444);
         }
 
         &:hover {
+            // darken() juga bisa bekerja
             background-color: darken($stop-color, 10%);
+            /* <--- INI SEKARANG AMAN */
         }
     }
 }
@@ -150,7 +160,8 @@ $text-color: var(--Neutral-700, #444);
 
     p {
         font-size: 0.9em;
-        color: $text-color;
+        color: var(--Neutral-700, $text-color);
+        /* <--- BERUBAH */
         margin-bottom: 5px;
     }
 
