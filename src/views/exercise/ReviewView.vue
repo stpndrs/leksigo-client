@@ -10,6 +10,7 @@ import { formatDate } from '@/helpers/formatDate';
 import { formatDurationVerbose } from '@/helpers/formatDurationVerbose';
 import { formatMethodLabel } from '@/helpers/formatMethodLabel';
 import api from '@/utils/api';
+import { globalToast } from '@/utils/toast';
 import { onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
@@ -89,7 +90,8 @@ const initAnswersData = () => {
             <h1 class="page-title">Review Jawaban</h1>
         </div>
         <div class="page-body">
-            <ToastComponent :message="toastMsg" :type="toastType" v-show="isShowToast" />
+            <ToastComponent :v-if="globalToast.show" :message="globalToast.message" :type="globalToast.type"
+                :title="globalToast.title" @close="globalToast.show = false" />
 
             <div class="grid-container">
                 <div class="answers-container">
@@ -101,7 +103,7 @@ const initAnswersData = () => {
                                 <div class="answered">Dijawab {{ formatDate(item.timeAnswered, 'long') }}</div>
                             </div>
                             <div class="duration">Total Durasi <br> <span>{{ formatDurationVerbose(item.duration)
-                                    }}</span></div>
+                            }}</span></div>
                         </div>
                         <div class="method">{{ formatMethodLabel(item.method) }}</div>
                         <div class="guide">

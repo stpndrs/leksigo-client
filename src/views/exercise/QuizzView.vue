@@ -8,8 +8,10 @@ import ChevronLeftIcon from '@/components/shape/ChevronLeft.Icon.vue';
 import ToastComponent from '@/components/toast/ToastComponent.vue';
 import { formatMethodLabel } from '@/helpers/formatMethodLabel';
 import api from '@/utils/api';
+import { globalToast } from '@/utils/toast';
 import { onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { triggerToast } from '../../utils/toast';
 
 const baseUrl = import.meta.env.VITE_APP_API_URL
 const route = useRoute()
@@ -70,7 +72,7 @@ const openQuestion = (id, index) => {
 
 const saveAnswer = () => {
     try {
-        handleToast('Berhasil menyimpan jawaban');
+        triggerToast('Pertanyaan berhasil disimpan', 'success');
 
         const currentQuestionId = questionActive.value._id;
 
@@ -104,7 +106,7 @@ const saveAnswer = () => {
             console.log("Jawaban baru ditambahkan");
         }
     } catch (e) {
-        handleToast('Gagal menyimpan jawaban', 'error')
+        triggerToast('Gagal menyimpan jawaban', 'error')
     }
 }
 
@@ -152,25 +154,6 @@ const handleCancelAction = () => {
 };
 // END Confirmation Modal Handlers
 
-// START handleToast (Helper untuk Menampilkan Toast)
-const handleToast = (msg, type) => {
-    isShowToast.value = true;
-    toastMsg.value = msg;
-    toastType.value = type ?? 'success';
-};
-// END handleToast
-
-// START Watcher untuk Toast
-// (Menggunakan sistem 1 toast, bukan antrian array)
-watch(() => isShowToast.value, () => {
-    if (isShowToast.value == true) {
-        setTimeout(() => {
-            isShowToast.value = false;
-        }, 3000);
-    }
-});
-// END Watcher untuk Toast
-
 watch(() => questionActiveIndex, () => {
     currentQuestionStartTime.value = new Date()
 }, {
@@ -192,7 +175,8 @@ watch(() => questionActiveIndex, () => {
                 message="Apakah Anda Yakin Untuk Menyelesaikan Sesi Latihan?" confirmText="Simpan" cancelText="Batal"
                 @confirm="handleConfirmAction" @cancel="handleCancelAction" />
 
-            <ToastComponent :message="toastMsg" :type="toastType" v-show="isShowToast" />
+            <ToastComponent v-if="globalToast.show" :message="globalToast.message" :type="globalToast.type"
+                :title="globalToast.title" @close="globalToast.show = false" />
 
             <div class="grid-container">
                 <div class="workspace">

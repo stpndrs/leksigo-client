@@ -1,29 +1,55 @@
 import axios from "axios";
+import { triggerToast } from "@/utils/toast"; // <--- Import jembatan tadi
+import { triggerLoading } from "./button";
 
 const api = axios.create({
     baseURL: import.meta.env.VITE_APP_API_URL + '/api/v1',
     withCredentials: true
 });
 
+// Request Interceptor (tetap seperti kode kamu)
+api.interceptors.request.use(config => {
+    const token = localStorage.getItem('token');
+    if (token) config.headers['Authorization'] = `Bearer ${token.replaceAll('"', '')}`;
+    triggerLoading
+    return config;
+}, error => Promise.reject(error));
 
-// Menambahkan interceptor untuk setiap request yang akan dikirim
-api.interceptors.request.use(
-    config => {
-        // 1. Ambil token dari tempat Anda menyimpannya (misal: localStorage)
-        const token = localStorage.getItem('token');
 
-        // 2. Jika token ada, tambahkan ke header Authorization
-        if (token) {
-            config.headers['Authorization'] = `Bearer ${token.replaceAll('"', '')}`;
+// Response Interceptor (INI YANG KITA TAMBAH)
+api.interceptors.response.use(
+    response => {
+        const method = response.config.method.toLowerCase();
+
+        triggerLoading
+        // show toast while fetching
+        if (method === 'post') {
+            triggerToast('Data berhasil ditambahkan', 'success', 'Berhasil!');
+        }
+        else if (method === 'put') {
+            triggerToast('Data berhasil diperbarui', 'success', 'Berhasil!');
+        }
+        else if (method === 'delete') {
+            triggerToast('Data berhasil dihapus', 'success', 'Berhasil!');
         }
 
-        // 3. Kembalikan objek config agar request bisa dilanjutkan
-        return config;
+        return response
     },
     error => {
-        // Lakukan sesuatu jika ada error pada request
+        let pesan = "Terjadi kesalahan";
+
+        // Cek pesan error dari response backend
+        if (error.response && error.response.data) {
+            pesan = error.response.data.message || error.response.statusText;
+        } else if (error.message) {
+            pesan = error.message;
+        }
+
+        // Panggil Toast Global disini!
+        triggerToast(pesan, 'error', 'Ups, Error!');
+
         return Promise.reject(error);
     }
 );
 
-export default api
+export default api;

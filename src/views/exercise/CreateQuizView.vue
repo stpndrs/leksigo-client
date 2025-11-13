@@ -19,6 +19,7 @@ import CheckboxesComponent from '@/components/fields/CheckboxesComponent.vue';
 import QuestionBankModal from '@/components/modal/QuestionBankModal.vue';
 import ToastComponent from '@/components/toast/ToastComponent.vue';
 import ConfirmComponent from '@/components/confirm/ConfirmComponent.vue';
+import { globalToast, triggerToast } from '@/utils/toast';
 // --- End Imports ---
 
 // --- 2. State (Refs & Computed) ---
@@ -117,9 +118,9 @@ const saveData = () => {
             return;
         }
         isDataSaved.value = true;
-        handleToast('Berhasil menyimpan data');
+        triggerToast('Berhasil menyimpan data', 'success');
     } catch (e) {
-        handleToast('Gagal menyimpan jawaban', 'error')
+        triggerToast('Gagal menyimpan jawaban', 'error')
     }
 };
 // END saveData
@@ -128,7 +129,7 @@ const saveData = () => {
 const addQuestion = () => {
     // Cek apakah soal saat ini sudah disimpan
     if (!questions.value.find(d => d.index == questionActive.value)) {
-        handleToast('Isi dan simpan pertanyaan saat ini terlebih dahulu!', 'error');
+        triggerToast('Isi dan simpan pertanyaan saat ini terlebih dahulu!', 'error');
         return;
     }
 
@@ -179,7 +180,7 @@ const pushQuestion = () => {
         findQuestion.key = key.value;
         findQuestion.method = method.value;
     }
-    handleToast('Berhasil menyimpan soal!');
+    triggerToast('Berhasil menyimpan soal!', 'success');
 };
 // END pushQuestion
 
@@ -237,7 +238,7 @@ const insertQuestion = (params) => {
         findQuestion.method = params.method;
     }
 
-    handleToast('Berhasil menyimpan soal!');
+    triggerToast('Berhasil menyimpan soal!', 'success');
     handleAttemptQuestion(questionActive.value); // Tampilkan data di form
 };
 // END insertQuestion
@@ -274,25 +275,6 @@ const handleCancelAction = () => {
     isConfirmOpen.value = false; // Tutup modal
 };
 // END Confirmation Modal Handlers
-
-// START handleToast (Helper untuk Menampilkan Toast)
-const handleToast = (msg, type) => {
-    isShowToast.value = true;
-    toastMsg.value = msg;
-    toastType.value = type ?? 'success';
-};
-// END handleToast
-
-// START Watcher untuk Toast
-// (Menggunakan sistem 1 toast, bukan antrian array)
-watch(() => isShowToast.value, () => {
-    if (isShowToast.value == true) {
-        setTimeout(() => {
-            isShowToast.value = false;
-        }, 3000);
-    }
-});
-// END Watcher untuk Toast
 
 // START fileToBase64 (Utility Function)
 const fileToBase64 = (params) => new Promise((resolve, reject) => {
@@ -354,7 +336,8 @@ const submit = async () => {
             message="Apakah Anda yakin untuk menyimpan soal latihan?" confirmText="Simpan" cancelText="Batal"
             @confirm="handleConfirmAction" @cancel="handleCancelAction" />
 
-        <ToastComponent :message="toastMsg" :type="toastType" v-show="isShowToast" />
+        <ToastComponent v-if="globalToast.show" :message="globalToast.message" :type="globalToast.type"
+            :title="globalToast.title" @close="globalToast.show = false" />
 
         <QuestionBankModal v-if="isModalShowed" :questions="questionBank" :method="method"
             :methodLabel="methodLabel.label" :level="level" :questionType="objectValue" :insertQuestion="insertQuestion"
