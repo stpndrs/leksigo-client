@@ -503,6 +503,7 @@ textarea.textarea {
     min-height: 250px; // <-- Kurangi tinggi minimum
     border: 1px solid var(--Neutral-400); // <-- Gunakan variabel warna
     outline: none;
+    border: 1px solid var(--Neutral-700);
     border-radius: 10px;
     padding: 15px;
     background: unset;
