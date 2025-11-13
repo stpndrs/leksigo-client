@@ -1,6 +1,5 @@
 import axios from "axios";
 import { triggerToast } from "@/utils/toast"; // <--- Import jembatan tadi
-import { triggerLoading } from "./button";
 
 const api = axios.create({
     baseURL: import.meta.env.VITE_APP_API_URL + '/api/v1',
@@ -11,7 +10,6 @@ const api = axios.create({
 api.interceptors.request.use(config => {
     const token = localStorage.getItem('token');
     if (token) config.headers['Authorization'] = `Bearer ${token.replaceAll('"', '')}`;
-    triggerLoading
     return config;
 }, error => Promise.reject(error));
 
@@ -21,7 +19,6 @@ api.interceptors.response.use(
     response => {
         const method = response.config.method.toLowerCase();
 
-        triggerLoading
         // show toast while fetching
         if (method === 'post') {
             triggerToast('Data berhasil ditambahkan', 'success', 'Berhasil!');
