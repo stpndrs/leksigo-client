@@ -6,6 +6,7 @@ import FilterModal from '@/components/modal/FilterModal.vue';
 import ChevronLeftIcon from '@/components/shape/ChevronLeft.Icon.vue';
 import FilterIcon from '@/components/shape/FilterIcon.vue';
 import { formatDate } from '@/helpers/formatDate';
+import { authStore } from '@/stores/AuthStore';
 import { workStore } from '@/stores/WorkStore';
 import api from '@/utils/api';
 import { onMounted, ref } from 'vue';
@@ -91,9 +92,13 @@ const handleScroll = () => {
                         <p>Nama Anak :</p>
                         <p class="value">{{ data?.child.fullName }}</p>
                     </span>
-                    <span class="name">
+                    <span class="name" v-if="authStore.user.role == 1">
                         <p>Nama Orang Tua :</p>
                         <p class="value">{{ data?.parent.fullName }}</p>
+                    </span>
+                    <span class="name" v-else>
+                        <p>Nama Guru Pendamping :</p>
+                        <p class="value">{{ data?.teacher.fullName ?? 'Belum memiliki guru pendamping' }}</p>
                     </span>
                     <span class="name">
                         <p>Kode Unik :</p>

@@ -86,7 +86,7 @@ const destroy = async () => {
             <div class="grid-container">
                 <div class="item" v-for="(item, index) in filteredChilds" :key="index">
                     <child-component :id="item.child._id" :level="item.child.level ?? null" :name="item.child.fullName"
-                        :code="item.child.code" :parentName="item.parentName ?? null" :method="showConfirmation" />
+                        :code="item.child.code" :parentName="item.parentName ?? null" :teacherName="item.teacherName ?? null" :method="showConfirmation" />
                 </div>
 
                 <div v-if="filteredChilds.length === 0" class="empty-state">

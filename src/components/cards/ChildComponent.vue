@@ -6,7 +6,7 @@ import { useRouter } from 'vue-router';
 import { workStore } from '@/stores/WorkStore';
 import { authStore } from '@/stores/AuthStore';
 
-const props = defineProps(['id', 'level', 'name', 'code', 'parentName', 'method'])
+const props = defineProps(['id', 'level', 'name', 'code', 'parentName', 'teacherName', 'method'])
 const router = useRouter()
 
 const handleWorkMode = (params) => {
@@ -31,14 +31,16 @@ const handleWorkMode = (params) => {
         </div>
         <div class="card-body">
             <p class="name">{{ props.name }}</p>
-            <p class="parent" v-if="props.parentName">{{ props.parentName }}</p>
+            <p class="parent" v-if="props.parentName && authStore.user.role == 1">{{ props.parentName }}</p>
+            <p class="parent" v-else-if="props.teacherName && authStore.user.role == 2">{{ props.teacherName }}</p>
             <div class="code">
                 <CopyIcon /> {{ props.code }}
             </div>
         </div>
         <div class="card-footer">
             <button-component label="Detail" size="full" @click="handleWorkMode('detail')" />
-            <button-component label="Kerjakan Tugas" size="full" @click="handleWorkMode('work')" v-if="authStore.user.role == 1" />
+            <button-component label="Kerjakan Tugas" size="full" @click="handleWorkMode('work')"
+                v-if="authStore.user.role == 1" />
             <button-component label="Hapus" display="border" size="full" @click="props.method(props.id)" />
         </div>
     </div>
