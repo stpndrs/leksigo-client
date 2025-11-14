@@ -11,9 +11,6 @@ import api from '@/utils/api';
 import { onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
-const isFilterExerciseShowed = ref(false)
-const isFilterMaterialShowed = ref(false)
-
 const route = useRoute()
 const router = useRouter()
 const id = route.params.id
@@ -72,27 +69,6 @@ const handleScroll = () => {
 };
 
 
-const handleFilterModal = (params) => {
-    if (params == 'exercise') {
-        isFilterExerciseShowed.value = !isFilterExerciseShowed.value
-        isFilterMaterialShowed.value = false
-    } else {
-        isFilterExerciseShowed.value = false
-        isFilterMaterialShowed.value = !isFilterMaterialShowed.value
-    }
-}
-
-const handleDateFilter = (params) => {
-    console.log(params);
-
-    // olah data berdasarkan filter
-}
-
-const handleStatusFilter = (params) => {
-    console.log(params);
-
-    // olah data berdasarkan filter
-}
 </script>
 
 <template>
@@ -138,12 +114,8 @@ const handleStatusFilter = (params) => {
 
                     <div class="swiper-slide-manual">
                         <div class="card exercises">
-                            <FilterModal :handleModal="handleFilterModal" :handleDateFilter="handleDateFilter"
-                                :handleStatusFilter="handleStatusFilter" type="exercise"
-                                v-if="isFilterExerciseShowed" />
                             <div class="card-header">
                                 <h3>Latihan</h3>
-                                <FilterIcon class="filterIcon" @click="handleFilterModal('exercise')" />
                             </div>
                             <div class="card-body">
                                 <div class="item" v-for="(item, index) in data?.exercises" :key="index"
@@ -160,12 +132,8 @@ const handleStatusFilter = (params) => {
 
                     <div class="swiper-slide-manual">
                         <div class="card materials">
-                            <FilterModal :handleModal="handleFilterModal" :handleDateFilter="handleDateFilter"
-                                :handleStatusFilter="handleStatusFilter" type="material"
-                                v-if="isFilterMaterialShowed" />
                             <div class="card-header">
                                 <h3>Materi</h3>
-                                <FilterIcon class="filterIcon" @click="handleFilterModal('material')" />
                             </div>
                             <div class="card-body">
                                 <div class="item" v-for="(item, index) in data?.materials" :key="index"
