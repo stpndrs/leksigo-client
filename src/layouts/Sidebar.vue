@@ -45,9 +45,8 @@ const logout = () => {
 </script>
 
 <template>
-    <ConfirmComponent v-if="isConfirmOpen" title="Ingin Keluar?"
-        message="Apakah Anda Yakin Untuk Keluar Dari Aplikasi?" confirmText="Keluar" cancelText="Batal"
-        @confirm="handleConfirmAction" @cancel="handleCancelAction" />
+    <ConfirmComponent v-if="isConfirmOpen" title="Ingin Keluar?" message="Apakah Anda Yakin Untuk Keluar Dari Aplikasi?"
+        confirmText="Keluar" cancelText="Batal" @confirm="handleConfirmAction" @cancel="handleCancelAction" />
 
     <button @click="toggleSidebar" class="hamburger-menu">
         <span></span>
@@ -61,12 +60,12 @@ const logout = () => {
         <div class="sidebar-body">
             <ul class="menus">
                 <li :class="['menu', { 'active': route.name === 'dashboard' }]">
-                    <router-link :to="{ name: 'dashboard' }" class="menu-link">
+                    <router-link :to="{ name: 'dashboard' }" @click="toggleSidebar" class="menu-link">
                         <HomeIcon /> Dashboard
                     </router-link>
                 </li>
                 <li :class="['menu', { 'active': route.name === 'childs.index' }]">
-                    <router-link :to="{ name: 'childs.index' }" class="menu-link">
+                    <router-link :to="{ name: 'childs.index' }" @click="toggleSidebar" class="menu-link">
                         <UserIcon /> {{ authStore.user.role == 1 ? 'Data Anak Didik' : 'Data Anak' }}
                     </router-link>
                 </li>
