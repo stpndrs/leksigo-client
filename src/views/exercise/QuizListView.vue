@@ -60,15 +60,18 @@ const calculateTotalPoint = () => {
                 <ChevronLeftIcon />
             </router-link>
             <div>
-                <p class="page-title">Kerjakan : <strong>{{ data?.name }}</strong></p>
+                <p class="page-title"><strong>{{ data?.name }}</strong></p>
                 <div class="page-description" v-html="data?.description"></div>
             </div>
         </div>
         <div class="page-body">
+            <ButtonComponent label="Edit latihan" size="small" class="secondary" display="border"
+                @click="router.push({ name: 'exercise.edit', params: { id: id } })" />
             <div class="action">
                 <p class="score">Total Skor : <strong>{{ totalQuizPoint }}</strong></p>
                 <ButtonComponent label="Buat Latihan" class="secondary"
-                    @click="router.push({ name: 'exercise.quiz.create', params: { id: id } })" v-if="!isWorkMode && authStore?.user?.role == 1" />
+                    @click="router.push({ name: 'exercise.quiz.create', params: { id: id } })"
+                    v-if="!isWorkMode && authStore?.user?.role == 1" />
             </div>
             <div class="quiz-container">
                 <div :class="['item', { disabled: index > 0 ? data?.quiz[index - 1]?.answers?.length == 0 || data?.quiz[index - 1]?.quizPoint < 60 : false }]"
@@ -97,7 +100,7 @@ const calculateTotalPoint = () => {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 30px;
+    margin: 30px 0;
     flex-wrap: wrap; // <-- Tambahan: agar rapi jika menyempit
     gap: 15px; // <-- Tambahan: beri jarak jika wrap
 

@@ -76,6 +76,12 @@ const router = createRouter({
 							beforeEnter: teacherMiddleware
 						},
 						{
+							path: '/exercise/edit/:id',
+							name: 'exercise.edit',
+							component: () => import('../views/exercise/EditExerciseView.vue'),
+							beforeEnter: teacherMiddleware
+						},
+						{
 							path: '/exercise/work/:id',
 							name: 'exercise.work',
 							children: [
@@ -87,6 +93,12 @@ const router = createRouter({
 								{
 									path: '/exercise/quiz/create/:id',
 									name: 'exercise.quiz.create',
+									component: () => import('../views/exercise/CreateQuizView.vue'),
+									beforeEnter: teacherMiddleware
+								},
+								{
+									path: '/exercise/quiz/edit/:id/:quizId',
+									name: 'exercise.quiz.edit',
 									component: () => import('../views/exercise/CreateQuizView.vue'),
 									beforeEnter: teacherMiddleware
 								},
