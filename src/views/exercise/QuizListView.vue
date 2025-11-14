@@ -95,12 +95,19 @@ const calculateTotalPoint = () => {
                 </div>
                 <!-- View if work mode is off -->
                 <div :class="['item']" v-for="(item, index) in data?.quiz" :key="item"
-                    @click="router.push({ name: 'exercise.quiz.detail', params: { id: id, quizId: item._id } })" v-else>
+                    @click="router.push({ name: authStore.user.role == 1 ? 'exercise.quiz.detail' : 'exercise.quiz.review', params: { id: id, quizId: item._id } })"
+                    v-else>
                     <div class="point">{{ item?.quizPoint ?? 0 }}</div>
                     <div class="identity">
                         <p class="title">{{ item.name }}</p>
                         <p class="date">{{ formatDate(item.date) }}</p>
                         <div class="category">Level {{ item.level }}</div>
+                    </div>
+                    <div class="status">
+                        <DoneIcon v-if="item.answers.length > 0" />
+                        <LockOpenIcon
+                            v-else-if="index > 0 ? data?.quiz[index - 1]?.answers?.length > 0 && data?.quiz[index - 1]?.quizPoint > 60 : true" />
+                        <LockIcon v-else />
                     </div>
                 </div>
             </div>

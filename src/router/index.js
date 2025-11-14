@@ -100,7 +100,6 @@ const router = createRouter({
 									path: '/exercise/quiz/detail/:id/:quizId',
 									name: 'exercise.quiz.detail',
 									component: () => import('../views/exercise/DetailQuizView.vue'),
-									beforeEnter: teacherMiddleware
 								},
 								{
 									path: '/exercise/quiz/overview/:id/:quizId',
