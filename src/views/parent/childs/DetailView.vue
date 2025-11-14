@@ -24,8 +24,19 @@ const isWorkMode = workStore.isWorkMode
 onMounted(async () => {
     await api(`/childs/${id}`)
         .then((res) => {
-            console.log(res);
             data.value = res.data.data
+
+            data.value.exercises.forEach(d => {
+                d.exercisePoint = 0
+
+                d.quiz.forEach(q => {
+                    d.exercisePoint += q.quizPoint || 0
+                })
+
+                points.value += d.exercisePoint
+
+            })
+
         }).catch((err) => {
             console.log(err);
         })
