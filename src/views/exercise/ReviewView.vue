@@ -90,8 +90,6 @@ const initAnswersData = () => {
             <h1 class="page-title">Review Jawaban</h1>
         </div>
         <div class="page-body">
-            <ToastComponent :v-if="globalToast.show" :message="globalToast.message" :type="globalToast.type"
-                :title="globalToast.title" @close="globalToast.show = false" />
 
             <div class="grid-container">
                 <div class="answers-container">
