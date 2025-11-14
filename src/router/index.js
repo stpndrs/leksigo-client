@@ -97,9 +97,9 @@ const router = createRouter({
 									beforeEnter: teacherMiddleware
 								},
 								{
-									path: '/exercise/quiz/edit/:id/:quizId',
-									name: 'exercise.quiz.edit',
-									component: () => import('../views/exercise/CreateQuizView.vue'),
+									path: '/exercise/quiz/detail/:id/:quizId',
+									name: 'exercise.quiz.detail',
+									component: () => import('../views/exercise/DetailQuizView.vue'),
 									beforeEnter: teacherMiddleware
 								},
 								{

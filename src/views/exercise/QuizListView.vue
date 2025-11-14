@@ -66,7 +66,8 @@ const calculateTotalPoint = () => {
         </div>
         <div class="page-body">
             <ButtonComponent label="Edit latihan" size="small" class="secondary" display="border"
-                @click="router.push({ name: 'exercise.edit', params: { id: id } })" />
+                @click="router.push({ name: 'exercise.edit', params: { id: id } })"
+                v-if="!isWorkMode && authStore?.user?.role == 1" />
             <div class="action">
                 <p class="score">Total Skor : <strong>{{ totalQuizPoint }}</strong></p>
                 <ButtonComponent label="Buat Latihan" class="secondary"
@@ -74,9 +75,11 @@ const calculateTotalPoint = () => {
                     v-if="!isWorkMode && authStore?.user?.role == 1" />
             </div>
             <div class="quiz-container">
+                <!-- View if work mode is on -->
                 <div :class="['item', { disabled: index > 0 ? data?.quiz[index - 1]?.answers?.length == 0 || data?.quiz[index - 1]?.quizPoint < 60 : false }]"
                     v-for="(item, index) in data?.quiz" :key="index"
-                    @click="(index > 0 ? data?.quiz[index - 1]?.answers?.length == 0 || data?.quiz[index - 1]?.quizPoint < 60 : false) ? null : $router.push({ name: 'exercise.quiz.overview', params: { id: id, quizId: item._id } })">
+                    @click="(index > 0 ? data?.quiz[index - 1]?.answers?.length == 0 || data?.quiz[index - 1]?.quizPoint < 60 : false) ? null : $router.push({ name: 'exercise.quiz.overview', params: { id: id, quizId: item._id } })"
+                    v-if="isWorkMode">
                     <div class="point">{{ item?.quizPoint ?? 0 }}</div>
                     <div class="identity">
                         <p class="title">{{ item.name }}</p>
@@ -88,6 +91,16 @@ const calculateTotalPoint = () => {
                         <LockOpenIcon
                             v-else-if="index > 0 ? data?.quiz[index - 1]?.answers?.length > 0 && data?.quiz[index - 1]?.quizPoint > 60 : true" />
                         <LockIcon v-else />
+                    </div>
+                </div>
+                <!-- View if work mode is off -->
+                <div :class="['item']" v-for="(item, index) in data?.quiz" :key="item"
+                    @click="router.push({ name: 'exercise.quiz.detail', params: { id: id, quizId: item._id } })" v-else>
+                    <div class="point">{{ item?.quizPoint ?? 0 }}</div>
+                    <div class="identity">
+                        <p class="title">{{ item.name }}</p>
+                        <p class="date">{{ formatDate(item.date) }}</p>
+                        <div class="category">Level {{ item.level }}</div>
                     </div>
                 </div>
             </div>

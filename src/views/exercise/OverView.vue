@@ -33,17 +33,6 @@ const getData = async () => {
         .catch((err) => {
             console.log(err);
         })
-
-}
-
-const visibility = async () => {
-    await api.post(`exercise/${id}/quiz/${quizId}/visibility`)
-        .then(res => {
-            getData()
-        })
-        .catch(e => {
-            console.log(e);
-        })
 }
 </script>
 
@@ -64,9 +53,6 @@ const visibility = async () => {
                         <div :class="['item', { active: data?.level == 2 }]">2</div>
                         <div :class="['item', { active: data?.level == 3 }]">3</div>
                     </div>
-                    <ButtonComponent :label="!data.isHidden ? 'Sembunyikan' : 'Tampilkan'"
-                        :icon="!data.isHidden ? EyeSlashIcon : EyeIcon" class="secondary" size="small" display="border"
-                        @click="visibility" v-if="!isWorkMode && authStore.user.role == 1" />
                 </div>
                 <div class="card-body">
                     <div class="description">

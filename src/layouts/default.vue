@@ -13,7 +13,7 @@ const routeWithoutSidebar = [
     'exercise.create',
     'exercise.edit',
     'exercise.quiz.create',
-    'exercise.quiz.edit',
+    'exercise.quiz.detail',
     'exercise.quiz.overview',
     'exercise.quiz.list',
     'exercise.quiz.work',
