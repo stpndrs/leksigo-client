@@ -30,10 +30,10 @@ onMounted(async () => {
                 d.exercisePoint = 0
 
                 d.quiz.forEach(q => {
-                    d.exercisePoint += q.quizPoint || 0
+                    d.exercisePoint += parseInt(q.quizPoint) || 0
                 })
 
-                points.value += d.exercisePoint
+                points.value += parseInt(d.exercisePoint)
 
             })
 

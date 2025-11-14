@@ -34,10 +34,7 @@ onMounted(async () => {
         params: params
     })
         .then((res) => {
-            console.log(res);
             data.value = res.data.data
-            console.log(data.value);
-
             calculateTotalPoint()
 
         }).catch(err => {
