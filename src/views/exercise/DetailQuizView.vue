@@ -93,6 +93,8 @@ const visibility = async () => {
                         <div class="object-image" v-if="item?.question?.type == 'path'">
                             <img :src="`${baseUrl}/api/v1/${item?.question?.value}`" alt="Pertanyaan">
                         </div>
+                        <p>Kunci Jawaban : </p>
+                        <h2>{{ item.key }}</h2>
                     </div>
                 </div>
             </div>
