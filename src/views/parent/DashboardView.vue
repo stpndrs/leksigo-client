@@ -36,7 +36,7 @@ onMounted(async () => {
                         </div>
                         <span class="teacher">| {{ item.teacherName }}</span>
                         <span class="code">
-                            <CopyIcon /> <span>#<strong>{{ item.code }}</strong></span>
+                            <CopyIcon /> <strong>{{ item.code }}</strong>
                         </span>
                     </div>
                     <div>
