@@ -1,10 +1,21 @@
 <script setup>
 import { authStore } from '@/stores/AuthStore';
+import api from '@/utils/api';
 import { onMounted, ref } from 'vue';
 
 const fullName = ref()
-onMounted(() => {
+const data = ref([])
+
+onMounted(async () => {
     fullName.value = authStore.user.fullName
+
+
+    await api.get('/dashboard')
+        .then(res => {
+            data.value = res.data.data
+        }).catch(err => {
+            console.log(err)
+        })
 })
 </script>
 
@@ -22,11 +33,11 @@ onMounted(() => {
                     </div>
                     <div class="card-body">
                         <div>
-                            <h1>80</h1>
+                            <h1>{{ data?.score?.highest }}</h1>
                             <p>Skor Tertinggi</p>
                         </div>
                         <div>
-                            <h1>65</h1>
+                            <h1>{{ data?.score?.lowest }}</h1>
                             <p>Skor Terendah</p>
                         </div>
                     </div>
@@ -36,12 +47,13 @@ onMounted(() => {
                         <h4>Perolehan Skor Anak Didik</h4>
                     </div>
                     <div class="card-body">
-                        <div class="item">
+                        <div class="item" v-for="(item, index) in data?.scoreList" :key="index"
+                            @click="$router.push({ name: 'childs.detail', params: { id: item.childId } })">
                             <span class="identity">
-                                <span class="level level-2">2</span>
-                                <span class="name">Budi Pratama</span>
+                                <span :class="`level level-` + item.level" v-if="item.level">{{ item.level }}</span>
+                                <span class="name">{{ item.name }}</span>
                             </span>
-                            <span class="score">67</span>
+                            <span class="score">{{ item.point }}</span>
                         </div>
                     </div>
                 </div>
@@ -52,17 +64,22 @@ onMounted(() => {
                     <div class="card-body">
                         <div class="item">
                             <span class="level level-1">Level 1</span>
-                            <h3>2</h3>
+                            <h3>{{ data?.childTotal?.levelOne }}</h3>
                             <p>Anak</p>
                         </div>
                         <div class="item">
                             <span class="level level-2">Level 2</span>
-                            <h3>2</h3>
+                            <h3>{{ data?.childTotal?.levelTwo }}</h3>
                             <p>Anak</p>
                         </div>
                         <div class="item">
                             <span class="level level-3">Level 3</span>
-                            <h3>2</h3>
+                            <h3>{{ data?.childTotal?.levelThree }}</h3>
+                            <p>Anak</p>
+                        </div>
+                        <div class="item">
+                            <span class="level nolevel">Belum Screening</span>
+                            <h3>{{ data?.childTotal?.noLevel }}</h3>
                             <p>Anak</p>
                         </div>
                     </div>
@@ -123,6 +140,11 @@ onMounted(() => {
             color: var(--White);
             background-color: var(--Primary-500);
         }
+
+        &.nolevel {
+            color: var(--White);
+            background-color: var(--System-dark);
+        }
     }
 
     .card.child {
@@ -134,6 +156,20 @@ onMounted(() => {
                 justify-content: space-between;
                 align-items: center;
                 padding: 15px;
+                border: 3px solid var(--Secondary-900);
+                border-radius: 10px;
+                cursor: pointer;
+                transition: ease-in-out .2s;
+
+                &:hover {
+                    background-color: var(--Secondary-900);
+                    border-radius: 10px;
+
+                    .name,
+                    .score {
+                        color: var(--White);
+                    }
+                }
 
                 .identity {
                     display: flex;
@@ -156,9 +192,14 @@ onMounted(() => {
         grid-row-start: 2;
 
         .card-body {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 30px;
+
+            /* Target Tablet (Medium) */
+            @media (max-width: 1024px) {
+                grid-template-columns: repeat(2, 1fr);
+            }
 
             .item {
                 color: var(--Secondary-900);

@@ -3,10 +3,20 @@ import { authStore } from '@/stores/AuthStore';
 import { onMounted, ref } from 'vue';
 import child from '@/assets/images/child.png'
 import CopyIcon from '@/components/shape/CopyIcon.vue';
+import api from '@/utils/api';
 
 const fullName = ref()
-onMounted(() => {
+const data = ref([])
+
+onMounted(async () => {
     fullName.value = authStore.user.fullName
+
+    await api.get('/dashboard')
+        .then(res => {
+            data.value = res.data.data
+        }).catch(err => {
+            console.log(err)
+        })
 })
 </script>
 
@@ -17,111 +27,23 @@ onMounted(() => {
         </div>
         <div class="page-body">
             <div class="grid-container">
-                <div class="item">
+                <div class="item" v-for="(item, index) in data.childs" :key="index">
                     <div>
                         <img :src="child" alt="Child" />
                         <div class="identity">
-                            <span class="level level-1">1</span>
-                            <span class="name">Budi Pratama</span>
+                            <span :class="'level level-' + item.level">{{ item.level }}</span>
+                            <span class="name">{{ item.name }}</span>
                         </div>
-                        <span class="teacher">| Nama Guru</span>
+                        <span class="teacher">| {{ item.teacherName }}</span>
                         <span class="code">
-                            <CopyIcon /> <span>#<strong>code</strong></span>
+                            <CopyIcon /> <span>#<strong>{{ item.code }}</strong></span>
                         </span>
                     </div>
                     <div>
-                        <div class="exercise">
-                            <h3>Latihan 1, baru permulaan hehe</h3>
-                            <p>Total Skor : 90</p>
-                        </div>
-                        <div class="exercise">
-                            <h3>Latihan 1, baru permulaan hehe</h3>
-                            <p>Total Skor : 90</p>
-                        </div>
-                        <div class="exercise">
-                            <h3>Latihan 1, baru permulaan hehe</h3>
-                            <p>Total Skor : 90</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="item">
-                    <div>
-                        <img :src="child" alt="Child" />
-                        <div class="identity">
-                            <span class="level level-1">1</span>
-                            <span class="name">Budi Pratama</span>
-                        </div>
-                        <span class="teacher">| Nama Guru</span>
-                        <span class="code">
-                            <CopyIcon /> <span>#<strong>code</strong></span>
-                        </span>
-                    </div>
-                    <div>
-                        <div class="exercise">
-                            <h3>Latihan 1, baru permulaan hehe</h3>
-                            <p>Total Skor : 90</p>
-                        </div>
-                        <div class="exercise">
-                            <h3>Latihan 1, baru permulaan hehe</h3>
-                            <p>Total Skor : 90</p>
-                        </div>
-                        <div class="exercise">
-                            <h3>Latihan 1, baru permulaan hehe</h3>
-                            <p>Total Skor : 90</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="item">
-                    <div>
-                        <img :src="child" alt="Child" />
-                        <div class="identity">
-                            <span class="level level-1">1</span>
-                            <span class="name">Budi Pratama</span>
-                        </div>
-                        <span class="teacher">| Nama Guru</span>
-                        <span class="code">
-                            <CopyIcon /> <span>#<strong>code</strong></span>
-                        </span>
-                    </div>
-                    <div>
-                        <div class="exercise">
-                            <h3>Latihan 1, baru permulaan hehe</h3>
-                            <p>Total Skor : 90</p>
-                        </div>
-                        <div class="exercise">
-                            <h3>Latihan 1, baru permulaan hehe</h3>
-                            <p>Total Skor : 90</p>
-                        </div>
-                        <div class="exercise">
-                            <h3>Latihan 1, baru permulaan hehe</h3>
-                            <p>Total Skor : 90</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="item">
-                    <div>
-                        <img :src="child" alt="Child" />
-                        <div class="identity">
-                            <span class="level level-1">1</span>
-                            <span class="name">Budi Pratama</span>
-                        </div>
-                        <span class="teacher">| Nama Guru</span>
-                        <span class="code">
-                            <CopyIcon /> <span>#<strong>code</strong></span>
-                        </span>
-                    </div>
-                    <div>
-                        <div class="exercise">
-                            <h3>Latihan 1, baru permulaan hehe</h3>
-                            <p>Total Skor : 90</p>
-                        </div>
-                        <div class="exercise">
-                            <h3>Latihan 1, baru permulaan hehe</h3>
-                            <p>Total Skor : 90</p>
-                        </div>
-                        <div class="exercise">
-                            <h3>Latihan 1, baru permulaan hehe</h3>
-                            <p>Total Skor : 90</p>
+                        <div class="exercise" v-for="(exercise, e) in item.exercises" :key="e"
+                            @click="$router.push({ name: 'exercise.quiz.list', params: { id: exercise.exerciseId } })">
+                            <h3>{{ exercise.name }}</h3>
+                            <p>Total Skor : {{ exercise.point }}</p>
                         </div>
                     </div>
                 </div>
@@ -213,12 +135,24 @@ onMounted(() => {
                 border-radius: 10px;
                 border: 3px solid var(--Secondary-900);
                 margin-bottom: 10px;
+                cursor: pointer;
+                transition: ease-in-out .2s;
+
+                &:hover {
+                    background-color: var(--Secondary-900);
+                    border-radius: 10px;
+                }
 
                 h3 {
                     font-weight: bold;
                 }
             }
         }
+    }
+
+    /* Target Tablet (Medium) */
+    @media (max-width: 1024px) {
+        grid-template-columns: 1fr;
     }
 }
 </style>
