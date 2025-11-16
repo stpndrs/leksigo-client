@@ -1,26 +1,25 @@
-// File: /src/stores/workStore.js
 import { reactive } from "vue";
 
+const loadInitialState = () => {
+    const storedValue = sessionStorage.getItem('isWorkMode');
+
+    if (storedValue === null) {
+        return false;
+    }
+
+    return JSON.parse(storedValue);
+};
+
 export const workStore = reactive({
-    isWorkMode: false,
+    isWorkMode: loadInitialState(),
 
-    // Method untuk mengatur status secara spesifik
-    setWorkMode(status) {
-        this.isWorkMode = status;
-    },
-
-    // Method untuk masuk ke mode kerja (sesuai permintaan Anda)
     enterWorkMode() {
         this.isWorkMode = true;
+        sessionStorage.setItem('isWorkMode', JSON.stringify(true));
     },
 
-    // Method untuk keluar
     exitWorkMode() {
         this.isWorkMode = false;
+        sessionStorage.setItem('isWorkMode', JSON.stringify(false));
     },
-
-    // Method untuk bolak-balik (toggle)
-    toggleWorkMode() {
-        this.isWorkMode = !this.isWorkMode;
-    }
 });
