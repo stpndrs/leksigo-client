@@ -9,6 +9,7 @@ import ToastComponent from '@/components/toast/ToastComponent.vue';
 import { formatDate } from '@/helpers/formatDate';
 import { formatDurationVerbose } from '@/helpers/formatDurationVerbose';
 import { formatMethodLabel } from '@/helpers/formatMethodLabel';
+import { authStore } from '@/stores/AuthStore';
 import api from '@/utils/api';
 import { globalToast } from '@/utils/toast';
 import { onMounted, ref, watch } from 'vue';
@@ -84,7 +85,11 @@ const initAnswersData = () => {
 <template>
     <div class="container">
         <div class="page-header">
-            <router-link :to="{ name: 'exercise.quiz.overview', params: { id, quizId } }">
+            <router-link :to="{ name: 'exercise.quiz.overview', params: { id, quizId } }"
+                v-if="authStore.user.role == 1">
+                <ChevronLeftIcon />
+            </router-link>
+            <router-link :to="{ name: 'exercise.quiz.list', params: { id } }" v-else>
                 <ChevronLeftIcon />
             </router-link>
             <h1 class="page-title">Review Jawaban</h1>
@@ -101,7 +106,7 @@ const initAnswersData = () => {
                                 <div class="answered">Dijawab {{ formatDate(item.timeAnswered, 'long') }}</div>
                             </div>
                             <div class="duration">Total Durasi <br> <span>{{ formatDurationVerbose(item.duration)
-                            }}</span></div>
+                                    }}</span></div>
                         </div>
                         <div class="method">{{ formatMethodLabel(item.method) }}</div>
                         <div class="guide">

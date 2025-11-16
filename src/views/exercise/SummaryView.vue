@@ -33,7 +33,7 @@ onMounted(async () => {
 <template>
     <div class="container">
         <div class="page-header">
-            <router-link :to="{ name: 'exercise.quiz.overview', params: { id: id } }">
+            <router-link :to="{ name: 'exercise.quiz.list', params: { id: id } }">
                 <ChevronLeftIcon />
             </router-link>
             <h1 class="page-title">Hasil Latihan</h1>
