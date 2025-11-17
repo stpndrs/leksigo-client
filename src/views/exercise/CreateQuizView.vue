@@ -174,6 +174,7 @@ const pushQuestion = () => {
             question: question.value,
             key: key.value,
             method: method.value,
+            objectValue: objectValue.value ?? null,
             index: questionActive.value
         });
     } else {
@@ -181,6 +182,7 @@ const pushQuestion = () => {
         findQuestion.question = question.value;
         findQuestion.key = key.value;
         findQuestion.method = method.value;
+        findQuestion.objectValue = objectValue.value;
     }
     triggerToast('Berhasil menyimpan soal!', 'success');
 };
@@ -189,6 +191,10 @@ const pushQuestion = () => {
 // START handleMethod (Handler untuk Checkbox Tipe Soal)
 const handleMethod = (val) => {
     method.value = val;
+
+    // reset kalau inputan warna
+    if (objectValue.value == 1)
+        question.value = ''
 };
 // END handleMethod
 
@@ -209,6 +215,7 @@ handleLevel()
 // START handleObjectColor (Handler untuk Pilihan Tipe Objek)
 const handleObjectColor = (val) => {
     objectValue.value = val;
+    question.value = ''; // Set EMPTY FIRST
     if (objectValue.value == 1) { // Jika pilih 'Warna'
         question.value = '#000000'; // Set default color
     }
@@ -247,6 +254,10 @@ const insertQuestion = (params) => {
 
 // START handleAttemptQuestion (Muat Data Soal ke Form)
 const handleAttemptQuestion = (num) => {
+    // reset first
+    question.value = '';
+    key.value = '';
+
     const findQuestion = questions.value.find(d => d.index == num);
 
     if (findQuestion) {
@@ -254,11 +265,13 @@ const handleAttemptQuestion = (num) => {
         question.value = findQuestion.question;
         key.value = findQuestion.key;
         method.value = findQuestion.method
+        objectValue.value = findQuestion.objectValue
     } else {
         // Jika tidak ada (soal baru), kosongkan v-model
         question.value = '';
         key.value = '';
         method.value = null
+        // objectValue.value = null
     }
 };
 // END handleAttemptQuestion
@@ -378,32 +391,16 @@ const submit = async () => {
                             <label for="type" :class="{ 'invalid': errors?.method ?? false }">Tipe Soal <span
                                     class="req">*</span></label>
                             <CheckboxesComponent :data="methodSelected" :function="handleMethod"
-                                :isInvalid="errors?.method ?? false" :invalidMsg="errors?.method ?? ''" />
+                                :isInvalid="errors?.method ?? false" :invalidMsg="errors?.method ?? ''"
+                                :selectedValue="method" />
 
                             <label for="type" :class="{ 'invalid': errors?.method ?? false }" v-if="method == 5">Pilih
                                 tipe
                                 soal <span class="req">*</span></label>
                             <CheckboxesComponent :data="typeOfObject" :function="handleObjectColor" :isInvalid="false"
-                                :invalidMsg="errors?.method ?? ''" v-if="method == 5" />
+                                :invalidMsg="errors?.method ?? ''" v-if="method == 5" :selectedValue="objectValue" />
                         </div>
                     </div>
-                    <!-- <div class="input-flex">
-                        <div class="input-wrapper">
-                            <label for="type">Tipe Soal</label>
-                            <div class="method-selected">{{ methodLabel.label }}</div>
-                            <label for="type" v-if="objectValue">Tipe Objek</label>
-                            <div class="method-selected" v-if="objectValue">{{ objectValueLabel.label }}</div>
-                        </div>
-                        <div class="input-wrapper level-wrapper">
-                            <label for="level">Level Latihan</label>
-                            <div class="level-container">
-                                <div :class="['item', level == 1 ? 'active' : '']" v-if="level == 1">1</div>
-                                <div :class="['item', level == 2 ? 'active' : '']" v-if="level == 2">2</div>
-                                <div :class="['item', level == 3 ? 'active' : '']" v-if="level == 3">3</div>
-                            </div>
-                        </div>
-                    </div> -->
-
                     <div class="input-wrapper" v-if="[1, 2, 3, 4].includes(method)"
                         :class="{ 'invalid': errors?.question ?? false }">
                         <label for="textarea">Pertanyaan</label>
