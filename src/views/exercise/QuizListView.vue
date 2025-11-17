@@ -36,7 +36,9 @@ onMounted(async () => {
             data.value = res.data.data
             // get latest quiz, save to session, for validate in form (make a newest level)
             const latestQuiz = data.value.quiz[data.value.quiz.length - 1]
-            latestQuizStore.setData(latestQuiz)
+            // console.log(latestQuiz ?? []);
+            
+            latestQuizStore.setData(latestQuiz ?? [])
             calculateTotalPoint()
         }).catch(err => {
             console.error(err)
