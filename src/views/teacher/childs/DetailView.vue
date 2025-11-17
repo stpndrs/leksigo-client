@@ -108,7 +108,7 @@ const handleScroll = () => {
                         <p>Kode Unik :</p>
                         <p class="value">{{ data?.child.code }}</p>
                     </span>
-                    <span class="level">
+                    <span class="level" v-if="data?.child?.level">
                         <p>Level Anak </p>
                         <div class="level-container">
                             <div :class="['item', { active: data?.child?.level == 1 }]">1</div>
