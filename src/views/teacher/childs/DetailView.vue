@@ -3,8 +3,10 @@ import child from '@/assets/images/child.png'
 import ButtonComponent from '@/components/buttons/ButtonComponent.vue';
 import ConfirmComponent from '@/components/confirm/ConfirmComponent.vue';
 import FilterModal from '@/components/modal/FilterModal.vue';
+import InformationModal from '@/components/modal/InformationModal.vue';
 import ChevronLeftIcon from '@/components/shape/ChevronLeft.Icon.vue';
 import FilterIcon from '@/components/shape/FilterIcon.vue';
+import InfoIcon from '@/components/shape/InfoIcon.vue';
 import { formatDate } from '@/helpers/formatDate';
 import { workStore } from '@/stores/WorkStore';
 import api from '@/utils/api';
@@ -19,6 +21,7 @@ const points = ref(0)
 const dataContainer = ref(null)
 const activeSlide = ref(0)
 const isWorkMode = workStore.isWorkMode
+const isShowModal = ref(false)
 
 onMounted(async () => {
     await api(`/childs/${id}`)
@@ -78,9 +81,14 @@ const handleScroll = () => {
     // Perbarui state slide aktif
     activeSlide.value = slideIndex;
 };
+
+const handleModal = () => {
+    isShowModal.value = !isShowModal.value
+}
 </script>
 
 <template>
+    <InformationModal v-if="isShowModal" :handleModal="handleModal" />
     <div class="container">
         <div class="page-header">
             <router-link :to="{ name: 'childs.index' }">
@@ -109,7 +117,9 @@ const handleScroll = () => {
                         <p class="value">{{ data?.child.code }}</p>
                     </span>
                     <span class="level" v-if="data?.child?.level">
-                        <p>Level Anak </p>
+                        <p>Level Anak
+                            <InfoIcon @click="handleModal" class="info" />
+                        </p>
                         <div class="level-container">
                             <div :class="['item', { active: data?.child?.level == 1 }]">1</div>
                             <div :class="['item', { active: data?.child?.level == 2 }]">2</div>
@@ -214,6 +224,10 @@ const handleScroll = () => {
             font-weight: bold;
             color: var(--Secondary-900);
             font-family: 'Ubuntu Sans';
+        }
+
+        .info {
+            cursor: pointer;
         }
 
         .level-container {
