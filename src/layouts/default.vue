@@ -50,7 +50,6 @@ onMounted(() => {
             </div>
         </div>
         <div id="content">
-            {{ globalToast.show }}
             <ToastComponent v-if="globalToast.show" :message="globalToast.message" :type="globalToast.type"
                 :title="globalToast.title" @close="globalToast.show = 'false'" />
             <router-view />
