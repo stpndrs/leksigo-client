@@ -160,6 +160,7 @@ onMounted(async () => {
                 border-radius: 10px;
                 cursor: pointer;
                 transition: ease-in-out .2s;
+                margin-bottom: 30px;
 
                 &:hover {
                     background-color: var(--Secondary-900);
