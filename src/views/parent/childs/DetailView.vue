@@ -39,10 +39,17 @@ onMounted(async () => {
 
             })
 
+            // calculate showed material
+            filterShowedMaterial()
+
         }).catch((err) => {
             console.log(err);
         })
 })
+
+const filterShowedMaterial = () => {
+    data.value.materials = data.value.materials.filter(d => d.isHidden == false)
+}
 
 /**
  * Fungsi untuk melakukan scrolling ke slide yang dipilih

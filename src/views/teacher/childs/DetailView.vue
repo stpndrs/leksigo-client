@@ -8,6 +8,7 @@ import ChevronLeftIcon from '@/components/shape/ChevronLeft.Icon.vue';
 import FilterIcon from '@/components/shape/FilterIcon.vue';
 import InfoIcon from '@/components/shape/InfoIcon.vue';
 import { formatDate } from '@/helpers/formatDate';
+import { authStore } from '@/stores/AuthStore';
 import { workStore } from '@/stores/WorkStore';
 import api from '@/utils/api';
 import { onMounted, ref } from 'vue';
@@ -39,10 +40,18 @@ onMounted(async () => {
 
             })
 
+            // calculate showed material
+            if (workStore.isWorkMode || authStore.user.role == 2)
+                filterShowedMaterial()
+
         }).catch((err) => {
             console.log(err);
         })
 })
+
+const filterShowedMaterial = () => {
+    data.value.materials = data.value.materials.filter(d => d.isHidden == false)
+}
 
 /**
  * Fungsi untuk melakukan scrolling ke slide yang dipilih

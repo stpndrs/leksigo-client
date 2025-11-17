@@ -5,6 +5,7 @@ import EyeIcon from '@/components/shape/EyeIcon.vue';
 import EyeSlashIcon from '@/components/shape/EyeSlashIcon.vue';
 import { formatMethodLabel } from '@/helpers/formatMethodLabel';
 import { authStore } from '@/stores/AuthStore';
+import { workStore } from '@/stores/WorkStore';
 import api from '@/utils/api';
 import { onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
@@ -56,10 +57,10 @@ const visibility = async () => {
                     <div class="btn-group">
                         <ButtonComponent label="Edit Materi" size="small" display="border"
                             @click="router.push({ name: 'material.edit', params: { id, materialId } })"
-                            v-if="authStore.user.role == 1" />
+                            v-if="authStore.user.role == 1 && !workStore.isWorkMode" />
                         <ButtonComponent :label="!material.isHidden ? 'Sembunyikan' : 'Tampilkan'"
                             :icon="!material.isHidden ? EyeSlashIcon : EyeIcon" class="secondary" size="small"
-                            display="border" @click="visibility" v-if="authStore.user.role == 1" />
+                            display="border" @click="visibility" v-if="authStore.user.role == 1 && !workStore.isWorkMode" />
                     </div>
                     <div class="flex">
                         <div class="method-wrapper">
