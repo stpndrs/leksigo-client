@@ -15,7 +15,7 @@ const router = useRouter()
 
 const title = ref('')
 const link = ref('')
-const files = ref('')
+const files = ref([])
 const description = ref('')
 const methodOfArray = ref([
     {
@@ -114,20 +114,32 @@ const handleLevel = (val) => {
 const submit = async () => {
     errors.value = null
 
-    await api.post(`/materials`, {
-        childrenId: route.params.id,
-        title: title.value,
-        description: description.value,
-        level: level.value,
-        method: method.value,
-        files: files.value,
-        link: link.value
-    }).then(res => {
-        console.log(res);
+    const formData = new FormData()
+    formData.append('childrenId', route.params.id)
+    formData.append('title', title.value)
+    if (description.value) formData.append('description', description.value)
+    if (level.value) formData.append('level', level.value)
+    if (method.value) formData.append('method', method.value)
+    if (link.value) formData.append('link', link.value)
 
+    if (files.value && files.value.length > 0) {
+        for (let i = 0; i < files.value.length; i++) {
+            formData.append('images', files.value[i])
+        }
+    }
+
+    await api.post(`/materials`, formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    }).then(res => {
         router.push({ name: 'childs.detail', params: { id: route.params.id } })
     }).catch(e => {
-        if (e.status === 422) errors.value = e.response.data.errors
+        if (e.response && e.response.status === 422) {
+            errors.value = e.response.data.errors
+        } else {
+            console.error(e)
+        }
     })
 }
 </script>
@@ -170,7 +182,7 @@ const submit = async () => {
                 </div>
                 <div class="input-wrapper">
                     <label for="file">Gambar Media Pembelajaran</label>
-                    <file-upload-component v-model="files" :id="'files'" :infoText="'Upload materi pembelajaran'"
+                    <FileUploadComponent v-model="files" :id="'files'" :infoText="'Upload materi pembelajaran'"
                         class="input" :isMultiple="true" />
                 </div>
                 <ButtonComponent label="Simpan" size="full" @click="submit" />

@@ -10,6 +10,7 @@ import FileUploadComponent from '@/components/fields/FileUploadComponent.vue';
 import ButtonComponent from '@/components/buttons/ButtonComponent.vue';
 import CheckboxesComponent from '@/components/fields/CheckboxesComponent.vue';
 
+const baseUrl = import.meta.env.VITE_APP_API_URL
 const route = useRoute()
 const router = useRouter()
 const id = route.params.id
@@ -17,7 +18,8 @@ const materialId = route.params.materialId
 
 const title = ref('')
 const link = ref('')
-const files = ref('')
+const files = ref([])
+const oldImages = ref([])
 const description = ref('')
 const methodOfArray = ref([
     {
@@ -111,6 +113,8 @@ onMounted(async () => {
             level.value = data.level
             method.value = data.method
             methodSelected.value = methodOfArray.value.filter(d => d.level == data.level)[0].data
+            files.value = data.images
+            oldImages.value = data.images
         }).catch(e => {
             console.log(e);
         })
@@ -119,20 +123,32 @@ onMounted(async () => {
 const submit = async () => {
     errors.value = null
 
-    await api.put(`/materials/${materialId}`, {
-        childrenId: route.params.id,
-        title: title.value,
-        description: description.value,
-        level: level.value,
-        method: method.value,
-        files: files.value,
-        link: link.value
-    }).then(res => {
-        console.log(res);
+    const formData = new FormData()
+    formData.append('childrenId', route.params.id)
+    formData.append('title', title.value)
+    if (description.value) formData.append('description', description.value)
+    if (level.value) formData.append('level', level.value)
+    if (method.value) formData.append('method', method.value)
+    if (link.value) formData.append('link', link.value)
 
-        router.push({ name: 'material.overview', params: { id, materialId } })
+    if (files.value && files.value.length > 0) {
+        for (let i = 0; i < files.value.length; i++) {
+            formData.append('images', files.value[i])
+        }
+    }
+
+    await api.put(`/materials/${materialId}`, formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data'
+        }
+    }).then(res => {
+        router.push({ name: 'childs.detail', params: { id: route.params.id } })
     }).catch(e => {
-        if (e.status === 422) errors.value = e.response.data.errors
+        if (e.response && e.response.status === 422) {
+            errors.value = e.response.data.errors
+        } else {
+            console.error(e)
+        }
     })
 }
 </script>
@@ -174,6 +190,14 @@ const submit = async () => {
                     <WysiwygEditorComponent v-model="description" class="textarea" />
                 </div>
                 <div class="input-wrapper">
+                    <!-- Preview Image -->
+                    <div v-if="files.length > 0">
+                        <label for="oldImg">Gambar Lama :</label>
+                        <div class="old-images-container" id="oldImg">
+                            <img :src="`${baseUrl}/api/v1/${item}`" alt="Material Image" v-for="(item, index) in oldImages"
+                                :key="index">
+                        </div>
+                    </div>
                     <label for="file">Gambar Media Pembelajaran (Masukkan file baru jika ingin mengganti)</label>
                     <file-upload-component v-model="files" :id="'files'" :infoText="'Upload materi pembelajaran'"
                         class="input" :isMultiple="true" />
@@ -201,6 +225,18 @@ const submit = async () => {
 
 .input-wrapper {
     margin-bottom: 30px;
+
+    .old-images-container {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 10px;
+        margin-bottom: 30px;
+
+        img {
+            width: 100%;
+            border-radius: 10px;
+        }
+    }
 
     label {
         color: var(--Neutral-700);
