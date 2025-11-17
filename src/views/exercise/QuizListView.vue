@@ -6,7 +6,7 @@ import LockIcon from '@/components/shape/LockIcon.vue';
 import LockOpenIcon from '@/components/shape/LockOpenIcon.vue';
 import { formatDate } from '@/helpers/formatDate';
 import { authStore } from '@/stores/AuthStore';
-import { latestQuizStore } from '@/stores/latestQuizStore';
+import { latestQuizStore } from '@/stores/LatestQuizStore';
 import { workStore } from '@/stores/WorkStore';
 import api from '@/utils/api';
 import { onMounted, ref } from 'vue';

@@ -20,7 +20,7 @@ import QuestionBankModal from '@/components/modal/QuestionBankModal.vue';
 import ToastComponent from '@/components/toast/ToastComponent.vue';
 import ConfirmComponent from '@/components/confirm/ConfirmComponent.vue';
 import { globalToast, triggerToast } from '@/utils/toast';
-import { latestQuizStore } from '@/stores/latestQuizStore';
+import { latestQuizStore } from '@/stores/LatestQuizStore';
 // --- End Imports ---
 
 // --- 2. State (Refs & Computed) ---
