@@ -61,8 +61,8 @@ const toggleRecording = async () => {
 
         <div v-if="audioUrl" class="audio-preview">
             <p>Hasil Rekaman:</p>
-            <AudioPlayerComponent :text="audioUrl" :isAudioUrl="true" :isBase64="false" :autoplay="false"
-                displayStyle="player" />
+            <!-- <AudioPlayerComponent :text="audioUrl" :isAudioUrl="true" :isBase64="false" :autoplay="false"
+                displayStyle="player" /> -->
         </div>
     </div>
 </template>

@@ -9,7 +9,8 @@ const props = defineProps({
     autoplay: { type: Boolean, default: true },
     displayStyle: { type: String, default: 'player' },
     isAudioUrl: { type: Boolean, default: false },
-    isBase64: { type: Boolean, default: false }
+    isBase64: { type: Boolean, default: false },
+    isFile: { type: Boolean, default: false }
 });
 
 // === STATE ===
@@ -61,7 +62,10 @@ watch(() => props.text, async (newInput) => {
             const audioBlob = base64ToBlob(newInput, 'audio/mpeg');
             audioUrl.value = URL.createObjectURL(audioBlob);
 
-            // 3. JIKA INPUT ADALAH TEKS (Fetch API)
+            // 3. JIKA INPUT ADALAH FILE 
+        } else if (props.isFile) {
+            audioUrl.value = URL.createObjectURL(props.text);
+            // 4. JIKA INPUT ADALAH TEKS (Fetch API)
         } else {
             const audioBlob = await fetchAudioFromAI(newInput);
             audioUrl.value = URL.createObjectURL(audioBlob);

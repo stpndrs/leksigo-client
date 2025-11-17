@@ -73,6 +73,7 @@ const openQuestion = (id, index) => {
 const saveAnswer = () => {
     try {
         triggerToast('Jawaban berhasil disimpan', 'success');
+        console.log(file.value)
 
         const currentQuestionId = questionActive.value._id;
 
@@ -213,6 +214,10 @@ watch(() => questionActiveIndex, () => {
                             <!-- else -->
                             <AudioRecorderComponent v-if="questionActive?.method == 3 || questionActive?.method == 5"
                                 v-model="file" />
+                            <br>
+                            <AudioPlayerComponent
+                                v-if="(questionActive?.method == 3 || questionActive?.method == 5) && file != null"
+                                :text="file" :isFile="true" :autoplay="false" displayStyle="player" />
                         </div>
                     </div>
                     <ButtonComponent label="Simpan Jawaban" @click="saveAnswer" />
