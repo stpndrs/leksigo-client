@@ -20,6 +20,7 @@ import QuestionBankModal from '@/components/modal/QuestionBankModal.vue';
 import ToastComponent from '@/components/toast/ToastComponent.vue';
 import ConfirmComponent from '@/components/confirm/ConfirmComponent.vue';
 import { globalToast, triggerToast } from '@/utils/toast';
+import { latestQuizStore } from '@/stores/latestQuizStore';
 // --- End Imports ---
 
 // --- 2. State (Refs & Computed) ---
@@ -44,7 +45,8 @@ const toastType = ref('success');
 const name = ref('');
 const description = ref('');
 const method = ref(null);
-const level = ref(null);
+const levelCurrent = latestQuizStore.getLevel == null ? 1 : latestQuizStore.getLevel == 1 ? 2 : 3
+const level = ref(levelCurrent);
 const objectValue = ref(null); // Khusus untuk method 5
 const isDataSaved = ref(false); // Flag untuk pindah ke step 2
 const errors = ref({}); // Validasi error (diubah ke object)
@@ -191,17 +193,17 @@ const handleMethod = (val) => {
 // END handleMethod
 
 // START handleLevel (Handler untuk Pilihan Level)
-const handleLevel = (val) => {
-    const foundLevel = methodOfArray.value.find(d => d.level == val);
+const handleLevel = () => {
+    const foundLevel = methodOfArray.value.find(d => d.level == level.value);
 
     if (foundLevel) {
-        level.value = val;
         // Cek jika data method sama, tidak perlu reset pilihan method
         const isDataSame = JSON.stringify(methodSelected.value) == JSON.stringify(foundLevel.data);
         methodSelected.value = isDataSame ? methodSelected.value : foundLevel.data;
         method.value = isDataSame ? method.value : null;
     }
 };
+handleLevel()
 // END handleLevel
 
 // START handleObjectColor (Handler untuk Pilihan Tipe Objek)
@@ -354,9 +356,9 @@ const submit = async () => {
                 <div class="input-wrapper level-wrapper" :class="{ 'invalid': errors?.level ?? false }">
                     <label for="level">Level Latihan <span class="req">*</span></label>
                     <div class="level-container">
-                        <div :class="['item', level == 1 ? 'active' : '']" @click="handleLevel(1)">1</div>
-                        <div :class="['item', level == 2 ? 'active' : '']" @click="handleLevel(2)">2</div>
-                        <div :class="['item', level == 3 ? 'active' : '']" @click="handleLevel(3)">3</div>
+                        <div :class="['item', level == 1 ? 'active' : '']">1</div>
+                        <div :class="['item', level == 2 ? 'active' : '']">2</div>
+                        <div :class="['item', level == 3 ? 'active' : '']">3</div>
                     </div>
                     <div class="invalid-msg">{{ errors?.level }}</div>
                 </div>
@@ -537,8 +539,11 @@ textarea.textarea {
                 font-family: 'Ubuntu Sans';
                 border: 2px solid;
                 text-align: center;
-                cursor: pointer;
                 transition: background-color 0.2s, color 0.2s; // <-- Tambahkan transisi
+
+                &:not(.active) {
+                    opacity: .5;
+                }
 
                 &:nth-child(1) {
                     border-color: var(--Secondary-900);

@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script setup>
 import ButtonComponent from '@/components/buttons/ButtonComponent.vue';
 import ChevronLeftIcon from '@/components/shape/ChevronLeft.Icon.vue';
 import DoneIcon from '@/components/shape/DoneIcon.vue';
@@ -6,6 +6,7 @@ import LockIcon from '@/components/shape/LockIcon.vue';
 import LockOpenIcon from '@/components/shape/LockOpenIcon.vue';
 import { formatDate } from '@/helpers/formatDate';
 import { authStore } from '@/stores/AuthStore';
+import { latestQuizStore } from '@/stores/latestQuizStore';
 import { workStore } from '@/stores/WorkStore';
 import api from '@/utils/api';
 import { onMounted, ref } from 'vue';
@@ -13,8 +14,6 @@ import { useRoute, useRouter } from 'vue-router';
 
 const route = useRoute()
 const router = useRouter()
-
-const isWorkMode = workStore.isWorkMode
 
 const data = ref([])
 const id = route.params.id
@@ -24,7 +23,7 @@ const totalQuizPoint = ref(0)
 
 onMounted(async () => {
     let params
-    if (isWorkMode) {
+    if (workStore.isWorkMode) {
         params = {
             hidden: false
         }
@@ -35,8 +34,10 @@ onMounted(async () => {
     })
         .then((res) => {
             data.value = res.data.data
+            // get latest quiz, save to session, for validate in form (make a newest level)
+            const latestQuiz = data.value.quiz[data.value.quiz.length - 1]
+            latestQuizStore.setData(latestQuiz)
             calculateTotalPoint()
-
         }).catch(err => {
             console.error(err)
         })
@@ -64,19 +65,20 @@ const calculateTotalPoint = () => {
         <div class="page-body">
             <ButtonComponent label="Edit latihan" size="small" class="secondary" display="border"
                 @click="router.push({ name: 'exercise.edit', params: { id: id } })"
-                v-if="!isWorkMode && authStore?.user?.role == 1" />
+                v-if="!workStore.isWorkMode && authStore?.user?.role == 1" />
             <div class="action">
                 <p class="score">Total Skor : <strong>{{ totalQuizPoint }}</strong></p>
                 <ButtonComponent label="Buat Latihan" class="secondary"
                     @click="router.push({ name: 'exercise.quiz.create', params: { id: id } })"
-                    v-if="!isWorkMode && authStore?.user?.role == 1" />
+                    :isDisabled="latestQuizStore.getLevel == 3"
+                    v-if="!workStore.isWorkMode && authStore?.user?.role == 1" />
             </div>
             <div class="quiz-container">
                 <!-- View if work mode is on -->
                 <div :class="['item', { disabled: index > 0 ? data?.quiz[index - 1]?.answers?.length == 0 || data?.quiz[index - 1]?.quizPoint < 60 : false }]"
                     v-for="(item, index) in data?.quiz" :key="index"
-                    @click="(index > 0 ? data?.quiz[index - 1]?.answers?.length == 0 || data?.quiz[index - 1]?.quizPoint < 60 : false) ? null : $router.push({ name: 'exercise.quiz.overview', params: { id: id, quizId: item._id } })"
-                    v-if="isWorkMode">
+                    @click="(index > 0 ? data?.quiz[index - 1]?.answers?.length == 0 || data?.quiz[index - 1]?.quizPoint <= 60 : false) ? null : $router.push({ name: 'exercise.quiz.overview', params: { id: id, quizId: item._id } })"
+                    v-if="workStore.isWorkMode">
                     <div class="point">{{ item?.quizPoint ?? 0 }}</div>
                     <div class="identity">
                         <p class="title">{{ item.name }}</p>
@@ -103,7 +105,7 @@ const calculateTotalPoint = () => {
                     <div class="status">
                         <DoneIcon v-if="item.answers.length > 0" />
                         <LockOpenIcon
-                            v-else-if="index > 0 ? data?.quiz[index - 1]?.answers?.length > 0 && data?.quiz[index - 1]?.quizPoint > 60 : true" />
+                            v-else-if="index > 0 ? data?.quiz[index - 1]?.answers?.length > 0 && data?.quiz[index - 1]?.quizPoint >= 60 : true" />
                         <LockIcon v-else />
                     </div>
                 </div>
