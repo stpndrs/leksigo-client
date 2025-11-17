@@ -72,7 +72,7 @@ const openQuestion = (id, index) => {
 
 const saveAnswer = () => {
     try {
-        triggerToast('Pertanyaan berhasil disimpan', 'success');
+        triggerToast('Jawaban berhasil disimpan', 'success');
 
         const currentQuestionId = questionActive.value._id;
 
@@ -94,16 +94,16 @@ const saveAnswer = () => {
         };
 
         const findAnswer = answers.value.find(d => d.questionId == currentQuestionId);
-        console.log(findAnswer);
+        // console.log(findAnswer);
 
         if (findAnswer) {
             findAnswer.answer = file.value;
             findAnswer.duration = duration;
             findAnswer.timeAnswered = timeAnswered;
-            console.log("Jawaban diperbarui:", file.value);
+            // console.log("Jawaban diperbarui:", file.value);
         } else {
             answers.value.push(answerData);
-            console.log("Jawaban baru ditambahkan");
+            // console.log("Jawaban baru ditambahkan");
         }
     } catch (e) {
         triggerToast('Gagal menyimpan jawaban', 'error')
@@ -133,7 +133,7 @@ const finishQuiz = async () => {
         answers: formattedAnswers
     }).then(res => {
         router.push({ name: 'exercise.quiz.summary', params: { id: id, quizId: quizData.value.quizId } })
-        console.log(res);
+        // console.log(res);
     }).catch(e => {
         console.log(e);
     })
@@ -174,9 +174,6 @@ watch(() => questionActiveIndex, () => {
             <ConfirmComponent v-if="isConfirmOpen" title="Selesaikan Latihan?"
                 message="Apakah Anda Yakin Untuk Menyelesaikan Sesi Latihan?" confirmText="Simpan" cancelText="Batal"
                 @confirm="handleConfirmAction" @cancel="handleCancelAction" />
-
-            <ToastComponent v-if="globalToast.show" :message="globalToast.message" :type="globalToast.type"
-                :title="globalToast.title" @close="globalToast.show = false" />
 
             <div class="grid-container">
                 <div class="workspace">

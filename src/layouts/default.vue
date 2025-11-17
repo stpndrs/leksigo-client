@@ -2,6 +2,8 @@
 import { useRoute } from 'vue-router';
 import sidebar from './Sidebar.vue'
 import { onBeforeMount, onMounted, provide, ref } from 'vue';
+import ToastComponent from '@/components/toast/ToastComponent.vue';
+import { globalToast } from '@/utils/toast';
 
 const route = useRoute()
 
@@ -48,6 +50,9 @@ onMounted(() => {
             </div>
         </div>
         <div id="content">
+            {{ globalToast.show }}
+            <ToastComponent v-if="globalToast.show" :message="globalToast.message" :type="globalToast.type"
+                :title="globalToast.title" @close="globalToast.show = 'false'" />
             <router-view />
         </div>
     </div>

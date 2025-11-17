@@ -21,3 +21,14 @@ export const triggerToast = (message, type = 'info', title = '') => {
         globalToast.show = false;
     }, 3000);
 };
+
+export const showLoadingToast = (message, type = 'info', title = '') => {
+    globalToast.message = message;
+    globalToast.type = type;
+    globalToast.title = title;
+    globalToast.show = true;
+}
+
+export const hideLoadingToast = () => {
+    globalToast.show = false;
+}
