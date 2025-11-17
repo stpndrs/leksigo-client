@@ -5,24 +5,11 @@ import { ref, watch, onBeforeUnmount } from 'vue';
 
 // === PROPS ===
 const props = defineProps({
-    text: {
-        type: String,
-        required: true
-    },
-    autoplay: {
-        type: Boolean,
-        default: true
-    },
-    displayStyle: {
-        type: String,
-        default: 'player',
-        validator: (value) => ['player', 'text'].includes(value)
-    },
-    // Prop opsional: Jika true, 'text' dianggap sebagai base64 audio langsung
-    isBase64: {
-        type: Boolean,
-        default: false
-    }
+    text: { type: String, required: true },
+    autoplay: { type: Boolean, default: true },
+    displayStyle: { type: String, default: 'player' },
+    isAudioUrl: { type: Boolean, default: false },
+    isBase64: { type: Boolean, default: false }
 });
 
 // === STATE ===
@@ -46,35 +33,39 @@ async function fetchAudioFromAI(textToSpeech) {
     }
 }
 
-// === WATCHER UTAMA ===
+// === WATCHER UTAMA (LOGIKA DIPERBAIKI) ===
 watch(() => props.text, async (newInput) => {
     if (!newInput) return;
 
     // Reset state
     isLoading.value = true;
     errorMsg.value = null;
-    if (audioUrl.value) {
+
+    // Hanya revoke jika audioUrl adalah blob URL
+    if (audioUrl.value && audioUrl.value.startsWith('blob:')) {
         URL.revokeObjectURL(audioUrl.value);
-        audioUrl.value = null;
     }
+    audioUrl.value = null;
 
     try {
-        let audioBlob;
+        // ===================================
+        // LOGIKA YANG DIATUR ULANG
+        // ===================================
 
-        // 1. JIKA INPUT ADALAH BASE64 (Langsung Audio)
-        // Kita cek prop isBase64 ATAU deteksi pola base64 sederhana (opsional)
-        if (props.isBase64 || isLikelyBase64(newInput)) {
-            // Langsung konversi string input ke Blob
-            // Asumsi format audio/mpeg (MP3) atau audio/wav, sesuaikan jika perlu
-            audioBlob = base64ToBlob(newInput, 'audio/mpeg');
-        }
-        // 2. JIKA INPUT ADALAH TEKS (Panggil API)
-        else {
-            audioBlob = await fetchAudioFromAI(newInput);
-        }
+        // 1. JIKA INPUT SUDAH URL (Paling Mudah)
+        if (props.isAudioUrl) {
+            audioUrl.value = newInput; // Langsung gunakan URL dari prop
 
-        // Buat URL objek dari Blob
-        audioUrl.value = URL.createObjectURL(audioBlob);
+            // 2. JIKA INPUT ADALAH BASE64 (Konversi)
+        } else if (props.isBase64 || isLikelyBase64(newInput)) {
+            const audioBlob = base64ToBlob(newInput, 'audio/mpeg');
+            audioUrl.value = URL.createObjectURL(audioBlob);
+
+            // 3. JIKA INPUT ADALAH TEKS (Fetch API)
+        } else {
+            const audioBlob = await fetchAudioFromAI(newInput);
+            audioUrl.value = URL.createObjectURL(audioBlob);
+        }
 
         // Reset player UI
         isPlaying.value = false;
@@ -89,26 +80,14 @@ watch(() => props.text, async (newInput) => {
 }, { immediate: true });
 
 // Helper sederhana untuk mendeteksi apakah string kemungkinan Base64
-// (String panjang, tanpa spasi, karakter base64 valid)
 function isLikelyBase64(str) {
+    // ... (Fungsi Anda sudah benar, tidak perlu diubah)
     if (!str || typeof str !== 'string') return false;
-
-    // 1. Base64 biasanya sangat panjang (lebih dari 100 karakter)
-    // 2. Base64 TIDAK BOLEH punya spasi (kecuali di ujung)
-    // 3. Base64 valid hanya berisi karakter A-Z, a-z, 0-9, +, /, =
-
-    // Cek apakah ada spasi di tengah kalimat (tanda ini teks biasa, bukan audio)
     if (/\s/.test(str.trim())) {
         return false;
     }
-
-    // Cek panjang minimum dan karakter valid
-    // Regex ini mengecek apakah string HANYA berisi karakter base64
     const base64Regex = /^[A-Za-z0-9+/]*={0,2}$/;
-
-    // Jika ada header data URI, kita anggap valid dulu
     if (str.startsWith('data:audio')) return true;
-
     return str.length > 100 && base64Regex.test(str);
 }
 
@@ -121,7 +100,6 @@ function togglePlayPause() {
         audioRef.value.pause();
     }
 }
-
 function handleSeek(event) {
     if (!audioRef.value || !audioRef.value.duration) return;
     const bar = event.currentTarget;
@@ -130,7 +108,6 @@ function handleSeek(event) {
     const newTime = (clickX / barWidth) * audioRef.value.duration;
     audioRef.value.currentTime = newTime;
 }
-
 function onPlay() { isPlaying.value = true; }
 function onPause() { isPlaying.value = false; }
 function onEnded() {
@@ -147,8 +124,9 @@ function onTimeUpdate() {
     }
 }
 
+// Perbaiki onBeforeUnmount agar lebih aman
 onBeforeUnmount(() => {
-    if (audioUrl.value) {
+    if (audioUrl.value && audioUrl.value.startsWith('blob:')) {
         URL.revokeObjectURL(audioUrl.value);
     }
 });
@@ -175,7 +153,8 @@ onBeforeUnmount(() => {
 
             <div v-if="props.displayStyle === 'text'" class="tts-text-button" @click="togglePlayPause"
                 title="Putar audio">
-                <span class="text" v-if="!isBase64 && !isLikelyBase64(props.text)">{{ props.text }}</span>
+                <span class="text" v-if="!isBase64 && !isAudioUrl && !isLikelyBase64(props.text)">{{ props.text
+                    }}</span>
                 <span class="text" v-else>Putar Audio</span>
                 <span class="icon">🔊</span>
             </div>
