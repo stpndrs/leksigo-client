@@ -338,9 +338,6 @@ const submit = async () => {
             message="Apakah Anda yakin untuk menyimpan soal latihan?" confirmText="Simpan" cancelText="Batal"
             @confirm="handleConfirmAction" @cancel="handleCancelAction" />
 
-        <ToastComponent v-if="globalToast.show" :message="globalToast.message" :type="globalToast.type"
-            :title="globalToast.title" @close="globalToast.show = false" />
-
         <QuestionBankModal v-if="isModalShowed" :questions="questionBank" :method="method"
             :methodLabel="methodLabel.label" :level="level" :questionType="objectValue" :insertQuestion="insertQuestion"
             :handleQuestionBank="handleQuestionBank" />
