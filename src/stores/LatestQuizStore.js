@@ -24,6 +24,6 @@ export const latestQuizStore = reactive({
 
     get getLevel() {
         this.loadData()
-        return this.data.level
+        return this.data?.level
     },
 })
