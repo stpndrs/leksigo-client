@@ -1,4 +1,5 @@
 <script setup>
+import HorrayComponent from '@/components/alerts/HorrayComponent.vue';
 import ButtonComponent from '@/components/buttons/ButtonComponent.vue';
 import ChevronLeftIcon from '@/components/shape/ChevronLeft.Icon.vue';
 import HorrayIcon from '@/components/shape/HorrayIcon.vue';
@@ -7,7 +8,11 @@ import { useQuizStore } from '@/stores/quiz';
 import api from '@/utils/api';
 import { onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
+import { Vue3Lottie } from 'vue3-lottie';
+import horrayAnimation from '../../assets/images/horray_animation.json'
 
+
+const isShowHorray = ref(true)
 const route = useRoute()
 const router = useRouter()
 const data = ref([])
@@ -31,6 +36,8 @@ onMounted(async () => {
 </script>
 
 <template>
+
+    <HorrayComponent @close="isShowHorray = false" v-if="isShowHorray" />
     <div class="container">
         <div class="page-header">
             <router-link :to="{ name: 'exercise.quiz.list', params: { id: id } }">
@@ -70,7 +77,9 @@ onMounted(async () => {
                         <h1 v-html="data?.quizPoint >= 60 ? 'Lulus' : 'Tidak Lulus'"></h1>
                     </div>
                     <div class="action">
-                        <HorrayIcon class="icon" />
+                        <!-- <HorrayIcon class="icon" /> -->
+                        <Vue3Lottie style="width: 60%;" :animationData="horrayAnimation" :loop="true"
+                            :autoPlay="true" />
                         <div class="btn-group">
                             <ButtonComponent label="Coba Lagi" display="border" class="secondary"
                                 @click="router.push({ name: 'exercise.quiz.overview', params: { id: id, quizId: quizId } })" />
