@@ -28,7 +28,7 @@ const getData = async () => {
             data.value = res.data.data
 
             console.log(data.value.answers.length);
-            
+
         })
         .catch((err) => {
             console.log(err);
@@ -65,10 +65,15 @@ const getData = async () => {
                     </div>
                     <div class="action">
                         <ButtonComponent label="Mulai Mengerjakan" class="secondary"
-                            @click="router.push({ name: 'exercise.quiz.work', params: { id: id, quizId: quizId } })" v-if="authStore?.user?.role == 1" />
-                        <ButtonComponent :label="authStore?.user?.role == 1 ? 'Review pengerjaan sebelumnya' : 'Review pengerjaan'" class="primary" display="border"
+                            @click="router.push({ name: 'exercise.quiz.work', params: { id: id, quizId: quizId } })"
+                            v-if="authStore?.user?.role == 1" />
+                        <ButtonComponent
+                            :label="authStore?.user?.role == 1 ? 'Review pengerjaan sebelumnya' : 'Review pengerjaan'"
+                            class="primary" display="border"
                             @click="router.push({ name: 'exercise.quiz.review', params: { id: id, quizId: quizId } })"
                             v-if="data?.answers?.length > 0" />
+                        <ButtonComponent label="Penilaian Perilaku" class="secondary" display="border"
+                            @click="router.push({ name: 'exercise.attitude', params: { id: id, quizId: quizId } })" />
                     </div>
                 </div>
             </div>
