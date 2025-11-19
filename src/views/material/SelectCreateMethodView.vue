@@ -16,7 +16,7 @@ const id = route.params.id
             <router-link :to="{ name: 'childs.detail', params: { id: id } }">
                 <ChevronLeftIcon />
             </router-link>
-            <h1 class="page-title">Pilih cara membuat soal</h1>
+            <h1 class="page-title">Pilih cara membuat materi</h1>
         </div>
         <div class="page-body">
             <div class="grid-container">
