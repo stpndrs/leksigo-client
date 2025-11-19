@@ -63,9 +63,14 @@ const visibility = async () => {
             <h1 class="page-title">Preview Soal : {{ quizData.name }}</h1>
         </div>
         <div class="page-body">
-            <ButtonComponent :label="!quizData.isHidden ? 'Sembunyikan' : 'Tampilkan'"
-                :icon="!quizData.isHidden ? EyeSlashIcon : EyeIcon" class="secondary" size="small" display="border"
-                @click="visibility" v-if="!isWorkMode && authStore.user.role == 1" />
+            <div class="btn-group">
+                <ButtonComponent label="Edit Quiz" class="secondary" size="small"
+                    @click="router.push({ name: 'exercise.quiz.edit', params: { id: id, quizId: quizId } })"
+                    v-if="!isWorkMode && authStore.user.role == 1" :isDisabled="quizData?.answers?.length > 0" />
+                <ButtonComponent :label="!quizData.isHidden ? 'Sembunyikan' : 'Tampilkan'"
+                    :icon="!quizData.isHidden ? EyeSlashIcon : EyeIcon" class="secondary" size="small" display="border"
+                    @click="visibility" v-if="!isWorkMode && authStore.user.role == 1" />
+            </div>
             <div class="grid-container">
                 <div class="answers-container">
                     <div class="item" v-for="(item, index) in questions" :key="index">
@@ -103,6 +108,14 @@ const visibility = async () => {
 </template>
 
 <style lang="scss" scoped>
+.btn-group {
+    display: flex;
+    justify-content: start;
+    gap: 10px;
+    align-items: center;
+}
+
+
 /* Tambahkan style untuk soal gambar dan warna */
 // Style ini tidak terpakai, pindahkan ke .object-image
 .question-image {

@@ -19,7 +19,6 @@ const props = defineProps({
     },
     invalidMsg: {
         type: String,
-        default: 'This input is invalid'
     }
 })
 
