@@ -176,7 +176,7 @@ const handleModal = () => {
                             </div>
                             <div class="card-footer" v-if="!isWorkMode">
                                 <ButtonComponent label="Buat Materi" class="primary" size="large"
-                                    @click="$router.push({ name: 'material.create', params: id })" />
+                                    @click="$router.push({ name: 'material.createMethod', params: id })" />
                             </div>
                         </div>
                     </div>

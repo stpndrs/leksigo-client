@@ -37,7 +37,7 @@ onMounted(async () => {
 
                 points.value += parseInt(d.exercisePoint)
 
-            })
+        })
 
             // calculate showed material
             filterShowedMaterial()

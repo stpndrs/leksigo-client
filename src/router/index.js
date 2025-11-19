@@ -144,7 +144,17 @@ const router = createRouter({
 					name: 'material',
 					children: [
 						{
-							path: '/material/:id/create',
+							path: '/material/:id/create/method',
+							name: 'material.createMethod',
+							component: () => import('../views/material/SelectCreateMethodView.vue')
+						},
+						{
+							path: '/material/:id/create/generate',
+							name: 'material.generate',
+							component: () => import('../views/material/GenerateView.vue')
+						},
+						{
+							path: '/material/:id/create/manual',
 							name: 'material.create',
 							component: () => import('../views/material/CreateView.vue'),
 							beforeEnter: teacherMiddleware

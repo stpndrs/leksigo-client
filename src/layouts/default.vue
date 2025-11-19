@@ -23,9 +23,15 @@ const routeWithoutSidebar = [
     'exercise.quiz.summary',
     'exercise.quiz.review',
     'exercise.attitude',
+    'material.createMethod',
+    'material.generate',
     'material.create',
     'material.edit',
-    'material.overview'
+    'material.overview',
+]
+
+const routeChatBot = [
+    'material.generate'
 ]
 
 // loader
@@ -41,7 +47,8 @@ onMounted(() => {
 </script>
 
 <template>
-    <div id="layout" :class="[{ nosidebar: routeWithoutSidebar.includes(route.name) }]">
+    <div id="layout"
+        :class="[{ nosidebar: routeWithoutSidebar.includes(route.name), chatbot: routeChatBot.includes(route.name) }]">
         <sidebar v-if="!routeWithoutSidebar.includes(route.name)" />
         <div id="loader" v-if="isShowLoader">
             <div class="dots-container">
@@ -73,6 +80,13 @@ onMounted(() => {
     #content {
         padding: 30px;
     }
+
+    &.chatbot {
+        #content {
+            padding: 0 !important;
+        }
+    }
+
 
     #loader {
         padding: 2rem;
