@@ -14,7 +14,9 @@ const routeWithoutSidebar = [
     'childs.work',
     'exercise.create',
     'exercise.edit',
+    'exercise.quiz.method',
     'exercise.quiz.create',
+    'exercise.quiz.generate',
     'exercise.quiz.edit',
     'exercise.quiz.detail',
     'exercise.quiz.overview',
@@ -31,7 +33,8 @@ const routeWithoutSidebar = [
 ]
 
 const routeChatBot = [
-    'material.generate'
+    'material.generate',
+    'exercise.quiz.generate'
 ]
 
 // loader

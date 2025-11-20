@@ -73,7 +73,7 @@ const calculateTotalPoint = () => {
             <div class="action">
                 <p class="score">Total Skor : <strong>{{ totalQuizPoint }}</strong></p>
                 <ButtonComponent label="Buat Quiz" class="secondary"
-                    @click="router.push({ name: 'exercise.quiz.create', params: { id: id } })"
+                    @click="router.push({ name: 'exercise.quiz.method', params: { id: id } })"
                     :isDisabled="latestQuizStore.getLevel == 3"
                     v-if="!workStore.isWorkMode && authStore?.user?.role == 1" />
             </div>

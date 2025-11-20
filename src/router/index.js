@@ -91,9 +91,21 @@ const router = createRouter({
 									component: () => import('../views/exercise/QuizListView.vue'),
 								},
 								{
+									path: '/exercise/quiz/method/:id',
+									name: 'exercise.quiz.method',
+									component: () => import('../views/exercise/SelectCreateMethodView.vue'),
+									beforeEnter: teacherMiddleware
+								},
+								{
 									path: '/exercise/quiz/create/:id',
 									name: 'exercise.quiz.create',
 									component: () => import('../views/exercise/CreateQuizView.vue'),
+									beforeEnter: teacherMiddleware
+								},
+								{
+									path: '/exercise/quiz/generate/:id',
+									name: 'exercise.quiz.generate',
+									component: () => import('../views/exercise/GenerateQuizView.vue'),
 									beforeEnter: teacherMiddleware
 								},
 								{
