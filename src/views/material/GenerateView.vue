@@ -1,55 +1,60 @@
 <script setup>
 import ButtonComponent from '@/components/buttons/ButtonComponent.vue';
 import ChevronLeftIcon from '@/components/shape/ChevronLeft.Icon.vue';
+import EyeIcon from '@/components/shape/EyeIcon.vue';
 import { useMaterialStore } from '@/stores/MaterialStore';
 import { ref, reactive, nextTick } from 'vue';
 import { useRoute } from 'vue-router';
 
-const materialStore = useMaterialStore()
+const materialStore = useMaterialStore();
 const route = useRoute();
 const id = route.params.id;
 
-const levels = ref([1, 2, 3])
-
-// Data Master Method
-const methodOfArray = ref([
-    {
-        level: 1,
-        data: [
-            { label: 'Mendengar Audio', value: 1 },
-            { label: 'Menulis Ulang', value: 2 },
-            { label: 'Membaca', value: 3 },
-        ]
-    },
-    {
-        level: 2,
-        data: [
-            { label: 'Mendengar Audio', value: 1 },
-            { label: 'Menulis Ulang', value: 2 },
-            { label: 'Membaca', value: 3 },
-        ]
-    },
-    {
-        level: 3,
-        data: [
-            { label: 'Mendengar Audio', value: 1 },
-            { label: 'Menulis Ulang', value: 2 },
-            { label: 'Membaca', value: 3 },
-            { label: 'Mengurut Kata', value: 4 },
-            { label: 'Menebak Cepat', value: 5 },
-        ]
-    },
-])
-
-// State untuk Opsi Method yang tampil di Select
-const methodSelected = ref([])
-
+// --- 1. STATE & CONFIG ---
 const chatContainer = ref(null);
 const isGenerating = ref(false);
+const isPreviewOpen = ref(false);
+const previewContent = ref(null);
+
+const levels = ref([1, 2, 3]);
+
+// Data Master Method (Sesuai Request)
+// Level 1-2: Method 1-3
+// Level 3: Method 1-5
+const methodOfArray = ref([
+    {
+        level: 1, // Single Character
+        data: [
+            { label: 'Reading (Membaca)', value: 1 },
+            { label: 'Writing (Menulis)', value: 2 },
+            { label: 'Audio (Dikte)', value: 3 }
+        ]
+    },
+    {
+        level: 2, // Word
+        data: [
+            { label: 'Reading (Membaca)', value: 1 },
+            { label: 'Writing (Menulis)', value: 2 },
+            { label: 'Audio (Dikte)', value: 3 }
+        ]
+    },
+    {
+        level: 3, // Sentence
+        data: [
+            { label: 'Reading (Membaca)', value: 1 },
+            { label: 'Writing (Menulis)', value: 2 },
+            { label: 'Audio (Dikte)', value: 3 },
+            { label: 'Ordering Sentences', value: 4 },
+            { label: 'Rapid Naming', value: 5 }
+        ]
+    },
+]);
+
+const methodSelected = ref([]);
 
 const form = reactive({
     level: '',
-    method: '', // Ini menyimpan value (integer), misal: 1, 2, dst
+    method: '',
     description: ''
 });
 
@@ -58,42 +63,141 @@ const messages = ref([
         id: 1,
         sender: 'ai',
         type: 'intro',
-        content: 'Halo! Saya asisten AI Anda. Silakan tentukan Level, Metode, dan Deskripsi materi yang ingin Anda buat.'
+        content: 'Halo! Silakan pilih Level (Character/Word/Sentence) dan Metode pembelajaran yang diinginkan.'
     }
 ]);
 
-// --- LOGIC GANTI LEVEL ---
-const handleLevel = () => {
-    // 1. Reset pilihan method di form agar user memilih ulang
-    form.method = '';
+// --- 2. DUMMY DATABASE MATERI (SESUAI ATURAN BARU) ---
+const mockMaterialDB = {
+    // FORMAT KEY: "LEVEL-METHOD_ID"
 
-    // 2. Cari data method berdasarkan level yang dipilih
-    const selectedData = methodOfArray.value.find(d => d.level == form.level);
+    // ==========================================
+    // LEVEL 1: SINGLE CHARACTER
+    // ==========================================
 
-    // 3. Update opsi dropdown method
-    if (selectedData) {
-        methodSelected.value = selectedData.data;
-    } else {
-        methodSelected.value = [];
+    // Method 1: Reading (Produce question text that will be read by the child)
+    "1-1": {
+        title: "Membaca Huruf Vokal",
+        text: "Baca huruf berikut dengan suara lantang:\n\n'A'\n\n'I'\n\n'U'\n\n'E'\n\n'O'",
+        videoUrl: null,
+        imageUrl: "https://via.placeholder.com/600x300?text=Huruf+A"
+    },
+
+    // Method 2: Writing (Produce question text the child must copy)
+    "1-2": {
+        title: "Menulis Huruf Konsonan",
+        text: "Siapkan buku tulis, lalu salin huruf ini:\n\n'B'\n\n'D'\n\n'P'\n\n'Q'",
+        videoUrl: null,
+        imageUrl: "https://via.placeholder.com/600x300?text=Contoh+Tulis+B"
+    },
+
+    // Method 3: Audio (Produce question text that will be converted into audio and be written by the child)
+    "1-3": {
+        title: "Dikte Huruf",
+        text: "Dengarkan suara, lalu tulis huruf yang kamu dengar di buku tulis.",
+        tts_text: "C", // <--- INI ADALAH SCRIPT TEXT-TO-SPEECH
+        videoUrl: null,
+        imageUrl: null
+    },
+
+    // ==========================================
+    // LEVEL 2: WORD
+    // ==========================================
+
+    // Method 1: Reading
+    "2-1": {
+        title: "Membaca Kata Benda",
+        text: "Baca kata berikut ini dengan jelas:\n\n'BOLA'",
+        videoUrl: null,
+        imageUrl: "https://via.placeholder.com/600x300?text=Gambar+BOLA"
+    },
+
+    // Method 2: Writing
+    "2-2": {
+        title: "Menyalin Kata",
+        text: "Salin kata berikut ini dengan rapi:\n\n'RUMAH'",
+        videoUrl: null,
+        imageUrl: "https://via.placeholder.com/600x300?text=Tulisan+RUMAH"
+    },
+
+    // Method 3: Audio
+    "2-3": {
+        title: "Dikte Kata",
+        text: "Dengarkan baik-baik, lalu tulis kata yang diucapkan.",
+        tts_text: "MAKAN", // <--- SCRIPT TTS
+        videoUrl: null,
+        imageUrl: null
+    },
+
+    // ==========================================
+    // LEVEL 3: SENTENCE
+    // ==========================================
+
+    // Method 1: Reading
+    "3-1": {
+        title: "Membaca Kalimat Sederhana",
+        text: "Bacalah kalimat ini:\n\n'Ibu pergi ke pasar membeli sayur.'",
+        videoUrl: null,
+        imageUrl: "https://via.placeholder.com/600x300?text=Ibu+di+Pasar"
+    },
+
+    // Method 2: Writing
+    "3-2": {
+        title: "Menyalin Kalimat",
+        text: "Salin kalimat berikut di bukumu:\n\n'Ayah sedang membaca koran di teras.'",
+        videoUrl: null,
+        imageUrl: "https://via.placeholder.com/600x300?text=Ayah+Membaca"
+    },
+
+    // Method 3: Audio
+    "3-3": {
+        title: "Dikte Kalimat",
+        text: "Simak audio berikut dan tulis kalimat lengkapnya.",
+        tts_text: "Adik bermain bola di lapangan", // <--- SCRIPT TTS
+        videoUrl: null,
+        imageUrl: null
+    },
+
+    // Method 4: Ordering Sentences (Produces random word that will be re-ordered)
+    "3-4": {
+        title: "Menyusun Kalimat Acak",
+        text: "Urutkan kata-kata acak berikut menjadi kalimat yang benar:\n\n[ makan - saya - nasi - goreng ]\n\nKunci Jawaban: 'Saya makan nasi goreng'",
+        videoUrl: null,
+        imageUrl: null
+    },
+
+    // Method 5: Rapid Naming (Produces simple nouns for object or colors)
+    "3-5": {
+        title: "Sebut Cepat (Rapid Naming)",
+        text: "Sebutkan nama benda/warna berikut secepat mungkin:\n\n[ MERAH ] - [ MEJA ] - [ BIRU ] - [ KURSI ]",
+        videoUrl: null,
+        imageUrl: "https://via.placeholder.com/600x300?text=Warna+dan+Benda"
     }
+};
+
+// --- 3. LOGIC HANDLERS ---
+
+const handleLevel = () => {
+    form.method = '';
+    const selectedData = methodOfArray.value.find(d => d.level == form.level);
+    methodSelected.value = selectedData ? selectedData.data : [];
 }
 
-// --- LOGIC GENERATE ---
 const handleGenerate = async () => {
     if (!form.level || !form.method || !form.description) {
         alert("Mohon lengkapi semua form input.");
         return;
     }
 
-    // Cari Label Method
+    // Cari Label Method & ID
     const selectedMethodObj = methodSelected.value.find(item => item.value === form.method);
     const methodLabel = selectedMethodObj ? selectedMethodObj.label : 'Unknown';
 
-    // Simpan snapshot request saat ini agar saat tombol simpan ditekan, datanya konsisten
+    // Snapshot Request
     const currentRequestSnapshot = {
         level: form.level,
         method: methodLabel,
-        methodId: form.method, // Simpan ID nya juga
+        methodId: form.method,
         description: form.description
     };
 
@@ -101,9 +205,7 @@ const handleGenerate = async () => {
     messages.value.push({
         id: Date.now(),
         sender: 'user',
-        content: {
-            ...currentRequestSnapshot // Spread data request
-        }
+        content: { ...currentRequestSnapshot }
     });
 
     scrollToBottom();
@@ -111,78 +213,86 @@ const handleGenerate = async () => {
 
     // 2. AI Simulation
     setTimeout(() => {
-        // Tentukan tipe media berdasarkan method untuk simulasi yang lebih akurat
-        let dummyVideo = '';
-        let dummyImage = '';
+        // Ambil dari Mock DB
+        const key = `${form.level}-${form.method}`;
 
-        if (form.method === 1) { // Mendengar Audio
-            dummyVideo = 'https://www.youtube.com/embed/dQw4w9WgXcQ';
-        } else {
-            dummyImage = 'https://via.placeholder.com/600x300?text=Ilustrasi+Materi';
-        }
+        // Default fallback jika data tidak ditemukan di mock
+        let defaultText = "Materi belum tersedia.";
+        if (form.level == 1) defaultText = "Huruf: A";
+        if (form.level == 2) defaultText = "Kata: CONTOH";
+        if (form.level == 3) defaultText = "Kalimat: Ini adalah contoh kalimat.";
+
+        const mockData = mockMaterialDB[key] || {
+            title: `Materi ${methodLabel}`,
+            text: defaultText,
+            videoUrl: null,
+            imageUrl: "https://via.placeholder.com/600x300?text=Materi+Generated"
+        };
 
         messages.value.push({
             id: Date.now() + 1,
             sender: 'ai',
             type: 'result',
-            // Kita selipkan data request user ke message AI agar tombol 'Simpan' tahu konteksnya
+            isSaved: false,
+            savedData: null,
             requestContext: currentRequestSnapshot,
             content: {
-                title: `Materi ${methodLabel}: ${form.description.substring(0, 20)}...`,
-                videoUrl: dummyVideo,
-                imageUrl: dummyImage,
-                text: `Ini adalah materi lengkap untuk ${methodLabel}.\n\nIsi materi mencakup paragraf utama yang bisa digunakan untuk latihan voice-to-text atau membaca.`
+                title: mockData.title,
+                videoUrl: mockData.videoUrl,
+                imageUrl: mockData.imageUrl,
+                text: mockData.text
             }
         });
 
         isGenerating.value = false;
+        form.level = null
+        form.method = null
+        form.description = null
         scrollToBottom();
-    }, 2000);
+    }, 1500);
 };
 
-const handleSaveMaterial = async (messageContent, userRequestParams) => {
-    // Kita gabungkan data dari Request User (Level, Method) 
-    // dengan Hasil Generate AI (Text, Gambar, Link)
+// --- SAVE & PREVIEW LOGIC ---
 
-    // Cari Method ID berdasarkan Label (Reverse lookup karena di chat kita simpan label)
-    // Atau lebih baik simpan ID juga di message history user, tapi kita cari manual saja disini:
-    let methodId = 0;
-    methodOfArray.value.forEach(lvl => {
-        const found = lvl.data.find(m => m.label === messageContent.methodLabel || m.label === userRequestParams?.method);
-        if (found) methodId = found.value;
-    });
+const handleSaveMaterial = async (msgIndex) => {
+    const msg = messages.value[msgIndex];
 
     const payload = {
-        level: userRequestParams?.level || form.level, // Fallback
-        method_id: methodId,
-        method_label: userRequestParams?.method,
-
-        // Data hasil generate
-        title: messageContent.title,
-        description: userRequestParams?.description || "Materi Generated AI",
-        content_text: messageContent.text,
-
-        // Deteksi apakah ini Video atau Gambar untuk field media_url
-        media_url: messageContent.videoUrl || messageContent.imageUrl,
+        level: msg.requestContext.level,
+        method_label: msg.requestContext.method,
+        title: msg.content.title,
+        description: msg.requestContext.description,
+        content_text: msg.content.text,
+        media_url: msg.content.videoUrl || msg.content.imageUrl
     };
 
-    // Panggil Store
     const result = await materialStore.saveGeneratedMaterial(payload);
 
     if (result.success) {
-        alert(result.message); // Atau ganti dengan Toast Notification
+        messages.value[msgIndex].isSaved = true;
+        messages.value[msgIndex].savedData = payload;
     } else {
         alert("Gagal menyimpan.");
     }
 };
 
+const handlePreview = (msgIndex) => {
+    const msg = messages.value[msgIndex];
+    if (msg.savedData) {
+        previewContent.value = msg.savedData;
+        isPreviewOpen.value = true;
+    }
+};
+
+const closePreview = () => {
+    isPreviewOpen.value = false;
+    previewContent.value = null;
+};
+
 const scrollToBottom = () => {
     nextTick(() => {
         if (chatContainer.value) {
-            chatContainer.value.scrollTo({
-                top: chatContainer.value.scrollHeight,
-                behavior: 'smooth'
-            });
+            chatContainer.value.scrollTo({ top: chatContainer.value.scrollHeight, behavior: 'smooth' });
         }
     });
 };
@@ -191,21 +301,51 @@ const scrollToBottom = () => {
 <template>
     <div class="chat-layout-container">
 
+        <div v-if="isPreviewOpen" class="modal-overlay" @click.self="closePreview">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Preview Materi</h3>
+                    <button class="close-btn" @click="closePreview">&times;</button>
+                </div>
+                <div class="modal-body" v-if="previewContent">
+                    <div class="meta-tags">
+                        <span class="badge">Level {{ previewContent.level }}</span>
+                        <span class="badge">{{ previewContent.method_label }}</span>
+                    </div>
+
+                    <h2 class="preview-title">{{ previewContent.title }}</h2>
+
+                    <div class="media-container">
+                        <iframe v-if="previewContent.media_url && previewContent.media_url.includes('youtube')"
+                            width="100%" height="300" :src="previewContent.media_url" frameborder="0" allowfullscreen>
+                        </iframe>
+                        <img v-else-if="previewContent.media_url" :src="previewContent.media_url" alt="Materi Image" />
+                    </div>
+
+                    <div class="text-content">
+                        <p>{{ previewContent.content_text }}</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <ButtonComponent label="Tutup" size="small" display="border" @click="closePreview" />
+                </div>
+            </div>
+        </div>
+
         <header class="page-header">
             <div class="header-content">
                 <router-link :to="{ name: 'childs.detail', params: { id: id } }" class="back-btn">
                     <ChevronLeftIcon />
                 </router-link>
-                <h1 class="page-title">AI Generator</h1>
+                <h1 class="page-title">AI Material Generator</h1>
             </div>
         </header>
 
         <main class="main-content">
-
             <div class="chat-window" ref="chatContainer">
                 <div class="messages-wrapper">
 
-                    <div v-for="msg in messages" :key="msg.id" :class="['message-row', msg.sender]">
+                    <div v-for="(msg, index) in messages" :key="msg.id" :class="['message-row', msg.sender]">
 
                         <div class="avatar">
                             <span v-if="msg.sender === 'ai'">🤖</span>
@@ -228,17 +368,30 @@ const scrollToBottom = () => {
                             <div v-else-if="msg.type === 'result'" class="result-content">
                                 <h3>{{ msg.content.title }}</h3>
                                 <p class="desc">{{ msg.content.text }}</p>
-                                <div class="media-block">
+
+                                <div class="media-block" v-if="msg.content.imageUrl">
                                     <img :src="msg.content.imageUrl" alt="Generated Image" />
                                 </div>
-                                <div class="media-block video-wrapper">
+                                <div class="media-block video-wrapper" v-if="msg.content.videoUrl">
                                     <iframe width="100%" height="200" :src="msg.content.videoUrl" frameborder="0"
                                         allowfullscreen></iframe>
                                 </div>
+
                                 <div class="actions">
-                                    <ButtonComponent label="Salin" class="primary" size="small" display="border" />
-                                    <ButtonComponent label="Simpan" class="primary" size="small" display="fill"
-                                        @click="handleSaveMaterial" />
+                                    <ButtonComponent v-if="!msg.isSaved" label="Simpan ke Library" class="primary"
+                                        size="small" display="fill" :isDisabled="materialStore.isLoading"
+                                        @click="handleSaveMaterial(index)" />
+
+                                    <ButtonComponent v-else label="Tersimpan ✓" size="small" display="border"
+                                        :isDisabled="true"
+                                        style="border-color: var(--Success-500); color: var(--Success-500);" />
+
+                                    <ButtonComponent v-if="msg.isSaved" label="Preview" size="small" type="secondary"
+                                        display="fill" @click="handlePreview(index)">
+                                        <template #icon>
+                                            <EyeIcon />
+                                        </template>
+                                    </ButtonComponent>
                                 </div>
                             </div>
                         </div>
@@ -247,10 +400,8 @@ const scrollToBottom = () => {
                     <div v-if="isGenerating" class="message-row ai">
                         <div class="avatar">🤖</div>
                         <div class="bubble loading-bubble">
-                            <div class="typing-dots">
-                                <span></span><span></span><span></span>
-                            </div>
-                            <small>Sedang berpikir...</small>
+                            <div class="typing-dots"><span></span><span></span><span></span></div>
+                            <small>Sedang menyusun materi...</small>
                         </div>
                     </div>
 
@@ -271,8 +422,7 @@ const scrollToBottom = () => {
                             <label>Metode</label>
                             <select v-model="form.method">
                                 <option value="" disabled>Pilih</option>
-                                <option v-for="m in methodSelected" :key="m.value" :value="m.value">
-                                    {{ m.label }}
+                                <option v-for="m in methodSelected" :key="m.value" :value="m.value">{{ m.label }}
                                 </option>
                             </select>
                         </div>
@@ -292,29 +442,20 @@ const scrollToBottom = () => {
 </template>
 
 <style lang="scss" scoped>
-// --- GLOBAL VARS (Local Scope) ---
+// --- GLOBAL VARS (Local) ---
 .chat-layout-container {
     --White: #FFFFFF;
     --Soft-white: #F9FAFB;
     --Primary-900: #FF3C8A;
     --Primary-500: #FF70A9;
     --Secondary-900: #008BD8;
-    --Secondary-500: #56BFF9;
+    --Success-500: #22C55E;
     --Neutral-100: #E5E7EB;
     --Neutral-300: #9CA3AF;
     --Neutral-700: #374151;
-    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
-// ==========================================
-// 1. MAIN LAYOUT (GEMINI STYLE)
-// ==========================================
-
-#content {
-    padding: 0;
-}
-
-// Container utama memegang kendali penuh tinggi layar
 .chat-layout-container {
     height: 100vh;
     width: 100%;
@@ -323,7 +464,6 @@ const scrollToBottom = () => {
     overflow: hidden;
 }
 
-// Header diam di atas
 .page-header {
     flex-shrink: 0;
     padding: 1rem 2rem;
@@ -351,7 +491,6 @@ const scrollToBottom = () => {
     }
 }
 
-// Wrapper untuk Chat + Input
 .main-content {
     flex: 1;
     display: flex;
@@ -360,9 +499,7 @@ const scrollToBottom = () => {
     overflow: hidden;
 }
 
-// ==========================================
-// 2. CHAT WINDOW (SCROLL AREA)
-// ==========================================
+// --- CHAT WINDOW ---
 .chat-window {
     flex: 1;
     overflow-y: auto;
@@ -373,10 +510,6 @@ const scrollToBottom = () => {
 
     &::-webkit-scrollbar {
         width: 8px;
-    }
-
-    &::-webkit-scrollbar-track {
-        background: transparent;
     }
 
     &::-webkit-scrollbar-thumb {
@@ -397,9 +530,6 @@ const scrollToBottom = () => {
     padding-bottom: 1rem;
 }
 
-// ==========================================
-// 3. MESSAGE BUBBLES
-// ==========================================
 .message-row {
     display: flex;
     gap: 1rem;
@@ -455,7 +585,6 @@ const scrollToBottom = () => {
                 border-radius: 4px;
                 font-size: 0.75rem;
                 font-weight: bold;
-                // Kalau user bubble putih, kalau ai bubble gelap
                 color: inherit;
             }
         }
@@ -486,62 +615,12 @@ const scrollToBottom = () => {
             margin-top: 1rem;
             display: flex;
             gap: 0.5rem;
-
-            .btn-small {
-                padding: 6px 12px;
-                border: 1px solid var(--Neutral-300);
-                background: white;
-                border-radius: 6px;
-                cursor: pointer;
-
-                &.primary {
-                    background: var(--Secondary-900);
-                    color: white;
-                    border-color: var(--Secondary-900);
-                }
-            }
+            align-items: center;
         }
     }
 }
 
-// Loading Animation
-.loading-bubble .typing-dots {
-    display: flex;
-    gap: 4px;
-
-    span {
-        width: 6px;
-        height: 6px;
-        background: var(--Neutral-700);
-        border-radius: 50%;
-        animation: bounce 1.4s infinite ease-in-out both;
-
-        &:nth-child(1) {
-            animation-delay: -0.32s;
-        }
-
-        &:nth-child(2) {
-            animation-delay: -0.16s;
-        }
-    }
-}
-
-@keyframes bounce {
-
-    0%,
-    80%,
-    100% {
-        transform: scale(0);
-    }
-
-    40% {
-        transform: scale(1);
-    }
-}
-
-// ==========================================
-// 4. INPUT AREA (FIXED BOTTOM via Flex)
-// ==========================================
+// --- INPUT AREA ---
 .input-area-wrapper {
     flex-shrink: 0;
     background-color: var(--White);
@@ -581,7 +660,6 @@ const scrollToBottom = () => {
             padding: 10px 12px;
             border: 1px solid var(--Neutral-300);
             border-radius: 8px;
-            font-family: inherit;
             outline: none;
 
             &:focus {
@@ -599,6 +677,152 @@ const scrollToBottom = () => {
     .action-bar {
         display: flex;
         justify-content: flex-end;
+    }
+}
+
+// --- MODAL STYLES ---
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(2px);
+}
+
+.modal-content {
+    background: var(--White);
+    width: 90%;
+    max-width: 600px;
+    max-height: 85vh;
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    animation: slideUp 0.3s ease-out;
+
+    .modal-header {
+        padding: 1.25rem;
+        border-bottom: 1px solid var(--Neutral-100);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        h3 {
+            margin: 0;
+            font-family: 'Ubuntu Sans';
+            color: var(--Primary-900);
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+    }
+
+    .modal-body {
+        padding: 1.5rem;
+        overflow-y: auto;
+
+        .meta-tags {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 1rem;
+
+            .badge {
+                background: var(--Neutral-100);
+                color: var(--Neutral-700);
+                padding: 4px 8px;
+                border-radius: 4px;
+                font-size: 0.8rem;
+                font-weight: bold;
+            }
+        }
+
+        .preview-title {
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+            color: #1F2937;
+        }
+
+        .media-container {
+            margin-bottom: 1.5rem;
+            border-radius: 8px;
+            overflow: hidden;
+
+            img,
+            iframe {
+                width: 100%;
+                display: block;
+            }
+        }
+
+        .text-content {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: var(--Neutral-700);
+            white-space: pre-wrap;
+        }
+    }
+
+    .modal-footer {
+        padding: 1.25rem;
+        border-top: 1px solid var(--Neutral-100);
+        display: flex;
+        justify-content: flex-end;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.loading-bubble .typing-dots {
+    display: flex;
+    gap: 4px;
+
+    span {
+        width: 6px;
+        height: 6px;
+        background: var(--Neutral-700);
+        border-radius: 50%;
+        animation: bounce 1.4s infinite ease-in-out both;
+
+        &:nth-child(1) {
+            animation-delay: -0.32s;
+        }
+
+        &:nth-child(2) {
+            animation-delay: -0.16s;
+        }
+    }
+}
+
+@keyframes bounce {
+
+    0%,
+    80%,
+    100% {
+        transform: scale(0);
+    }
+
+    40% {
+        transform: scale(1);
     }
 }
 </style>
