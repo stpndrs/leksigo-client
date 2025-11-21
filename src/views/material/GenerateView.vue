@@ -258,8 +258,9 @@ const handleSaveMaterial = async (msgIndex) => {
     const msg = messages.value[msgIndex];
 
     const payload = {
+        childrenId: route.params.id,
         level: msg.requestContext.level,
-        method_label: msg.requestContext.method,
+        method: msg.requestContext.method,
         title: msg.content.title,
         description: msg.requestContext.description,
         content_text: msg.content.text,
