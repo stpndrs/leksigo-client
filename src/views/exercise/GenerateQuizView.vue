@@ -1,15 +1,19 @@
 <script setup>
 import ButtonComponent from '@/components/buttons/ButtonComponent.vue';
 import ChevronLeftIcon from '@/components/shape/ChevronLeft.Icon.vue';
+import { useGenerateQuizStore } from '@/stores/GenerateQuizStore';
 import api from '@/utils/api';
+import { triggerToast } from '@/utils/toast';
 import { ref, reactive, computed } from 'vue';
-import { useRoute } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 
 const route = useRoute();
+const router = useRouter()
 const id = route.params.id;
 
 // --- 1. STATE & DATA ---
 const isLoading = ref(false);
+const generateQuizStore = useGenerateQuizStore()
 const generatedQuestions = ref([]);
 const selectedIndices = ref([]);
 
@@ -67,7 +71,7 @@ const handleGenerate = async () => {
         const apiResponse = response.data;
 
         if (apiResponse.success && apiResponse.data?.questions) {
-            generatedQuestions.value = apiResponse.data.questions.filter(d => d.level == form.level).slice(form.quantity);
+            generatedQuestions.value = apiResponse.data.questions.filter(d => d.level == form.level).slice(0, form.quantity);
 
             if (generatedQuestions.value.length === 0) {
                 alert("Tidak ada soal yang berhasil digenerate.");
@@ -98,14 +102,23 @@ const toggleSelectAll = () => {
     }
 };
 
-const handleSaveSelection = () => {
+const handleSaveSelection = async () => {
     if (selectedIndices.value.length === 0) {
         alert("Pilih setidaknya satu soal untuk disimpan.");
         return;
     }
     const selectedData = selectedIndices.value.map(index => generatedQuestions.value[index]);
     console.log("Soal yang dipilih untuk disimpan:", selectedData);
-    alert(`Berhasil menyimpan ${selectedData.length} soal! (Cek Console)`);
+
+    const result = await generateQuizStore.saveGeneratedQuiz(selectedData)
+    console.log(result);
+
+    if (result.success) {
+        triggerToast('Berhasil menyimpan data')
+        router.push({ name: 'exercise.quiz.create', params: id })
+    } else {
+        alert("Gagal menyimpan.");
+    }
 };
 
 const getMethodBadge = (methodId) => {
@@ -161,7 +174,7 @@ const getMethodBadge = (methodId) => {
 
                     <div class="form-group btn-container">
                         <ButtonComponent @click="handleGenerate" :isDisabled="isLoading"
-                            :label="isLoading ? 'Generating...' : 'Generate Soal'" size="full" class="primary"/>
+                            :label="isLoading ? 'Generating...' : 'Generate Soal'" size="full" class="primary" />
                     </div>
                 </div>
             </section>

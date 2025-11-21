@@ -21,6 +21,7 @@ import ToastComponent from '@/components/toast/ToastComponent.vue';
 import ConfirmComponent from '@/components/confirm/ConfirmComponent.vue';
 import { globalToast, triggerToast } from '@/utils/toast';
 import { latestQuizStore } from '@/stores/LatestQuizStore';
+import { useGenerateQuizStore } from '@/stores/GenerateQuizStore';
 // --- End Imports ---
 
 // --- 2. State (Refs & Computed) ---
@@ -32,6 +33,7 @@ const baseUrl = import.meta.env.VITE_APP_API_URL;
 const route = useRoute();
 const router = useRouter();
 const id = route.params.id
+const generateQuizStore = useGenerateQuizStore()
 
 // Modal & Toast State
 const isModalShowed = ref(false); // Bank Soal
@@ -259,6 +261,8 @@ const handleAttemptQuestion = (num) => {
     key.value = '';
 
     const findQuestion = questions.value.find(d => d.index == num);
+    console.log(findQuestion);
+
 
     if (findQuestion) {
         // Jika soal ada di array, muat ke v-model
@@ -334,12 +338,37 @@ const submit = async () => {
         questions: questions.value
     }).then(res => {
         router.push({ name: 'exercise.quiz.list', params: route.params.id });
+        generateQuizStore.resetQuiz()
     }).catch(e => {
         if (e.status === 422) errors.value = e.response.data.errors;
     });
 };
 // END submit
 // --- End Methods ---
+
+
+onMounted(async () => {
+    console.log(generateQuizStore.savedQuiz)
+    const questionsStore = generateQuizStore.savedQuiz.questions
+
+    questionsStore.forEach((item, index) => {
+        console.log(item);
+
+        questions.value.push({
+            question: item.question.value,
+            key: item.key,
+            method: item.method,
+            objectValue: item.method == 5 ? (item.question.value.startsWith('image/') ? 2 : 1) : null, // if color, the object value is 1, if path 2
+            index: index + 1
+        })
+    })
+
+    handleAttemptQuestion(1)
+    numberOfQuestion.value = questionsStore.length
+
+    console.log(questions.value);
+
+})
 
 // END SCRIPT SETUP
 </script>

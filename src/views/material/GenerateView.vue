@@ -2,7 +2,7 @@
 import ButtonComponent from '@/components/buttons/ButtonComponent.vue';
 import ChevronLeftIcon from '@/components/shape/ChevronLeft.Icon.vue';
 import EyeIcon from '@/components/shape/EyeIcon.vue';
-import { useMaterialStore } from '@/stores/MaterialStore';
+import { useMaterialStore } from '@/stores/GenerateMaterialStore';
 import { ref, reactive, nextTick } from 'vue';
 import { useRoute } from 'vue-router';
 
