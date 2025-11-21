@@ -51,6 +51,8 @@ const calculateTotalPoint = () => {
     data.value.quiz.forEach(item => {
         totalQuizPoint.value += parseInt(item.quizPoint) || 0
     });
+
+    totalQuizPoint.value = totalQuizPoint.value / data.value.quiz.length
 }
 
 </script>
