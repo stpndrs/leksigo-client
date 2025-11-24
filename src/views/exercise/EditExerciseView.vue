@@ -12,6 +12,7 @@ import QuestionBankModal from '@/components/modal/QuestionBankModal.vue';
 import ConfirmComponent from '@/components/confirm/ConfirmComponent.vue';
 
 const baseUrl = import.meta.env.VITE_APP_API_URL;
+const isLoading = ref(false)
 
 const route = useRoute();
 const router = useRouter();
@@ -51,6 +52,7 @@ onMounted(async () => {
 
 const submit = async () => {
     errors.value = {}; // Reset errors
+    isLoading.value = true
 
     // Kirim data ke API
     await api.put(`/exercise/${id}`, {
@@ -60,7 +62,9 @@ const submit = async () => {
         router.push({ name: 'exercise.quiz.list', params: route.params.id });
     }).catch(e => {
         if (e.status === 422) errors.value = e.response.data.errors;
-    });
+    }).finally(() => {
+        isLoading.value = true
+    })
 };
 </script>
 
@@ -91,7 +95,8 @@ const submit = async () => {
                     <WysiwygEditorComponent v-model="description" class="textarea" />
                 </div>
 
-                <ButtonComponent label="Simpan" size="full" class="secondary" @click="showConfirmation" />
+                <ButtonComponent :isDisabled="isSaveBtnLoading" :label="isSaveBtnLoading ? 'Loading...' : 'Simpan'"
+                    size="full" class="secondary" @click="showConfirmation" />
             </div>
         </div>
     </div>

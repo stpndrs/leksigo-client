@@ -12,11 +12,14 @@ import CheckboxesComponent from '@/components/fields/CheckboxesComponent.vue';
 
 const route = useRoute()
 const router = useRouter()
+const isLoading = ref(false)
 
 const title = ref('')
+const description = ref('')
 const link = ref('')
 const files = ref([])
-const description = ref('')
+const content = ref('')
+const readedText = ref('')
 const methodOfArray = ref([
     {
         level: 1,
@@ -108,11 +111,11 @@ const handleLevel = (val) => {
     method.value = null
     methodSelected.value = null
     methodSelected.value = methodOfArray.value.filter(d => d.level == val ? d : null)[0].data
-
 }
 
 const submit = async () => {
     errors.value = null
+    isLoading.value = true
 
     const formData = new FormData()
     formData.append('childrenId', route.params.id)
@@ -120,6 +123,8 @@ const submit = async () => {
     if (description.value) formData.append('description', description.value)
     if (level.value) formData.append('level', level.value)
     if (method.value) formData.append('method', method.value)
+    if (content.value) formData.append('content', content.value)
+    if (readedText.value) formData.append('readedText', readedText.value)
     if (link.value) formData.append('link', link.value)
 
     if (files.value && files.value.length > 0) {
@@ -140,6 +145,8 @@ const submit = async () => {
         } else {
             console.error(e)
         }
+    }).finally(() => {
+        isLoading.value = false
     })
 }
 </script>
@@ -174,11 +181,18 @@ const submit = async () => {
                 <input-component label="Judul Materi" :required="true" type="text" placeholder="Judul materi" id="title"
                     class="input" v-model="title" :isInvalid="errors?.title ?? false"
                     :invalidMsg="errors?.title ?? ''" />
+                <div class="input-wrapper">
+                    <label for="editor">Deskripsi</label>
+                    <WysiwygEditorComponent v-model="description" class="textarea" />
+                </div>
                 <input-component label="Tautan Materi Video" type="text" placeholder="Tautan materi video" id="link"
                     class="input" v-model="link" :isInvalid="errors?.link ?? false" :invalidMsg="errors?.link ?? ''" />
+                <input-component label="Materi Suara *Materi akan otomatis terbaca oleh AI" type="text"
+                    placeholder="Masukkan materi yang akan dibaca oleh AI" id="link" class="input" v-model="readedText"
+                    :isInvalid="errors?.readedText ?? false" :invalidMsg="errors?.readedText ?? ''" />
                 <div class="input-wrapper">
                     <label for="editor">Materi Tulis</label>
-                    <WysiwygEditorComponent v-model="description" class="textarea" />
+                    <WysiwygEditorComponent v-model="content" class="textarea" />
                 </div>
                 <div class="input-wrapper">
                     <label for="file">Gambar Media Pembelajaran</label>

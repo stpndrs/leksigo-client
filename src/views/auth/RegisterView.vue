@@ -16,6 +16,7 @@ const email = ref('')
 const phone = ref('')
 const password = ref('')
 const role = ref(null)
+const isLoading = ref(false)
 
 // Alerts
 const showAlert = ref(false);
@@ -35,6 +36,7 @@ function selectRole(params) {
 const errors = ref([])
 async function submit() {
     errors.value = null
+    isLoading.value = true
     await axios.post(`${api}/api/v1/auth/register`, {
         fullName: fullName.value,
         email: email.value,
@@ -48,6 +50,8 @@ async function submit() {
             router.push({ name: 'dashboard' })
         }).catch((e) => {
             if (e.status === 422) errors.value = e.response.data.errors
+        }).finally(() => {
+            isLoading.value = false
         })
 }
 </script>
@@ -89,8 +93,8 @@ async function submit() {
                             <input-component type="password" label="Password" placeholder="● ● ● ● ● ●" id="password"
                                 v-model="password" :isInvalid="errors?.password ?? false"
                                 :invalidMsg="errors?.password ?? ''" />
-                            <button-component label="Buat Akun" type="submit" display="fill" size="full"
-                                @click="submit" />
+                            <button-component :isDisabled="isLoading" :label="isLoading ? 'Loading...' : 'Buat Akun'"
+                                type="submit" display="fill" size="full" @click="submit" />
                             <button-component label="Masuk" type="button" display="border" size="full"
                                 @click="router.push({ name: 'login' })" />
                         </form>

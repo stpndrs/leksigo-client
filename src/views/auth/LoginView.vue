@@ -15,6 +15,7 @@ const router = useRouter()
 const email = ref('')
 const password = ref('')
 const role = ref('')
+const isLoading = ref(false)
 
 // Alerts
 const showAlert = ref(false);
@@ -32,6 +33,7 @@ const errors = ref([])
 const isMultipleRole = ref(false)
 async function submit() {
     errors.value = null
+    isLoading.value = true
     await axios.post(`${api}/api/v1/auth/login`, {
         email: email.value,
         password: password.value,
@@ -53,6 +55,8 @@ async function submit() {
                 email.value = '';
                 password.value = ''
             }
+        }).finally(() => {
+            isLoading.value = false
         })
 }
 </script>
@@ -79,7 +83,8 @@ async function submit() {
                             <input-component type="password" label="Password" placeholder="● ● ● ● ● ●" id="password"
                                 v-model="password" :isInvalid="errors?.password ?? false"
                                 :invalidMsg="errors?.password ?? ''" />
-                            <button-component label="Masuk" type="submit" display="fill" size="full" @click="submit" />
+                            <button-component :isDisabled="isLoading" :label="isLoading ? 'Loading...' : 'Masuk'"
+                                type="submit" display="fill" size="full" @click="submit" />
                             <button-component label="Buat Akun" type="button" display="border" size="full"
                                 @click="router.push({ name: 'register' })" />
                         </form>

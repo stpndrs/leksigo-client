@@ -23,6 +23,7 @@ const name = ref('');
 const description = ref('');
 const level = ref(null);
 const errors = ref({}); // Validasi error (diubah ke object)
+const isLoading = ref(false)
 
 const showConfirmation = () => {
     isConfirmOpen.value = true;
@@ -43,6 +44,7 @@ const handleCancelAction = () => {
 
 const submit = async () => {
     errors.value = {}; // Reset errors
+    isLoading.value = true
 
     // Kirim data ke API
     await api.post(`/exercise`, {
@@ -54,7 +56,9 @@ const submit = async () => {
         router.push({ name: 'childs.detail', params: route.params.id });
     }).catch(e => {
         if (e.status === 422) errors.value = e.response.data.errors;
-    });
+    }).finally(() => {
+        isLoading.value = false
+    })
 };
 </script>
 
@@ -62,7 +66,7 @@ const submit = async () => {
     <div class="container">
         <ConfirmComponent v-if="isConfirmOpen" title="Simpan soal?"
             message="Apakah Anda yakin untuk menyimpan soal latihan?" confirmText="Simpan" cancelText="Batal"
-            @confirm="handleConfirmAction" @cancel="handleCancelAction" />
+            @confirm="handleConfirmAction" @cancel="handleCancelAction" :isBtnLoading="isLoading" />
 
         <QuestionBankModal v-if="isModalShowed" :questions="questionBank" :method="method"
             :methodLabel="methodLabel.label" :level="level" :questionType="objectValue" :insertQuestion="insertQuestion"

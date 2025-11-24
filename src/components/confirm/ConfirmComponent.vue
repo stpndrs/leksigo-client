@@ -14,6 +14,10 @@ const props = defineProps({
     cancelText: {
         type: String,
         default: "Batal"
+    },
+    isBtnLoading: {
+        type: Boolean,
+        default: false
     }
 })
 
@@ -41,8 +45,10 @@ const onCancel = () => {
                     <p class="description">{{ props.message }}</p>
                 </div>
                 <div class="confirm-footer">
-                    <ButtonComponent :label="props.cancelText" class="secondary" display="border" @click="onCancel" />
-                    <ButtonComponent :label="props.confirmText" class="secondary" @click="onConfirm" />
+                    <ButtonComponent :isDisabled="isBtnLoading" :label="isBtnLoading ? 'Loading...' : props.cancelText"
+                        class="secondary" display="border" @click="onCancel" />
+                    <ButtonComponent :isDisabled="isBtnLoading" :label="isBtnLoading ? 'Loading...' : props.confirmText"
+                        class="secondary" @click="onConfirm" />
                 </div>
             </div>
         </div>

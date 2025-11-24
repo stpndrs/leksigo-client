@@ -15,6 +15,7 @@ const isShowModal = ref(false)
 const fullName = ref('')
 const isScreening = ref(null)
 const level = ref()
+const isLoading = ref(false)
 
 function changeScreening() {
     if (!isScreening.value)
@@ -28,6 +29,7 @@ function selectLevel(params) {
 const errors = ref([])
 async function submit() {
     errors.value = null
+    isLoading.value = true
     await api.post(`/childs`, {
         fullName: fullName.value,
         isScreening: isScreening.value,
@@ -36,6 +38,8 @@ async function submit() {
         router.push({ name: 'childs.index' })
     }).catch((e) => {
         if (e.status === 422) errors.value = e.response.data.errors
+    }).finally(() => {
+        isLoading.value = false
     })
 }
 
@@ -76,7 +80,8 @@ const handleModal = () => {
                             </div>
                             <div class="invalid-msg">{{ errors.level }}</div>
                         </div>
-                        <button-component label="Simpan" size="full" @click="submit" />
+                        <button-component :isDisabled="isLoading" :label="isLoading ? 'Loading...' : 'Simpan'"
+                            size="full" @click="submit" />
                     </div>
                 </div>
             </div>

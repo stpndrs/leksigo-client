@@ -28,6 +28,8 @@ import ConfirmComponent from '@/components/confirm/ConfirmComponent.vue';
 
 // Environment
 const baseUrl = import.meta.env.VITE_APP_API_URL;
+const isSaveBtnLoading = ref(false)
+const isLoading = ref(false)
 
 // Router
 const route = useRoute();
@@ -152,46 +154,53 @@ const openQuestion = (num) => {
 
 // START pushQuestion (Simpan Soal Aktif ke Array Memory)
 const pushQuestion = () => {
-    errors.value = {};
+    try {
+        errors.value = {};
+        isSaveBtnLoading.value = true
 
-    // Validasi sederhana
-    if (!question.value && objectValue.value !== 1) {
-        // Jika bukan tebak warna, pertanyaan (teks/gambar) wajib ada
-        errors.value.question = 'Isi pertanyaan/gambar terlebih dahulu';
+        // Validasi sederhana
+        if (!question.value && objectValue.value !== 1) {
+            // Jika bukan tebak warna, pertanyaan (teks/gambar) wajib ada
+            errors.value.question = 'Isi pertanyaan/gambar terlebih dahulu';
+        }
+        if (method.value == 5 && objectValue.value == 1 && !question.value) {
+            // Jika tebak warna
+            errors.value.question = 'Pilih warna terlebih dahulu';
+        }
+        if (!key.value) {
+            errors.value.key = 'Isi kunci jawaban terlebih dahulu';
+        }
+
+        if (Object.keys(errors.value).length > 0) return;
+
+        // Cari apakah soal index ini sudah ada
+        const findQuestion = questions.value.find(d => d.index == questionActive.value);
+
+        const payload = {
+            question: question.value,
+            key: key.value,
+            method: method.value,
+            objectValue: objectValue.value ?? null,
+            index: questionActive.value
+        };
+
+        if (!findQuestion) {
+            // Buat baru
+            questions.value.push(payload);
+        } else {
+            // Update existing
+            findQuestion.question = question.value;
+            findQuestion.key = key.value;
+            findQuestion.method = method.value;
+            findQuestion.objectValue = objectValue.value;
+        }
+        console.log(findQuestion)
+        triggerToast('Berhasil menyimpan soal!', 'success');
+    } catch (e) {
+        triggerToast('Gagal menyimpan data', 'error');
+    } finally {
+        isSaveBtnLoading.value = false
     }
-    if (method.value == 5 && objectValue.value == 1 && !question.value) {
-        // Jika tebak warna
-        errors.value.question = 'Pilih warna terlebih dahulu';
-    }
-    if (!key.value) {
-        errors.value.key = 'Isi kunci jawaban terlebih dahulu';
-    }
-
-    if (Object.keys(errors.value).length > 0) return;
-
-    // Cari apakah soal index ini sudah ada
-    const findQuestion = questions.value.find(d => d.index == questionActive.value);
-
-    const payload = {
-        question: question.value,
-        key: key.value,
-        method: method.value,
-        objectValue: objectValue.value ?? null,
-        index: questionActive.value
-    };
-
-    if (!findQuestion) {
-        // Buat baru
-        questions.value.push(payload);
-    } else {
-        // Update existing
-        findQuestion.question = question.value;
-        findQuestion.key = key.value;
-        findQuestion.method = method.value;
-        findQuestion.objectValue = objectValue.value;
-    }
-    console.log(findQuestion)
-    triggerToast('Berhasil menyimpan soal!', 'success');
 };
 
 // START handleMethod (Pilih Tipe Soal)
@@ -329,6 +338,7 @@ const fileToBase64 = (params) => new Promise((resolve, reject) => {
 // MAIN SUBMIT FUNCTION
 const submit = async () => {
     errors.value = {};
+    isLoading.value = true
 
     // Proses konversi File -> Base64 (hanya jika user upload file baru)
     // Jika user membiarkan gambar lama (string path), biarkan apa adanya
@@ -363,7 +373,9 @@ const submit = async () => {
         } else {
             triggerToast('Gagal menyimpan quiz', 'error');
         }
-    });
+    }).finally(() => {
+        isLoading.value = true
+    })
 };
 
 // --- ON MOUNTED (FETCH DATA) ---
@@ -415,7 +427,7 @@ onMounted(async () => {
 
         <ConfirmComponent v-if="isConfirmOpen" title="Simpan perubahan?"
             message="Apakah Anda yakin untuk menyimpan perubahan soal latihan?" confirmText="Simpan" cancelText="Batal"
-            @confirm="handleConfirmAction" @cancel="handleCancelAction" />
+            @confirm="handleConfirmAction" @cancel="handleCancelAction" :isBtnLoading="isSaveBtnLoading" />
 
         <QuestionBankModal v-if="isModalShowed" :questions="questionBank" :method="method"
             :methodLabel="methodLabel.label" :level="level" :questionType="objectValue" :insertQuestion="insertQuestion"
@@ -492,7 +504,8 @@ onMounted(async () => {
 
                     <div class="input-wrapper" v-if="method == 5 && objectValue == 2">
 
-                        <div class="question-from-bank" v-if="(typeof question == 'string' && question != '' && question.startsWith('image/'))">
+                        <div class="question-from-bank"
+                            v-if="(typeof question == 'string' && question != '' && question.startsWith('image/'))">
                             <p>Gambar saat ini:</p>
                             <img :src="`${baseUrl}/api/v1/${question}`" alt="Gambar Soal"
                                 style="max-width: 200px; border-radius: 8px;">
@@ -510,7 +523,8 @@ onMounted(async () => {
                     <input-component label="Kunci Jawaban" :required="true" type="text" placeholder="Kunci Jawaban"
                         id="key" class="input" v-model="key" :isInvalid="!!errors?.key" :invalidMsg="errors?.key" />
 
-                    <ButtonComponent label="Simpan Soal Ini" size="full" class="secondary" @click="pushQuestion" />
+                    <ButtonComponent :isDisabled="isSaveBtnLoading" :label="isSaveBtnLoading ? 'Loading...' : 'Simpan'"
+                        size="full" class="secondary" @click="pushQuestion" />
                 </div>
 
                 <div class="navigation-container">
@@ -538,7 +552,7 @@ onMounted(async () => {
                         <ButtonComponent label="Ambil dari Bank Soal" class="secondary" size="full" display="border"
                             @click="isModalShowed = true" />
                         <br>
-                        <ButtonComponent label="Selesai & Simpan Quiz" class="primary" size="full"
+                        <ButtonComponent label="Selesai penyimpanan soal" class="primary" size="full"
                             @click="showConfirmation" />
                     </div>
                 </div>

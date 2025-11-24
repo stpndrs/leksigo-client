@@ -38,10 +38,8 @@ const generateQuizStore = useGenerateQuizStore()
 // Modal & Toast State
 const isModalShowed = ref(false); // Bank Soal
 const isConfirmOpen = ref(false); // Konfirmasi Submit
-const confirmMsg = ref(''); // (Tidak terpakai, tapi ada)
-const isShowToast = ref(false);
-const toastMsg = ref('');
-const toastType = ref('success');
+const isSaveBtnLoading = ref(false)
+const isLoading = ref(false)
 
 // Form Step 1: Data Latihan
 const name = ref('');
@@ -156,37 +154,44 @@ const openQuestion = (num) => {
 
 // START pushQuestion (Simpan Soal Aktif ke Array)
 const pushQuestion = () => {
-    errors.value = {}; // Reset errors
-    if (!question.value || !key.value) {
-        if (!question.value) {
-            errors.value.question = 'Isi pertanyaan terlebih dahulu';
+    try {
+        errors.value = {}; // Reset errors
+        isSaveBtnLoading.value = true
+        if (!question.value || !key.value) {
+            if (!question.value) {
+                errors.value.question = 'Isi pertanyaan terlebih dahulu';
+            }
+            if (!key.value) {
+                errors.value.key = 'Isi kunci jawaban terlebih dahulu';
+            }
+            return;
         }
-        if (!key.value) {
-            errors.value.key = 'Isi kunci jawaban terlebih dahulu';
+
+        // Cari apakah soal sudah ada di array
+        const findQuestion = questions.value.find(d => d.index == questionActive.value);
+
+        if (!findQuestion) {
+            // Jika belum ada, push baru
+            questions.value.push({
+                question: question.value,
+                key: key.value,
+                method: method.value,
+                objectValue: objectValue.value ?? null,
+                index: questionActive.value
+            });
+        } else {
+            // Jika sudah ada, update
+            findQuestion.question = question.value;
+            findQuestion.key = key.value;
+            findQuestion.method = method.value;
+            findQuestion.objectValue = objectValue.value;
         }
-        return;
+        triggerToast('Berhasil menyimpan soal!', 'success');
+    } catch (e) {
+        triggerToast('Gagal menyimpan data!', 'error')
+    } finally {
+        isSaveBtnLoading.value = false
     }
-
-    // Cari apakah soal sudah ada di array
-    const findQuestion = questions.value.find(d => d.index == questionActive.value);
-
-    if (!findQuestion) {
-        // Jika belum ada, push baru
-        questions.value.push({
-            question: question.value,
-            key: key.value,
-            method: method.value,
-            objectValue: objectValue.value ?? null,
-            index: questionActive.value
-        });
-    } else {
-        // Jika sudah ada, update
-        findQuestion.question = question.value;
-        findQuestion.key = key.value;
-        findQuestion.method = method.value;
-        findQuestion.objectValue = objectValue.value;
-    }
-    triggerToast('Berhasil menyimpan soal!', 'success');
 };
 // END pushQuestion
 
@@ -307,6 +312,7 @@ const fileToBase64 = (params) => new Promise((resolve, reject) => {
 // START submit (Fungsi Submit Utama ke API)
 const submit = async () => {
     errors.value = {}; // Reset errors
+    isLoading.value = true
 
     // Jika method 5 (Tebak Cepat) & object 2 (Gambar)
     if (method.value == 5 && objectValue.value == 2) {
@@ -341,7 +347,9 @@ const submit = async () => {
         generateQuizStore.resetQuiz()
     }).catch(e => {
         if (e.status === 422) errors.value = e.response.data.errors;
-    });
+    }).finally(() => {
+        isLoading.value = false
+    })
 };
 // END submit
 // --- End Methods ---
@@ -378,7 +386,7 @@ onMounted(async () => {
 
         <ConfirmComponent v-if="isConfirmOpen" title="Simpan soal?"
             message="Apakah Anda yakin untuk menyimpan soal latihan?" confirmText="Simpan" cancelText="Batal"
-            @confirm="handleConfirmAction" @cancel="handleCancelAction" />
+            @confirm="handleConfirmAction" @cancel="handleCancelAction" :isBtnLoading="isLoading" />
 
         <QuestionBankModal v-if="isModalShowed" :questions="questionBank" :method="method"
             :methodLabel="methodLabel.label" :level="level" :questionType="objectValue" :insertQuestion="insertQuestion"
@@ -456,7 +464,8 @@ onMounted(async () => {
                         id="key" class="input" v-model="key" :isInvalid="errors?.key ?? false"
                         :invalidMsg="errors?.key ?? ''" />
 
-                    <ButtonComponent label="Simpan" size="full" class="secondary" @click="pushQuestion" />
+                    <ButtonComponent :isDisabled="isSaveBtnLoading" :label="isSaveBtnLoading ? 'Loading...' : 'Simpan'"
+                        size="full" class="secondary" @click="pushQuestion" />
                 </div>
 
                 <div class="navigation-container">
