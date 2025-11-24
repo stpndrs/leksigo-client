@@ -199,7 +199,7 @@ const submit = async () => {
                     <FileUploadComponent v-model="files" :id="'files'" :infoText="'Upload materi pembelajaran'"
                         class="input" :isMultiple="true" />
                 </div>
-                <ButtonComponent label="Simpan" size="full" @click="submit" />
+                <ButtonComponent :isDisabled="isLoading" :label="isLoading ? 'Loading...' : 'Simpan'" size="full" @click="submit" />
             </div>
         </div>
     </div>

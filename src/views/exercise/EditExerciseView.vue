@@ -95,7 +95,7 @@ const submit = async () => {
                     <WysiwygEditorComponent v-model="description" class="textarea" />
                 </div>
 
-                <ButtonComponent :isDisabled="isSaveBtnLoading" :label="isSaveBtnLoading ? 'Loading...' : 'Simpan'"
+                <ButtonComponent :isDisabled="isLoading" :label="isLoading ? 'Loading...' : 'Simpan'"
                     size="full" class="secondary" @click="showConfirmation" />
             </div>
         </div>
