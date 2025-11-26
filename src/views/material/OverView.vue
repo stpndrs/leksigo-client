@@ -1,5 +1,6 @@
 <script setup>
 import ButtonComponent from '@/components/buttons/ButtonComponent.vue';
+import AudioPlayerComponent from '@/components/fields/AudioPlayerComponent.vue';
 import ChevronLeftIcon from '@/components/shape/ChevronLeft.Icon.vue';
 import EyeIcon from '@/components/shape/EyeIcon.vue';
 import EyeSlashIcon from '@/components/shape/EyeSlashIcon.vue';
@@ -10,58 +11,75 @@ import api from '@/utils/api';
 import { onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
+// --- CONFIG ---
 const baseUrl = import.meta.env.VITE_APP_API_URL
 const route = useRoute()
 const router = useRouter()
 const id = route.params.id
 const materialId = route.params.materialId
-const material = ref([])
+const material = ref(null)
 
+// --- UTILS ---
+const getYoutubeId = (url) => {
+    if (!url || typeof url !== 'string') return null;
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[2].length === 11) ? match[2] : null;
+}
+
+const isYoutubeUrl = (url) => {
+    return url && (url.includes('youtube.com') || url.includes('youtu.be'));
+};
+
+// --- API ---
 onMounted(async () => {
     await getData()
 })
 
 const getData = async () => {
-    await api.get(`materials/${route.params.materialId}`)
-        .then(res => {
-            console.log(res);
-            material.value = res.data.data
-        }).catch(e => {
-            console.log(e);
-        })
+    try {
+        const res = await api.get(`materials/${route.params.materialId}`)
+        material.value = res.data.data
+    } catch (e) {
+        console.error(e);
+    }
 }
 
 const visibility = async () => {
-    await api.post(`materials/${materialId}`)
-        .then(res => {
-            getData()
-        })
-        .catch(e => {
-            console.log(e);
-        })
+    try {
+        await api.post(`materials/${materialId}`)
+        getData()
+    } catch (e) {
+        console.error(e);
+    }
 }
 </script>
 
 <template>
     <div class="container">
+
         <div class="page-header">
             <router-link :to="{ name: 'childs.detail', params: id }">
                 <ChevronLeftIcon />
             </router-link>
             <h1 class="page-title">Detail Materi</h1>
         </div>
+
         <div class="page-body">
-            <div class="material">
+            <div class="material" v-if="material">
+
                 <div class="material-header">
-                    <h3 class="material-title">{{ material.title }}</h3>
                     <div class="btn-group">
                         <ButtonComponent label="Edit Materi" size="small" display="border"
                             @click="router.push({ name: 'material.edit', params: { id, materialId } })"
                             v-if="authStore.user.role == 1 && !workStore.isWorkMode" />
+
                         <ButtonComponent :label="!material.isHidden ? 'Sembunyikan' : 'Tampilkan'"
                             :icon="!material.isHidden ? EyeSlashIcon : EyeIcon" class="secondary" size="small"
-                            display="border" @click="visibility" v-if="authStore.user.role == 1 && !workStore.isWorkMode" />
+                            display="border" @click="visibility"
+                            v-if="authStore.user.role == 1 && !workStore.isWorkMode" />
                     </div>
+
                     <div class="flex">
                         <div class="method-wrapper">
                             <p>Metode Belajar : </p>
@@ -79,13 +97,51 @@ const visibility = async () => {
                             </div>
                         </div>
                     </div>
+
+                    <h3 class="material-title">{{ material.title }}</h3>
+                    <div class="material-description" v-html="material.description"></div>
                 </div>
+
                 <div class="material-body">
-                    <p class="link">Materi Video : <a :href="material.link" target="_break">{{ material.link }}</a></p>
-                    <div class="description" v-html="material.description"></div>
-                    <div class="images">
-                        <img :src="`${baseUrl}/api/v1/${item}`" alt="Gambar Materi "
-                            v-for="(item, index) in material.images" :key="index">
+
+                    <hr class="divider" />
+
+                    <div class="res-main-content">
+                        <div class="content-body" v-html="material.content"></div>
+                    </div>
+
+                    <div class="media-section">
+
+                        <div class="media-item" v-if="material.readedText">
+                            <p class="media-label">Dengarkan Audio:</p>
+                            <AudioPlayerComponent :text="material.readedText" displayStyle="player" :autoplay="false" />
+                        </div>
+
+                        <div class="media-item" v-if="material.images && material.images.length > 0">
+                            <div class="image-grid">
+                                <img v-for="(img, idx) in material.images" :key="idx" :src="`${baseUrl}/api/v1/${img}`"
+                                    alt="Visual Material" />
+                            </div>
+                        </div>
+
+                        <div class="media-item" v-if="material.link">
+                            <div v-if="isYoutubeUrl(material.link)" class="video-wrapper">
+                                <iframe width="100%" height="400"
+                                    :src="`https://www.youtube.com/embed/${getYoutubeId(material.link)}`"
+                                    frameborder="0"
+                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                    allowfullscreen>
+                                </iframe>
+                                <p class="link-caption">Sumber: <a :href="material.link" target="_blank">{{
+                                    material.link }}</a></p>
+                            </div>
+                            <div v-else class="link-wrapper">
+                                <a :href="material.link" target="_blank" class="external-link">
+                                    🔗 Buka Link Materi: {{ material.link }}
+                                </a>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>
@@ -94,67 +150,76 @@ const visibility = async () => {
 </template>
 
 <style lang="scss" scoped>
+// --- VARS (Agar konsisten dengan Chat) ---
+.container {
+    --White: #FFFFFF;
+    --Soft-white: #F9FAFB;
+    --Primary-900: #FF3C8A;
+    --Secondary-900: #008BD8;
+    --Secondary-500: #3ABFF8;
+    --Ternary-500: #FACC15; // Asumsi warna kuning untuk level 2
+    --Neutral-100: #E5E7EB;
+    --Neutral-300: #9CA3AF;
+    --Neutral-500: #6B7280;
+    --Neutral-700: #374151;
+    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+// --- 1. EXISTING HEADER STYLES (DIPERTAHANKAN) ---
+.page-header {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 30px;
+
+    a {
+        color: var(--Neutral-700);
+        display: flex;
+        align-items: center;
+    }
+
+    .page-title {
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--Primary-900);
+        font-family: 'Ubuntu Sans', sans-serif;
+        margin: 0;
+    }
+}
+
 .material {
     .material-header {
         .material-title {
             color: var(--Primary-900);
             font-size: 50px;
+            margin-bottom: 10px;
+        }
+
+        .material-description {
+            color: var(--Neutral-700);
+            font-size: 20px; // Disesuaikan sedikit agar balance
             margin-bottom: 15px;
+            line-height: 1.5;
         }
 
         .btn-group {
             display: flex;
             justify-content: start;
-            flex-wrap: wrap; // <-- Tambahkan wrap
-            gap: 10px; // <-- Tambahkan gap
+            flex-wrap: wrap;
+            gap: 10px;
             align-items: center;
             width: 100%;
             margin-bottom: 30px;
         }
     }
-
-    .material-body {
-        .images {
-            img {
-                width: 100%;
-                max-width: 600px; // <-- Batasi lebar maks gambar
-                display: block; // <-- Tambahan
-                border-radius: 10px; // <-- Tambahan
-                margin-bottom: 10px; // <-- Tambahan
-            }
-        }
-
-        .link,
-        .description {
-            margin-bottom: 10px;
-            font-size: 25px;
-            color: var(--Neutral-700);
-            word-break: break-word; // <-- Agar link tidak overflow
-
-            a {
-                color: var(--Primary-900);
-            }
-        }
-
-        .description {
-
-            // Atur agar style HTML dari v-html terlihat
-            :deep(p) {
-                margin-bottom: 1rem;
-            }
-
-            :deep(ul) {
-                padding-left: 20px;
-            }
-        }
-    }
 }
 
+// Flex Grid untuk Level & Method
 .flex {
     display: grid;
-    grid-template-columns: 1fr auto; // <-- Diubah dari 70% auto
-    gap: 30px; // <-- Tambahkan gap
-    margin-bottom: 30px; // <-- Beri jarak ke body
+    grid-template-columns: 1fr auto;
+    gap: 30px;
+    margin-bottom: 30px;
 
     .method-wrapper {
         p {
@@ -178,14 +243,9 @@ const visibility = async () => {
             margin-bottom: 5px;
             color: var(--Secondary-900);
         }
-    }
 
-    .level-wrapper {
-
-        // Definisi duplikat, tapi kita ikuti struktur Anda
         .level-container {
             display: grid;
-            // Kolom dibuat auto agar pas dengan 1 item
             grid-template-columns: auto;
             gap: 20px;
 
@@ -197,7 +257,7 @@ const visibility = async () => {
                 font-family: 'Ubuntu Sans';
                 border: 2px solid;
                 text-align: center;
-                cursor: default; // <-- Tidak perlu diklik
+                cursor: default;
 
                 &:nth-child(1) {
                     border-color: var(--Secondary-900);
@@ -231,21 +291,133 @@ const visibility = async () => {
             }
         }
     }
-
 }
 
 
-/* --- RESPONSIVE --- */
+// --- 2. NEW CONTENT STYLES (MATCHING CHAT RESULT) ---
 
-/* Target Tablet (dan di bawahnya) */
+.material-body {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    margin-top: 1rem;
+}
+
+.divider {
+    border: none;
+    border-top: 1px solid var(--Neutral-100);
+    margin: 0;
+}
+
+// Highlighted Content Box
+.res-main-content {
+    background-color: var(--Soft-white);
+    border-left: 5px solid var(--Secondary-900);
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+
+    .content-body {
+        font-size: 1.5rem; // Font besar sesuai keinginan sebelumnya
+        font-weight: 500;
+        color: var(--Neutral-700);
+        line-height: 1.8;
+
+        :deep(p) {
+            margin-bottom: 1rem;
+        }
+
+        :deep(b),
+        :deep(strong) {
+            color: var(--Secondary-900);
+        }
+    }
+}
+
+// Media Section
+.media-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+
+    .media-item {
+        .media-label {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--Neutral-500);
+            margin-bottom: 0.5rem;
+        }
+    }
+
+    // Images
+    .image-grid {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+
+        img {
+            max-width: 100%;
+            width: 300px; // Ukuran default gambar
+            border-radius: 12px;
+            border: 1px solid var(--Neutral-100);
+            box-shadow: var(--shadow);
+            object-fit: cover;
+        }
+    }
+
+    // Video
+    .video-wrapper {
+        width: 100%;
+        max-width: 800px;
+
+        iframe {
+            border-radius: 15px;
+            box-shadow: var(--shadow);
+            aspect-ratio: 16 / 9;
+        }
+
+        .link-caption {
+            font-size: 14px;
+            margin-top: 8px;
+            color: var(--Neutral-500);
+            font-style: italic;
+
+            a {
+                color: var(--Primary-900);
+                text-decoration: none;
+            }
+        }
+    }
+
+    // Link
+    .link-wrapper {
+        .external-link {
+            display: inline-block;
+            padding: 12px 16px;
+            background: var(--Neutral-100);
+            color: var(--Secondary-900);
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.2s;
+
+            &:hover {
+                background: var(--Secondary-900);
+                color: var(--White);
+            }
+        }
+    }
+}
+
+/* --- RESPONSIVE --- */
 @media (max-width: 768px) {
     .material .material-header {
         .material-title {
-            font-size: 32px; // Kecilkan font
+            font-size: 32px;
         }
 
         .btn-group {
-            // Buat tombol memenuhi layar
             flex-direction: column;
 
             button {
@@ -255,42 +427,21 @@ const visibility = async () => {
     }
 
     .flex {
-        grid-template-columns: 1fr; // <-- Pecah jadi 1 kolom
+        grid-template-columns: 1fr;
         gap: 25px;
 
         .level-wrapper {
-            justify-self: start; // <-- Ratakan kiri
-            order: -1; // <-- Pindahkan Level ke atas
+            justify-self: start;
+            order: -1;
         }
     }
 
-    .material .material-body {
-
-        .link,
-        .description {
-            font-size: 18px; // Kecilkan font
-        }
-
-        .images img {
-            max-width: 100%; // Penuhi layar
-        }
-    }
-}
-
-/* Target Ponsel Kecil */
-@media (max-width: 576px) {
-    .material .material-header .material-title {
-        font-size: 28px;
+    .res-main-content .content-body {
+        font-size: 1.2rem;
     }
 
-    .flex .level-wrapper .level-container .item {
-        padding: 8px 20px; // Kecilkan padding box
-        font-size: 16px; // Kecilkan font
-    }
-
-    .flex .method-wrapper .method-selected {
-        padding: 8px 15px;
-        font-size: 14px;
+    .media-section .image-grid img {
+        width: 100%;
     }
 }
 </style>

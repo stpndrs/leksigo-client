@@ -50,7 +50,10 @@ export const useMaterialStore = defineStore('material', () => {
             title: input.title,
             description: input.description,
             link: input.videoUrl,
-            // imageUrl
+            content: input.content,
+            readedText: input.readedText,
+            images: input.images,
+            isGenerated: true
         };
 
         return payload;

@@ -1,29 +1,32 @@
 <script setup>
 import ButtonComponent from '@/components/buttons/ButtonComponent.vue';
+import AudioPlayerComponent from '@/components/fields/AudioPlayerComponent.vue';
 import ChevronLeftIcon from '@/components/shape/ChevronLeft.Icon.vue';
 import EyeIcon from '@/components/shape/EyeIcon.vue';
+
 import { useMaterialStore } from '@/stores/GenerateMaterialStore';
+import api from '@/utils/api';
 import { ref, reactive, nextTick } from 'vue';
 import { useRoute } from 'vue-router';
 
+// --- CONFIG ---
+const apiUrl = import.meta.env.VITE_APP_API_URL
 const materialStore = useMaterialStore();
 const route = useRoute();
 const id = route.params.id;
 
-// --- 1. STATE & CONFIG ---
+// --- STATE ---
 const chatContainer = ref(null);
 const isGenerating = ref(false);
 const isPreviewOpen = ref(false);
 const previewContent = ref(null);
 
+// --- DATA MASTER ---
 const levels = ref([1, 2, 3]);
 
-// Data Master Method (Sesuai Request)
-// Level 1-2: Method 1-3
-// Level 3: Method 1-5
 const methodOfArray = ref([
     {
-        level: 1, // Single Character
+        level: 1,
         data: [
             { label: 'Reading (Membaca)', value: 1 },
             { label: 'Writing (Menulis)', value: 2 },
@@ -31,7 +34,7 @@ const methodOfArray = ref([
         ]
     },
     {
-        level: 2, // Word
+        level: 2,
         data: [
             { label: 'Reading (Membaca)', value: 1 },
             { label: 'Writing (Menulis)', value: 2 },
@@ -39,7 +42,7 @@ const methodOfArray = ref([
         ]
     },
     {
-        level: 3, // Sentence
+        level: 3,
         data: [
             { label: 'Reading (Membaca)', value: 1 },
             { label: 'Writing (Menulis)', value: 2 },
@@ -63,137 +66,44 @@ const messages = ref([
         id: 1,
         sender: 'ai',
         type: 'intro',
-        content: 'Halo! Silakan pilih Level (Character/Word/Sentence) dan Metode pembelajaran yang diinginkan.'
+        content: 'Halo! Silakan pilih Level dan Metode, lalu berikan deskripsi untuk generate materi.'
     }
 ]);
 
-// --- 2. DUMMY DATABASE MATERI (SESUAI ATURAN BARU) ---
-const mockMaterialDB = {
-    // FORMAT KEY: "LEVEL-METHOD_ID"
+// --- HANDLERS ---
 
-    // ==========================================
-    // LEVEL 1: SINGLE CHARACTER
-    // ==========================================
-
-    // Method 1: Reading (Produce question text that will be read by the child)
-    "1-1": {
-        title: "Membaca Huruf Vokal",
-        text: "Baca huruf berikut dengan suara lantang:\n\n'A'\n\n'I'\n\n'U'\n\n'E'\n\n'O'",
-        videoUrl: null,
-        imageUrl: "https://via.placeholder.com/600x300?text=Huruf+A"
-    },
-
-    // Method 2: Writing (Produce question text the child must copy)
-    "1-2": {
-        title: "Menulis Huruf Konsonan",
-        text: "Siapkan buku tulis, lalu salin huruf ini:\n\n'B'\n\n'D'\n\n'P'\n\n'Q'",
-        videoUrl: null,
-        imageUrl: "https://via.placeholder.com/600x300?text=Contoh+Tulis+B"
-    },
-
-    // Method 3: Audio (Produce question text that will be converted into audio and be written by the child)
-    "1-3": {
-        title: "Dikte Huruf",
-        text: "Dengarkan suara, lalu tulis huruf yang kamu dengar di buku tulis.",
-        tts_text: "C", // <--- INI ADALAH SCRIPT TEXT-TO-SPEECH
-        videoUrl: null,
-        imageUrl: null
-    },
-
-    // ==========================================
-    // LEVEL 2: WORD
-    // ==========================================
-
-    // Method 1: Reading
-    "2-1": {
-        title: "Membaca Kata Benda",
-        text: "Baca kata berikut ini dengan jelas:\n\n'BOLA'",
-        videoUrl: null,
-        imageUrl: "https://via.placeholder.com/600x300?text=Gambar+BOLA"
-    },
-
-    // Method 2: Writing
-    "2-2": {
-        title: "Menyalin Kata",
-        text: "Salin kata berikut ini dengan rapi:\n\n'RUMAH'",
-        videoUrl: null,
-        imageUrl: "https://via.placeholder.com/600x300?text=Tulisan+RUMAH"
-    },
-
-    // Method 3: Audio
-    "2-3": {
-        title: "Dikte Kata",
-        text: "Dengarkan baik-baik, lalu tulis kata yang diucapkan.",
-        tts_text: "MAKAN", // <--- SCRIPT TTS
-        videoUrl: null,
-        imageUrl: null
-    },
-
-    // ==========================================
-    // LEVEL 3: SENTENCE
-    // ==========================================
-
-    // Method 1: Reading
-    "3-1": {
-        title: "Membaca Kalimat Sederhana",
-        text: "Bacalah kalimat ini:\n\n'Ibu pergi ke pasar membeli sayur.'",
-        videoUrl: null,
-        imageUrl: "https://via.placeholder.com/600x300?text=Ibu+di+Pasar"
-    },
-
-    // Method 2: Writing
-    "3-2": {
-        title: "Menyalin Kalimat",
-        text: "Salin kalimat berikut di bukumu:\n\n'Ayah sedang membaca koran di teras.'",
-        videoUrl: null,
-        imageUrl: "https://via.placeholder.com/600x300?text=Ayah+Membaca"
-    },
-
-    // Method 3: Audio
-    "3-3": {
-        title: "Dikte Kalimat",
-        text: "Simak audio berikut dan tulis kalimat lengkapnya.",
-        tts_text: "Adik bermain bola di lapangan", // <--- SCRIPT TTS
-        videoUrl: null,
-        imageUrl: null
-    },
-
-    // Method 4: Ordering Sentences (Produces random word that will be re-ordered)
-    "3-4": {
-        title: "Menyusun Kalimat Acak",
-        text: "Urutkan kata-kata acak berikut menjadi kalimat yang benar:\n\n[ makan - saya - nasi - goreng ]\n\nKunci Jawaban: 'Saya makan nasi goreng'",
-        videoUrl: null,
-        imageUrl: null
-    },
-
-    // Method 5: Rapid Naming (Produces simple nouns for object or colors)
-    "3-5": {
-        title: "Sebut Cepat (Rapid Naming)",
-        text: "Sebutkan nama benda/warna berikut secepat mungkin:\n\n[ MERAH ] - [ MEJA ] - [ BIRU ] - [ KURSI ]",
-        videoUrl: null,
-        imageUrl: "https://via.placeholder.com/600x300?text=Warna+dan+Benda"
-    }
-};
-
-// --- 3. LOGIC HANDLERS ---
-
+// 1. Handle Level Change
 const handleLevel = () => {
     form.method = '';
     const selectedData = methodOfArray.value.find(d => d.level == form.level);
     methodSelected.value = selectedData ? selectedData.data : [];
 }
 
+// 2. Helper: Check Youtube URL
+const isYoutubeUrl = (url) => {
+    return url && (url.includes('youtube.com') || url.includes('youtu.be'));
+};
+
+// 3. Helper: Scroll Chat
+const scrollToBottom = () => {
+    nextTick(() => {
+        if (chatContainer.value) {
+            chatContainer.value.scrollTo({ top: chatContainer.value.scrollHeight, behavior: 'smooth' });
+        }
+    });
+};
+
+// 4. Generate Material
 const handleGenerate = async () => {
     if (!form.level || !form.method || !form.description) {
         alert("Mohon lengkapi semua form input.");
         return;
     }
 
-    // Cari Label Method & ID
     const selectedMethodObj = methodSelected.value.find(item => item.value === form.method);
-    const methodLabel = selectedMethodObj ? selectedMethodObj.label : 'Unknown';
+    const methodLabel = selectedMethodObj ? selectedMethodObj.label : 'Unknown Method';
 
-    // Snapshot Request
+    // Snapshot request untuk UI user
     const currentRequestSnapshot = {
         level: form.level,
         method: methodLabel,
@@ -201,7 +111,6 @@ const handleGenerate = async () => {
         description: form.description
     };
 
-    // 1. User Message
     messages.value.push({
         id: Date.now(),
         sender: 'user',
@@ -211,60 +120,75 @@ const handleGenerate = async () => {
     scrollToBottom();
     isGenerating.value = true;
 
-    // 2. AI Simulation
-    setTimeout(() => {
-        // Ambil dari Mock DB
-        const key = `${form.level}-${form.method}`;
-
-        // Default fallback jika data tidak ditemukan di mock
-        let defaultText = "Materi belum tersedia.";
-        if (form.level == 1) defaultText = "Huruf: A";
-        if (form.level == 2) defaultText = "Kata: CONTOH";
-        if (form.level == 3) defaultText = "Kalimat: Ini adalah contoh kalimat.";
-
-        const mockData = mockMaterialDB[key] || {
-            title: `Materi ${methodLabel}`,
-            text: defaultText,
-            videoUrl: null,
-            imageUrl: "https://via.placeholder.com/600x300?text=Materi+Generated"
+    try {
+        const payload = {
+            level: parseInt(form.level),
+            method: parseInt(form.method),
+            description: form.description,
         };
 
+        const res = await api.post(`/materials/create/generate`, payload);
+        const jsonResult = res.data;
+
+        if (jsonResult.success && jsonResult.data && jsonResult.data.material) {
+            const mat = jsonResult.data.material;
+
+            messages.value.push({
+                id: Date.now() + 1,
+                sender: 'ai',
+                type: 'result',
+                isSaved: false,
+                savedData: null,
+                requestContext: currentRequestSnapshot,
+                content: {
+                    title: mat.title || `Materi ${methodLabel}`,
+                    description: mat.description,
+                    images: mat.images,
+                    content: mat.content,
+                    videoUrl: mat.videoUrl || mat.link,
+                    readedText: mat.readedText,
+                }
+            });
+        } else {
+            throw new Error(jsonResult.message || "Gagal mendapatkan data material.");
+        }
+    } catch (error) {
+        console.error("Generate Error:", error);
         messages.value.push({
             id: Date.now() + 1,
             sender: 'ai',
-            type: 'result',
-            isSaved: false,
-            savedData: null,
-            requestContext: currentRequestSnapshot,
-            content: {
-                title: mockData.title,
-                videoUrl: mockData.videoUrl,
-                imageUrl: mockData.imageUrl,
-                text: mockData.text
-            }
+            type: 'intro',
+            content: `Maaf, terjadi kesalahan: ${error.message}`
         });
-
+    } finally {
         isGenerating.value = false;
-        form.level = null
-        form.method = null
-        form.description = null
+        form.level = '';
+        form.method = '';
+        form.description = '';
         scrollToBottom();
-    }, 1500);
+    }
 };
 
-// --- SAVE & PREVIEW LOGIC ---
-
+// 5. Save Material
 const handleSaveMaterial = async (msgIndex) => {
     const msg = messages.value[msgIndex];
+
+    // Ambil hanya nama file gambar pertama (String), bukan Array
+    let imageFilename = '';
+    if (msg.content.images && Array.isArray(msg.content.images) && msg.content.images.length > 0) {
+        imageFilename = msg.content.images[0];
+    }
 
     const payload = {
         childrenId: route.params.id,
         level: msg.requestContext.level,
-        method: msg.requestContext.method,
+        method_id: msg.requestContext.methodId,
         title: msg.content.title,
-        description: msg.requestContext.description,
-        content_text: msg.content.text,
-        media_url: msg.content.videoUrl || msg.content.imageUrl
+        description: msg.content.description,
+        content: msg.content.content,
+        videoUrl: msg.content.videoUrl || '',
+        readedText: msg.content.readedText || '',
+        images: imageFilename // String
     };
 
     const result = await materialStore.saveGeneratedMaterial(payload);
@@ -273,14 +197,41 @@ const handleSaveMaterial = async (msgIndex) => {
         messages.value[msgIndex].isSaved = true;
         messages.value[msgIndex].savedData = payload;
     } else {
-        alert("Gagal menyimpan.");
+        alert("Gagal menyimpan materi.");
     }
 };
 
+// 6. Preview & Close
 const handlePreview = (msgIndex) => {
     const msg = messages.value[msgIndex];
+
     if (msg.savedData) {
-        previewContent.value = msg.savedData;
+        // Logic menyusun URL Media untuk Preview
+        let finalMediaUrl = null;
+        let isYoutube = false;
+
+        // Cek Video
+        if (msg.savedData.videoUrl) {
+            finalMediaUrl = msg.savedData.videoUrl;
+            if (typeof finalMediaUrl === 'string' && (finalMediaUrl.includes('youtube') || finalMediaUrl.includes('youtu.be'))) {
+                isYoutube = true;
+            }
+        }
+        // Cek Gambar
+        else if (msg.savedData.images) {
+            finalMediaUrl = `${apiUrl}/api/v1/image/samples/${msg.savedData.images}`;
+        }
+
+        previewContent.value = {
+            level: msg.savedData.level,
+            method_label: msg.requestContext.method,
+            title: msg.savedData.title,
+            content_text: msg.savedData.content,
+            readedText: msg.savedData.readedText,
+            media_url: finalMediaUrl,
+            is_youtube: isYoutube
+        };
+
         isPreviewOpen.value = true;
     }
 };
@@ -288,14 +239,6 @@ const handlePreview = (msgIndex) => {
 const closePreview = () => {
     isPreviewOpen.value = false;
     previewContent.value = null;
-};
-
-const scrollToBottom = () => {
-    nextTick(() => {
-        if (chatContainer.value) {
-            chatContainer.value.scrollTo({ top: chatContainer.value.scrollHeight, behavior: 'smooth' });
-        }
-    });
 };
 </script>
 
@@ -316,15 +259,25 @@ const scrollToBottom = () => {
 
                     <h2 class="preview-title">{{ previewContent.title }}</h2>
 
-                    <div class="media-container">
-                        <iframe v-if="previewContent.media_url && previewContent.media_url.includes('youtube')"
-                            width="100%" height="300" :src="previewContent.media_url" frameborder="0" allowfullscreen>
+                    <div class="media-container" v-if="previewContent.media_url">
+                        <iframe v-if="previewContent.is_youtube" width="100%" height="300"
+                            :src="previewContent.media_url.replace('watch?v=', 'embed/')" frameborder="0"
+                            allowfullscreen>
                         </iframe>
-                        <img v-else-if="previewContent.media_url" :src="previewContent.media_url" alt="Materi Image" />
+                        <div v-else>
+                            <img :src="previewContent.media_url" alt="Materi Visual"
+                                style="width: 100%; object-fit: contain;" />
+                        </div>
+                    </div>
+
+                    <div class="media-container" v-if="previewContent.readedText">
+                        <p style="font-size: 0.8rem; color: #666; margin-bottom: 5px;">Audio Preview:</p>
+                        <AudioPlayerComponent :text="previewContent.readedText" :autoplay="false"
+                            displayStyle="player" />
                     </div>
 
                     <div class="text-content">
-                        <p>{{ previewContent.content_text }}</p>
+                        <div v-html="previewContent.content_text"></div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -332,7 +285,6 @@ const scrollToBottom = () => {
                 </div>
             </div>
         </div>
-
         <header class="page-header">
             <div class="header-content">
                 <router-link :to="{ name: 'childs.detail', params: { id: id } }" class="back-btn">
@@ -367,15 +319,45 @@ const scrollToBottom = () => {
                             </div>
 
                             <div v-else-if="msg.type === 'result'" class="result-content">
-                                <h3>{{ msg.content.title }}</h3>
-                                <p class="desc">{{ msg.content.text }}</p>
 
-                                <div class="media-block" v-if="msg.content.imageUrl">
-                                    <img :src="msg.content.imageUrl" alt="Generated Image" />
+                                <div class="result-header">
+                                    <h4 class="res-title">{{ msg.content.title }}</h4>
+                                    <div class="res-desc" v-html="msg.content.description"></div>
                                 </div>
-                                <div class="media-block video-wrapper" v-if="msg.content.videoUrl">
-                                    <iframe width="100%" height="200" :src="msg.content.videoUrl" frameborder="0"
-                                        allowfullscreen></iframe>
+
+                                <hr class="divider" />
+
+                                <div class="res-main-content">
+                                    <div class="content-body" v-html="msg.content.content"></div>
+                                </div>
+
+                                <div class="media-section">
+                                    <div class="media-item" v-if="msg.content.readedText">
+                                        <p class="media-label">Dengarkan Audio:</p>
+                                        <AudioPlayerComponent :text="msg.content.readedText" :autoplay="false"
+                                            displayStyle="player" />
+                                    </div>
+
+                                    <div class="media-item" v-if="msg.content.images && msg.content.images.length > 0">
+                                        <div class="image-grid">
+                                            <img v-for="(img, idx) in msg.content.images" :key="idx"
+                                                :src="`${apiUrl}/api/v1/image/samples/${img}`" alt="Visual Material" />
+                                        </div>
+                                    </div>
+
+                                    <div class="media-item" v-if="msg.content.videoUrl">
+                                        <div v-if="isYoutubeUrl(msg.content.videoUrl)" class="video-wrapper">
+                                            <iframe width="100%" height="200"
+                                                :src="msg.content.videoUrl.replace('watch?v=', 'embed/')"
+                                                frameborder="0" allowfullscreen>
+                                            </iframe>
+                                        </div>
+                                        <div v-else class="link-wrapper">
+                                            <a :href="msg.content.videoUrl" target="_blank" class="external-link">
+                                                🔗 Buka Video/Link Materi
+                                            </a>
+                                        </div>
+                                    </div>
                                 </div>
 
                                 <div class="actions">
@@ -443,21 +425,21 @@ const scrollToBottom = () => {
 </template>
 
 <style lang="scss" scoped>
-// --- GLOBAL VARS (Local) ---
+// --- GLOBAL VARS ---
 .chat-layout-container {
     --White: #FFFFFF;
     --Soft-white: #F9FAFB;
     --Primary-900: #FF3C8A;
     --Primary-500: #FF70A9;
     --Secondary-900: #008BD8;
+    --Secondary-500: #3ABFF8;
     --Success-500: #22C55E;
     --Neutral-100: #E5E7EB;
     --Neutral-300: #9CA3AF;
+    --Neutral-500: #6B7280;
     --Neutral-700: #374151;
     --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-}
 
-.chat-layout-container {
     height: 100vh;
     width: 100%;
     display: flex;
@@ -465,6 +447,7 @@ const scrollToBottom = () => {
     overflow: hidden;
 }
 
+// --- LAYOUT HEADER & MAIN ---
 .page-header {
     flex-shrink: 0;
     padding: 1rem 2rem;
@@ -500,7 +483,7 @@ const scrollToBottom = () => {
     overflow: hidden;
 }
 
-// --- CHAT WINDOW ---
+// --- CHAT WINDOW AREA ---
 .chat-window {
     flex: 1;
     overflow-y: auto;
@@ -531,6 +514,7 @@ const scrollToBottom = () => {
     padding-bottom: 1rem;
 }
 
+// --- MESSAGE BUBBLES ---
 .message-row {
     display: flex;
     gap: 1rem;
@@ -586,42 +570,119 @@ const scrollToBottom = () => {
                 border-radius: 4px;
                 font-size: 0.75rem;
                 font-weight: bold;
-                color: inherit;
             }
-        }
-
-        h3 {
-            margin-bottom: 0.5rem;
-            color: var(--Primary-900);
-        }
-
-        .desc {
-            margin-bottom: 1rem;
-            white-space: pre-wrap;
-        }
-
-        .media-block {
-            margin-top: 1rem;
-            border-radius: 8px;
-            overflow: hidden;
-
-            img,
-            iframe {
-                width: 100%;
-                display: block;
-            }
-        }
-
-        .actions {
-            margin-top: 1rem;
-            display: flex;
-            gap: 0.5rem;
-            align-items: center;
         }
     }
 }
 
-// --- INPUT AREA ---
+// --- RESULT CONTENT STYLING ---
+.result-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+
+    .result-header {
+        margin-bottom: 0.5rem;
+
+        .res-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--Neutral-700);
+            margin: 0;
+        }
+
+        .res-desc {
+            font-size: 0.85rem;
+            color: var(--Neutral-500);
+            margin-top: 4px;
+        }
+    }
+
+    .divider {
+        border: none;
+        border-top: 1px solid var(--Neutral-100);
+        margin: 0;
+    }
+
+    .res-main-content {
+        background-color: var(--Soft-white);
+        border-left: 4px solid var(--Secondary-900);
+        padding: 1rem;
+        border-radius: 4px;
+
+        .content-body {
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: var(--Neutral-700);
+
+            :deep(p) {
+                margin-bottom: 0.5rem;
+            }
+
+            :deep(b),
+            :deep(strong) {
+                color: var(--Secondary-900);
+            }
+        }
+    }
+
+    .media-section {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+
+        .media-item {
+            .media-label {
+                font-size: 0.8rem;
+                font-weight: 600;
+                color: var(--Neutral-500);
+                margin-bottom: 0.5rem;
+            }
+        }
+
+        .image-grid {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+
+            img {
+                max-width: 100%;
+                border-radius: 8px;
+                border: 1px solid var(--Neutral-100);
+            }
+        }
+
+        .video-wrapper {
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .external-link {
+            display: inline-block;
+            padding: 8px 12px;
+            background: var(--Neutral-100);
+            color: var(--Secondary-900);
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: background 0.2s;
+
+            &:hover {
+                background: var(--Neutral-300);
+            }
+        }
+    }
+
+    .actions {
+        margin-top: 0.5rem;
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+    }
+}
+
+// --- INPUT AREA STYLING ---
 .input-area-wrapper {
     flex-shrink: 0;
     background-color: var(--White);
@@ -681,7 +742,42 @@ const scrollToBottom = () => {
     }
 }
 
-// --- MODAL STYLES ---
+// --- ANIMATIONS ---
+.loading-bubble .typing-dots {
+    display: flex;
+    gap: 4px;
+
+    span {
+        width: 6px;
+        height: 6px;
+        background: var(--Neutral-700);
+        border-radius: 50%;
+        animation: bounce 1.4s infinite ease-in-out both;
+
+        &:nth-child(1) {
+            animation-delay: -0.32s;
+        }
+
+        &:nth-child(2) {
+            animation-delay: -0.16s;
+        }
+    }
+}
+
+@keyframes bounce {
+
+    0%,
+    80%,
+    100% {
+        transform: scale(0);
+    }
+
+    40% {
+        transform: scale(1);
+    }
+}
+
+// --- MODAL STYLES (DITAMBAHKAN KEMBALI) ---
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -790,40 +886,6 @@ const scrollToBottom = () => {
     to {
         transform: translateY(0);
         opacity: 1;
-    }
-}
-
-.loading-bubble .typing-dots {
-    display: flex;
-    gap: 4px;
-
-    span {
-        width: 6px;
-        height: 6px;
-        background: var(--Neutral-700);
-        border-radius: 50%;
-        animation: bounce 1.4s infinite ease-in-out both;
-
-        &:nth-child(1) {
-            animation-delay: -0.32s;
-        }
-
-        &:nth-child(2) {
-            animation-delay: -0.16s;
-        }
-    }
-}
-
-@keyframes bounce {
-
-    0%,
-    80%,
-    100% {
-        transform: scale(0);
-    }
-
-    40% {
-        transform: scale(1);
     }
 }
 </style>
