@@ -188,7 +188,7 @@ const handleSaveMaterial = async (msgIndex) => {
         content: msg.content.content,
         videoUrl: msg.content.videoUrl || '',
         readedText: msg.content.readedText || '',
-        images: imageFilename // String
+        images: msg.content.images
     };
 
     const result = await materialStore.saveGeneratedMaterial(payload);
@@ -219,7 +219,7 @@ const handlePreview = (msgIndex) => {
         }
         // Cek Gambar
         else if (msg.savedData.images) {
-            finalMediaUrl = `${apiUrl}/api/v1/image/samples/${msg.savedData.images}`;
+            finalMediaUrl = `${apiUrl}/api/v1/image/material/${msg.savedData.images}`;
         }
 
         previewContent.value = {
@@ -341,7 +341,7 @@ const closePreview = () => {
                                     <div class="media-item" v-if="msg.content.images && msg.content.images.length > 0">
                                         <div class="image-grid">
                                             <img v-for="(img, idx) in msg.content.images" :key="idx"
-                                                :src="`${apiUrl}/api/v1/image/samples/${img}`" alt="Visual Material" />
+                                                :src="`${apiUrl}/api/v1/image/material/${img}`" alt="Visual Material" />
                                         </div>
                                     </div>
 
