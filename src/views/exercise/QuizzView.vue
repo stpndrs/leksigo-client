@@ -5,22 +5,24 @@ import AudioPlayerComponent from '@/components/fields/AudioPlayerComponent.vue';
 import AudioRecorderComponent from '@/components/fields/AudioRecorderComponent.vue';
 import FileUploadComponent from '@/components/fields/FileUploadComponent.vue';
 import ChevronLeftIcon from '@/components/shape/ChevronLeft.Icon.vue';
-import ToastComponent from '@/components/toast/ToastComponent.vue';
+// import ToastComponent from '@/components/toast/ToastComponent.vue'; // Sudah di-import di triggerToast
 import { formatMethodLabel } from '@/helpers/formatMethodLabel';
 import api from '@/utils/api';
-import { globalToast } from '@/utils/toast';
+// import { globalToast } from '@/utils/toast'; // Global toast tidak digunakan langsung
+import { triggerToast } from '@/utils/toast'; // Asumsi triggerToast ada di sini
 import { onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { triggerToast } from '../../utils/toast';
+// Import komponen CanvasDrawerComponent yang baru
+import CanvasDrawerComponent from '@/components/fields/CanvasDrawerComponent.vue';
 
 const baseUrl = import.meta.env.VITE_APP_API_URL
 const route = useRoute()
 const router = useRouter()
 
-// Modal & Toast State
-const isModalShowed = ref(false); // Bank Soal
-const isConfirmOpen = ref(false); // Konfirmasi Submit
-const confirmMsg = ref(''); // (Tidak terpakai, tapi ada)
+// Modal & Toast State (Beberapa mungkin tidak terpakai, tapi dibiarkan)
+const isModalShowed = ref(false);
+const isConfirmOpen = ref(false);
+const confirmMsg = ref('');
 const isShowToast = ref(false);
 const toastMsg = ref('');
 const toastType = ref('success');
@@ -32,8 +34,13 @@ const questionsData = ref([])
 const questionActive = ref({})
 const questionActiveIndex = ref(0)
 const answers = ref([])
-const file = ref()
+const file = ref(null) // Untuk File object/Audio Blob
 const currentQuestionStartTime = ref(null)
+
+// --- STATE TAMBAHAN UNTUK CANVAS/UPLOAD ---
+const isCanvasMode = ref(true); // Default: Gambar di Canvas
+const canvasBase64 = ref(null); // Menampung output Base64 dari CanvasDrawerComponent
+// --- AKHIR STATE TAMBAHAN ---
 
 onMounted(async () => {
     await api.get(`/exercise/${id}/quiz/${quizId}`)
@@ -49,83 +56,163 @@ onMounted(async () => {
 const initQuiz = async () => {
     questionsData.value = quizData.value.questions
     questionActive.value = questionsData.value[0]
+    // Panggil openQuestion untuk inisiasi state pertama
+    openQuestion(questionActive.value._id, 0);
 }
 
 const openQuestion = (id, index) => {
+    // --- TEMPORARY HOLDER ---
+    let nextQuestion = null;
+    let nextIndex = null;
+
     if (id) {
-        file.value = null
-        questionActive.value = questionsData.value.find(d => d._id == id)
-        questionActiveIndex.value = questionsData.value.findIndex(d => d._id == id)
+        nextQuestion = questionsData.value.find(d => d._id == id)
+        nextIndex = questionsData.value.findIndex(d => d._id == id)
     }
-    if (index != null && index != questionsData.value.length) {
-        file.value = null
-        questionActive.value = questionsData.value[index]
-        questionActiveIndex.value = index
+    if (index != null && index >= 0 && index < questionsData.value.length) {
+        nextQuestion = questionsData.value[index]
+        nextIndex = index
     }
 
-    // cek kondisi kalau sudah ada didalam array dari answers, maka attempt ke jawaban
+    if (!nextQuestion) return; // Lindungi dari indeks yang tidak valid
+
+    // --- RESET STATE ---
+    file.value = null;
+    canvasBase64.value = null;
+    questionActive.value = nextQuestion;
+    questionActiveIndex.value = nextIndex;
+
+    // --- CEK JAWABAN TERSIMPAN & ATUR MODE INPUT ---
     const findAnswer = answers.value.find(d => d.questionId == questionActive.value._id)
-    if (findAnswer) {
-        file.value = findAnswer.answer
+
+    if ([1, 2, 4].includes(questionActive.value.method)) {
+        // Metode memerlukan gambar/tulisan
+
+        if (findAnswer) {
+            const answerData = findAnswer.answer;
+
+            if (typeof answerData === 'string' && answerData.startsWith('data:image')) {
+                // Jawaban tersimpan adalah Base64 (diduga dari Canvas)
+                isCanvasMode.value = true;
+                canvasBase64.value = answerData;
+                file.value = null;
+            } else {
+                // Jawaban tersimpan adalah File Object (diduga dari Upload)
+                isCanvasMode.value = false;
+                file.value = answerData;
+                canvasBase64.value = null;
+            }
+        } else {
+            // Belum ada jawaban, set default ke Canvas mode
+            isCanvasMode.value = true;
+        }
+
+    } else {
+        // Metode Audio (3, 5)
+        isCanvasMode.value = false; // Mode canvas tidak berlaku
+        if (findAnswer) {
+            file.value = findAnswer.answer;
+        }
     }
 }
 
 const saveAnswer = () => {
     try {
+        let currentAnswerValue = null;
+        let currentFileType = 'image/jpeg';
+        let isAnswerValid = false;
+        console.log(file.value);
+        
+
+        if ([1, 2, 4].includes(questionActive?.value?.method)) {
+            // Logika untuk Gambar/Tulisan
+            if (isCanvasMode.value) {
+                // Mode Canvas
+                currentAnswerValue = canvasBase64.value;
+                currentFileType = 'image/png';
+                isAnswerValid = !!currentAnswerValue;
+            } else {
+                // Mode Upload File
+                currentAnswerValue = file.value;
+                currentFileType = 'image/jpeg';
+                isAnswerValid = !!currentAnswerValue;
+            }
+
+        } else if ([3, 5].includes(questionActive?.value?.method)) {
+            // Logika untuk Audio
+            currentAnswerValue = file.value;
+            currentFileType = 'audio/wav';
+            isAnswerValid = !!currentAnswerValue;
+        }
+
+        if (!isAnswerValid) {
+            const modeName = ([1, 2, 4].includes(questionActive?.value?.method) && isCanvasMode.value) ?
+                'Canvas' : ([1, 2, 4].includes(questionActive?.value?.method) && !isCanvasMode.value) ?
+                    'Upload File' : 'Rekaman Suara';
+            triggerToast(`${modeName} masih kosong. Isi jawaban Anda.`, 'warning');
+            return;
+        }
+
         triggerToast('Jawaban berhasil disimpan', 'success');
-        console.log(file.value)
 
         const currentQuestionId = questionActive.value._id;
-
         const timeAnswered = new Date();
         const duration = (timeAnswered - currentQuestionStartTime.value) / 1000;
 
-        let fileType = 'image/jpeg';
-        if ([3, 5].includes(questionActive?.value?.method)) {
-            fileType = 'audio/wav';
-        }
-
         const answerData = {
             questionId: currentQuestionId,
-            fileType: fileType,
-            answer: file.value,
+            fileType: currentFileType,
+            answer: currentAnswerValue, // Ini bisa berupa File Object, Audio Blob, atau Base64 string
             duration: duration,
             timeOpened: currentQuestionStartTime.value,
             timeAnswered: timeAnswered,
         };
 
         const findAnswer = answers.value.find(d => d.questionId == currentQuestionId);
-        // console.log(findAnswer);
 
         if (findAnswer) {
-            findAnswer.answer = file.value;
-            findAnswer.duration = duration;
-            findAnswer.timeAnswered = timeAnswered;
-            // console.log("Jawaban diperbarui:", file.value);
+            Object.assign(findAnswer, answerData); // Perbarui semua data
         } else {
             answers.value.push(answerData);
-            // console.log("Jawaban baru ditambahkan");
         }
     } catch (e) {
+        console.error(e);
         triggerToast('Gagal menyimpan jawaban', 'error')
     }
 }
 
-const fileToBase64 = (params) => new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(params);
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = error => reject(error);
-});
+const fileToBase64 = (params) => {
+    // Jika params sudah berupa string base64, langsung kembalikan
+    if (typeof params === 'string' && params.startsWith('data:')) {
+        return Promise.resolve(params);
+    }
+
+    // Jika params adalah File/Blob, konversi
+    if (params instanceof File || params instanceof Blob) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(params);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = error => reject(error);
+        });
+    }
+
+    // Jika bukan Base64 atau File/Blob, kembalikan null atau error
+    return Promise.resolve(null);
+};
 
 const finishQuiz = async () => {
+    // Pastikan semua File/Blob dikonversi ke Base64 sebelum dikirim
     const formattingPromises = answers.value.map(async (item) => {
-        const base64File = await fileToBase64(item.answer);
+        // Hanya konversi jika `answer` BUKAN Base64 string
+        const base64Answer = await fileToBase64(item.answer);
         return {
             ...item,
-            answer: base64File
+            // Perhatikan: answer di sini menjadi Base64 string
+            answer: base64Answer,
         };
     });
+
     const formattedAnswers = await Promise.all(formattingPromises);
 
     await api.post('/exercise/answer', {
@@ -134,9 +221,9 @@ const finishQuiz = async () => {
         answers: formattedAnswers
     }).then(res => {
         router.push({ name: 'exercise.quiz.summary', params: { id: id, quizId: quizData.value.quizId } })
-        // console.log(res);
     }).catch(e => {
         console.log(e);
+        triggerToast('Gagal menyelesaikan latihan', 'error');
     })
 }
 
@@ -146,16 +233,16 @@ const showConfirmation = () => {
 };
 
 const handleConfirmAction = () => {
-    finishQuiz(); // Panggil fungsi submit utama
-    isConfirmOpen.value = false; // Tutup modal
+    finishQuiz();
+    isConfirmOpen.value = false;
 };
 
 const handleCancelAction = () => {
-    isConfirmOpen.value = false; // Tutup modal
+    isConfirmOpen.value = false;
 };
 // END Confirmation Modal Handlers
 
-watch(() => questionActiveIndex, () => {
+watch(() => questionActiveIndex.value, () => {
     currentQuestionStartTime.value = new Date()
 }, {
     immediate: true
@@ -180,27 +267,20 @@ watch(() => questionActiveIndex, () => {
                 <div class="workspace">
                     <div class="method">{{ formatMethodLabel(questionActive?.method) }}</div>
                     <p class="guide">
-                        <span v-if="[1, 2, 4].includes(questionActive?.method)">Tulislah jawaban di kertas, lalu upload
-                            sebagai foto/gambar.</span>
+                        <span v-if="[1, 2, 4].includes(questionActive?.method)">Jawab dengan menulis di kertas lalu
+                            di-upload, **atau** menggambar di canvas.</span>
                         <span v-if="[3, 5].includes(questionActive?.method)">Rekam suara Anda sebagai jawaban.</span>
                     </p>
                     <div class="workspace-body">
                         <div class="question-display">
-                            <!-- if 1 = tampilkan tag audio -->
                             <AudioPlayerComponent v-if="questionActive?.method == 1"
                                 :text="questionActive?.question?.value" displayStyle="text" />
-                            <!-- if 2 = tampilkan text untuk ditulis ulang -->
-                            <!-- if 3 = tampilkan text dan recorder untuk dibaca -->
-                            <!-- if 4 = mengurutkan kata -->
                             <h2
                                 v-else-if="questionActive?.method == 2 || questionActive?.method == 3 || questionActive?.method == 4">
                                 {{
                                     questionActive?.question.value }}</h2>
-                            <!-- if 5 = menebak cepat -->
-                            <!-- if isHexColor true -->
                             <div class="object-color" v-if="questionActive?.question?.type == 'hex'"
                                 :style="`background-color: ${questionActive?.question?.value}`"></div>
-                            <!-- if isImage true -->
                             <div class="object-image" v-if="questionActive?.question?.type == 'path'">
                                 <img :src="`${baseUrl}/api/v1/${questionActive?.question?.value}`" alt="Pertanyaan">
                             </div>
@@ -208,16 +288,32 @@ watch(() => questionActiveIndex, () => {
 
                         <div class="answer-box">
                             <h3>Jawaban</h3>
-                            <!-- if 1 = tampilkan field upload gambar -->
-                            <FileUploadComponent v-if="[1, 2, 4].includes(questionActive?.method)" v-model="file"
-                                :id="'file'" :infoText="'Upload gambar tulisan'" accept="image/*" />
-                            <!-- else -->
-                            <AudioRecorderComponent v-if="questionActive?.method == 3 || questionActive?.method == 5"
-                                v-model="file" />
-                            <br>
-                            <AudioPlayerComponent
-                                v-if="(questionActive?.method == 3 || questionActive?.method == 5) && file != null"
-                                :text="file" :isFile="true" :autoplay="false" displayStyle="player" />
+
+                            <div v-if="[1, 2, 4].includes(questionActive?.method)" class="input-mode-selector">
+                                <ButtonComponent label="Gambar di Canvas" size="small"
+                                    :class="isCanvasMode ? 'primary' : 'secondary'"
+                                    @click="isCanvasMode = true; file = null" />
+                                <ButtonComponent label="Upload Gambar" size="small"
+                                    :class="!isCanvasMode ? 'primary' : 'secondary'"
+                                    @click="isCanvasMode = false; canvasBase64 = null" />
+                            </div>
+                            <br v-if="[1, 2, 4].includes(questionActive?.method)">
+
+                            <div v-if="[1, 2, 4].includes(questionActive?.method) && isCanvasMode">
+                                <CanvasDrawerComponent v-model:file="canvasBase64" ref="canvasRef" />
+                            </div>
+
+                            <div v-else-if="[1, 2, 4].includes(questionActive?.method) && !isCanvasMode">
+                                <FileUploadComponent v-model="file" :id="'file'" :infoText="'Upload gambar tulisan'"
+                                    accept="image/*" />
+                            </div>
+
+                            <div v-else-if="questionActive?.method == 3 || questionActive?.method == 5">
+                                <AudioRecorderComponent v-model="file" />
+                                <br>
+                                <AudioPlayerComponent v-if="file != null" :text="file" :isFile="true" :autoplay="false"
+                                    displayStyle="player" />
+                            </div>
                         </div>
                     </div>
                     <ButtonComponent label="Simpan Jawaban" @click="saveAnswer" />
@@ -232,8 +328,7 @@ watch(() => questionActiveIndex, () => {
                             <ul class="numbers">
                                 <li :class="['number', { active: questionActive._id == item._id }]"
                                     v-for="(item, index) in questionsData" :key="index"
-                                    @click="openQuestion(item._id, null)">
-                                    {{ index + 1 }}</li>
+                                    @click="openQuestion(item._id, null)">{{ index + 1 }}</li>
                             </ul>
                         </div>
                         <div class="navigation-footer">
@@ -256,25 +351,9 @@ watch(() => questionActiveIndex, () => {
 </template>
 
 <style lang="scss" scoped>
-/* Tambahkan style untuk soal gambar dan warna */
-// Style ini sepertinya tidak terpakai, pindahkan ke .object-image
-.question-image {
-    max-width: 100%;
-    max-height: 40vh;
-    border-radius: 10px;
-}
-
-// Style ini sepertinya tidak terpakai, pindahkan ke .object-color
-.question-color-box {
-    width: 100%;
-    height: 30vh;
-    border-radius: 10px;
-    border: 1px solid #eee;
-}
-
 .grid-container {
     display: grid;
-    grid-template-columns: 3fr 1fr; // <-- Diubah dari 75% auto
+    grid-template-columns: 3fr 1fr;
     gap: 30px;
 
     .method {
@@ -305,7 +384,7 @@ watch(() => questionActiveIndex, () => {
             display: block;
             background-color: white;
             border-radius: 10px;
-            border: 1px solid var(--Neutral-300); // Tambahkan border
+            border: 1px solid var(--Neutral-300);
         }
 
         .object-image {
@@ -314,7 +393,7 @@ watch(() => questionActiveIndex, () => {
             img {
                 width: 100%;
                 border-radius: 10px;
-                display: block; // <-- Tambahan
+                display: block;
             }
         }
 
@@ -337,29 +416,26 @@ watch(() => questionActiveIndex, () => {
             }
         }
 
-        button {
-            // 'bottom: 0' tidak berfungsi tanpa 'position: absolute'
-            // Hapus saja atau tambahkan position: relative di parent
+        // Style untuk Tombol Pilihan Mode Input
+        .input-mode-selector {
+            display: flex;
+            gap: 10px;
         }
     }
 
     .navigation-container {
-        // <-- Tambahkan wrapper ini di style
         display: flex;
         flex-direction: column;
         gap: 30px;
-
-        // Nempel saat scroll di desktop
         position: sticky;
         top: 20px;
-        height: fit-content; // <-- Penting untuk sticky
+        height: fit-content;
     }
 
     .navigation {
         background-color: var(--White);
         padding: 30px;
         border-radius: 10px;
-        // margin-bottom: 30px; // <-- Dihapus, diganti gap di parent
 
         .navigation-header {
             margin-bottom: 10px;
@@ -375,7 +451,7 @@ watch(() => questionActiveIndex, () => {
 
             .numbers {
                 display: grid;
-                grid-template-columns: repeat(5, 1fr); // <-- Default desktop
+                grid-template-columns: repeat(5, 1fr);
                 gap: 5px;
                 margin-bottom: 10px;
 
@@ -388,31 +464,21 @@ watch(() => questionActiveIndex, () => {
                     height: 45px;
                     font-weight: bold;
                     cursor: pointer;
-                    // Pusatkan nomor dengan flex
                     display: flex;
                     align-items: center;
                     justify-content: center;
-                    transition: background-color 0.2s, color 0.2s; // <-- Tambahkan transisi
+                    transition: background-color 0.2s, color 0.2s;
+
+                    &:hover {
+                        background-color: var(--Info-100);
+                    }
 
                     &.active {
                         background-color: var(--Info-200);
                         color: var(--White);
-                        border-color: var(--Info-200); // <-- Samakan border
+                        border-color: var(--Info-200);
                     }
                 }
-
-            }
-
-            .add-number {
-                // Style ini tidak ada di HTML Anda
-                color: var(--Secondary-900);
-                border: 2px dashed var(--Secondary-900);
-                border-radius: 5px;
-                width: 45px;
-                height: 45px;
-                font-size: 30px;
-                cursor: pointer;
-                background-color: unset;
             }
         }
 
@@ -425,12 +491,10 @@ watch(() => questionActiveIndex, () => {
     }
 
     .question-bank {
-        // <-- Ganti nama class dari 'endsession'
         background-color: var(--White);
         padding: 30px;
         border-radius: 10px;
     }
-
 }
 
 /* --- RESPONSIVE --- */
@@ -438,11 +502,11 @@ watch(() => questionActiveIndex, () => {
 /* Target Tablet Besar */
 @media (max-width: 1024px) {
     .grid-container {
-        grid-template-columns: 1fr; // <-- Pecah jadi 1 kolom
+        grid-template-columns: 1fr;
 
         .navigation-container {
-            order: -1; // <-- Pindahkan navigasi ke atas
-            position: relative; // <-- Hapus sticky di mobile
+            order: -1;
+            position: relative;
             top: 0;
         }
     }
@@ -459,16 +523,16 @@ watch(() => questionActiveIndex, () => {
             }
 
             .question-display {
-                font-size: 28px; // Kecilkan font soal
+                font-size: 28px;
             }
 
             .object-color {
-                width: 100%; // Penuhi layar
-                height: 100px; // Kurangi tinggi
+                width: 100%;
+                height: 100px;
             }
 
             .object-image {
-                width: 100%; // Penuhi layar
+                width: 100%;
             }
 
             .answer-box {
@@ -483,10 +547,9 @@ watch(() => questionActiveIndex, () => {
         }
 
         .navigation {
-            padding: 20px; // Kurangi padding
+            padding: 20px;
 
             .navigation-body .numbers {
-                // Gunakan auto-fit agar otomatis mengisi kolom
                 grid-template-columns: repeat(auto-fit, minmax(40px, 1fr));
             }
         }

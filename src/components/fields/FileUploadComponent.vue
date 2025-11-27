@@ -1,10 +1,10 @@
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, watch, onUnmounted } from 'vue';
 
 // --- Props & Emits ---
 const props = defineProps({
     modelValue: {
-        type: [File, Array, null], // <-- DIUBAH: Izinkan Array
+        type: [File, Array, null], // File object atau Array of File objects
         default: null
     },
     infoText: {
@@ -21,7 +21,7 @@ const props = defineProps({
     },
     accept: {
         type: String,
-        default: null
+        default: 'image/*' // Defaultkan ke gambar untuk preview
     }
 });
 const emit = defineEmits(['update:modelValue']);
@@ -31,63 +31,115 @@ const fileMessage = ref('Drag & Drop your files or <span class="file-browse">Bro
 const fileInput = ref(null);
 const isDragging = ref(false);
 
+// --- STATE BARU UNTUK PREVIEW ---
+const imagePreviews = ref([]);
+// ---------------------------------
+
+// --- Cleanup Object URLs ---
+// Penting: Object URLs harus dicabut (revoke) untuk mencegah kebocoran memori.
+const cleanupPreviews = () => {
+    imagePreviews.value.forEach(p => {
+        // Cek jika pratinjau adalah URL yang dibuat, bukan Base64 dari modelValue yang lama (jika ada)
+        if (p.url.startsWith('blob:')) {
+            URL.revokeObjectURL(p.url);
+        }
+    });
+    imagePreviews.value = [];
+};
+
+onUnmounted(() => {
+    cleanupPreviews();
+});
+
+// --- FUNGSI BARU: GENERATE PREVIEWS ---
+const generatePreviews = (files) => {
+    cleanupPreviews(); // Bersihkan pratinjau lama
+
+    if (!files || files.length === 0) return;
+
+    Array.from(files).forEach(file => {
+        // Hanya buat pratinjau untuk file gambar
+        if (file.type.startsWith('image/')) {
+            const url = URL.createObjectURL(file);
+            imagePreviews.value.push({
+                name: file.name,
+                url: url
+            });
+        }
+    });
+};
+
 // --- Logika Inti ---
 
-// Helper function baru untuk menghindari duplikasi kode
 const processFiles = (files) => {
     if (!files || files.length === 0) {
-        // Tidak ada file, reset
         emit('update:modelValue', props.isMultiple ? [] : null);
+        cleanupPreviews();
         return;
     }
 
-    // <-- LOGIKA BARU DI SINI
+    // 1. Generate previews
+    generatePreviews(files);
+
+    // 2. Emit nilai ke parent
     if (props.isMultiple) {
-        // Jika multiple, emit sebuah Array dari FileList
         emit('update:modelValue', Array.from(files));
     } else {
-        // Jika single, emit hanya file pertama
         emit('update:modelValue', files[0]);
     }
 };
 
 const handleFileChange = (event) => {
-    processFiles(event.target.files); // <-- DIUBAH
+    processFiles(event.target.files);
 };
 
 const handleDrop = (event) => {
     isDragging.value = false;
     const files = event.dataTransfer.files;
 
-    // Penting: Masukkan file yang di-drop ke dalam elemen input
     if (fileInput.value) {
+        // Assign file yang di-drop ke input
         fileInput.value.files = files;
     }
 
-    processFiles(files); // <-- DIUBAH
+    processFiles(files);
 };
 
 // --- Reaktivitas & Kontrol dari Induk ---
-// Watcher ini adalah kunci untuk mereset dan menampilkan jawaban yang ada
 watch(() => props.modelValue, (newValue) => {
     const defaultMessage = 'Drag & Drop your files or <span class="file-browse">Browse</span>';
 
-    // <-- LOGIKA WATCHER BARU
-    if (newValue && newValue instanceof File) {
-        // 1. Single file (mode single)
-        fileMessage.value = newValue.name;
-    } else if (Array.isArray(newValue) && newValue.length > 0) {
-        // 2. Multiple files (mode multiple)
-        if (newValue.length === 1) {
-            fileMessage.value = newValue[0].name;
+    // 1. Tentukan files/array of files yang sebenarnya
+    let actualFiles = null;
+    if (newValue instanceof File) {
+        actualFiles = [newValue];
+    } else if (Array.isArray(newValue)) {
+        actualFiles = newValue;
+    }
+
+    // 2. Atur pesan berdasarkan nilai
+    if (actualFiles && actualFiles.length > 0) {
+        cleanupPreviews(); // Hapus object URL lama
+        // Jika file datang dari parent (misalnya, jawaban lama yang sudah tersimpan)
+        // Kita hanya bisa menampilkan nama, bukan pratinjau (karena bukan Object URL/Base64)
+        if (actualFiles.length === 1) {
+            fileMessage.value = actualFiles[0].name || "1 file selected";
         } else {
-            fileMessage.value = `${newValue.length} files selected`;
+            fileMessage.value = `${actualFiles.length} files selected`;
         }
+
+        // Cek jika file adalah File Object dan buatkan preview baru
+        const fileObjects = actualFiles.filter(f => f instanceof File);
+        if (fileObjects.length > 0) {
+            generatePreviews(fileObjects);
+        }
+
     } else {
-        // 3. Reset (null atau array kosong)
+        // Reset
         fileMessage.value = defaultMessage;
+        cleanupPreviews();
         if (fileInput.value) {
-            fileInput.value.value = null;
+            fileInput.value.value = null; // Clear input
         }
     }
 }, { immediate: true });
@@ -107,10 +159,19 @@ const handleDragLeave = () => { isDragging.value = false; };
         <input :id="id" type="file" class="visually-hidden" ref="fileInput" @change="handleFileChange"
             :multiple="props.isMultiple" :accept="props.accept">
         <p class="file-info">{{ infoText }}</p>
+
+        <div v-if="imagePreviews.length > 0" class="file-previews">
+            <h4 class="preview-title">Pratinjau:</h4>
+
+            <div :class="['preview-gallery', { 'is-multiple': imagePreviews.length > 1 }]">
+                <div v-for="preview in imagePreviews" :key="preview.url" class="preview-item">
+                    <img :src="preview.url" :alt="preview.name" />
+                    <span class="preview-filename">{{ preview.name }}</span>
+                </div>
+            </div>
+        </div>
     </div>
 </template>
-
-
 
 <style lang="scss" scoped>
 // Variabel untuk memudahkan perubahan warna
@@ -118,9 +179,9 @@ $border-color: #e0e0e0;
 $border-dashed-color: #c7c7c7;
 $text-color-light: #888;
 $text-color-dark: #555;
-$brand-color: var(--Primary-900, #007bff); // <-- Menggunakan variabel CSS Anda
+$brand-color: var(--Primary-900, #007bff);
 $background-color: #f9f9f9;
-$font-family: 'Ubuntu Sans', sans-serif; // <-- Menyesuaikan font
+$font-family: 'Ubuntu Sans', sans-serif;
 
 .file-upload-wrapper {
     font-family: $font-family;
@@ -139,12 +200,11 @@ $font-family: 'Ubuntu Sans', sans-serif; // <-- Menyesuaikan font
         border-radius: 8px;
         cursor: pointer;
         transition: border-color 0.2s, background-color 0.2s;
-        text-align: center; // <-- Tambahan: pastikan teks di tengah
+        text-align: center;
 
-        // 🎨 GAYA BARU: Saat pengguna menyeret file ke atas area ini
         &.is-dragging {
-            border-color: $brand-color; // Ganti warna border menjadi warna brand
-            background-color: #f0f6ff; // Beri sedikit warna latar
+            border-color: $brand-color;
+            background-color: #f0f6ff;
         }
 
         &:hover {
@@ -153,13 +213,11 @@ $font-family: 'Ubuntu Sans', sans-serif; // <-- Menyesuaikan font
         }
     }
 
-    // Pesan teks di dalam area drop
     .file-msg {
         color: $text-color-light;
         font-size: 16px;
-        line-height: 1.4; // <-- Tambahan: perbaiki spasi baris
+        line-height: 1.4;
 
-        // Ganti cara styling .file-browse agar bisa diakses v-html
         :deep(.file-browse) {
             color: $brand-color;
             font-weight: bold;
@@ -167,7 +225,6 @@ $font-family: 'Ubuntu Sans', sans-serif; // <-- Menyesuaikan font
         }
     }
 
-    // Info tambahan di bawah area drop
     .file-info {
         font-size: 12px;
         color: $text-color-light;
@@ -175,8 +232,6 @@ $font-family: 'Ubuntu Sans', sans-serif; // <-- Menyesuaikan font
         text-align: left;
     }
 
-    // Kelas untuk menyembunyikan input file asli secara visual
-    // tapi tetap bisa diakses oleh keyboard & screen reader (praktik terbaik)
     .visually-hidden {
         position: absolute;
         width: 1px;
@@ -188,23 +243,98 @@ $font-family: 'Ubuntu Sans', sans-serif; // <-- Menyesuaikan font
         white-space: nowrap;
         border: 0;
     }
+
+    // --- STYLE BARU UNTUK PREVIEW ---
+    .file-previews {
+        margin-top: 20px;
+        padding: 15px;
+        border: 1px solid $border-color;
+        border-radius: 8px;
+        background-color: white;
+    }
+
+    .preview-title {
+        font-size: 14px;
+        color: $text-color-dark;
+        margin-bottom: 10px;
+        font-weight: 600;
+        border-bottom: 1px dashed $border-dashed-color;
+        padding-bottom: 5px;
+    }
+
+    .preview-gallery {
+        display: flex;
+        gap: 15px;
+        overflow-x: auto;
+        padding-bottom: 5px;
+        /* ruang untuk scrollbar */
+
+        // Single file mode
+        &:not(.is-multiple) {
+            justify-content: center;
+        }
+    }
+
+    .preview-item {
+        flex-shrink: 0;
+        /* agar item tidak menyusut */
+        width: 100px;
+        /* Ukuran pratinjau thumbnail */
+        text-align: center;
+    }
+
+    .is-multiple .preview-item {
+        width: 80px;
+    }
+
+    .preview-item img {
+        width: 100%;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 4px;
+        border: 1px solid $border-color;
+        margin-bottom: 5px;
+    }
+
+    .is-multiple .preview-item img {
+        height: 60px;
+    }
+
+    .preview-filename {
+        display: block;
+        font-size: 10px;
+        color: $text-color-light;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    // --- AKHIR STYLE BARU ---
 }
 
 /* --- RESPONSIVE --- */
 
-/* Target Ponsel */
 @media (max-width: 576px) {
     .file-upload-wrapper {
         .file-drop-area {
-            padding: 25px 15px; // <-- Kurangi padding
+            padding: 25px 15px;
         }
 
         .file-msg {
-            font-size: 14px; // <-- Kecilkan font
+            font-size: 14px;
         }
 
         .file-info {
-            font-size: 11px; // <-- Kecilkan font
+            font-size: 11px;
+        }
+
+        .preview-item {
+            width: 70px;
+            /* Kecilkan di mobile */
+        }
+
+        .preview-item img {
+            height: 50px;
         }
     }
 }
