@@ -173,7 +173,7 @@ const getMethodBadge = (methodId) => {
                         <label>Metode Utama</label>
                         <div class="select-wrapper">
                             <select v-model="form.method">
-                                <option value="" disabled>Pilih Metode</option>
+                                <option value="">Pilih Metode</option>
                                 <option v-for="m in methodOptions" :key="m.value" :value="m.value">{{ m.label }}
                                 </option>
                             </select>
