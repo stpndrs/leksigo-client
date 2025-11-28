@@ -1,6 +1,7 @@
 <script setup>
 import { ref } from 'vue';
 import AudioPlayerComponent from './AudioPlayerComponent.vue';
+import { triggerToast } from '@/utils/toast';
 
 const emit = defineEmits(['update:modelValue']);
 
@@ -43,7 +44,7 @@ const toggleRecording = async () => {
             isRecording.value = true;
         } catch (err) {
             console.error("Error accessing microphone:", err);
-            alert("Tidak bisa mengakses mikrofon. Pastikan Anda memberikan izin.");
+            triggerToast("Tidak bisa mengakses mikrofon. Pastikan Anda memberikan izin.", 'error');
         }
     }
 };

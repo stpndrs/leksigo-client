@@ -96,7 +96,7 @@ const scrollToBottom = () => {
 // 4. Generate Material
 const handleGenerate = async () => {
     if (!form.level || !form.method || !form.description) {
-        alert("Mohon lengkapi semua form input.");
+        triggerToast("Mohon lengkapi semua form input.");
         return;
     }
 
@@ -197,7 +197,7 @@ const handleSaveMaterial = async (msgIndex) => {
         messages.value[msgIndex].isSaved = true;
         messages.value[msgIndex].savedData = payload;
     } else {
-        alert("Gagal menyimpan materi.");
+        triggerToast("Gagal menyimpan materi.", 'error');
     }
 };
 

@@ -8,6 +8,7 @@ import AudioRecorderComponent from '@/components/fields/AudioRecorderComponent.v
 import AudioPlayerComponent from '@/components/fields/AudioPlayerComponent.vue';
 import ChevronLeftIcon from '@/components/shape/ChevronLeft.Icon.vue';
 import { useRouter } from 'vue-router';
+import { triggerToast } from '@/utils/toast';
 
 const router = useRouter()
 const quizStore = useQuizStore();
@@ -95,11 +96,11 @@ const finishSession = async () => {
         console.log(res);
         router.push({ name: 'exercise.summary' })
 
-        alert('Sesi berhasil diselesaikan!');
+        triggerToast('Sesi berhasil diselesaikan!', 'success');
         // Arahkan ke halaman lain
     } catch (error) {
         console.log(error)
-        alert('Gagal mengirim jawaban.');
+        triggerToast('Gagal mengirim jawaban.', 'error');
     } finally {
         isSubmitting.value = false;
     }
