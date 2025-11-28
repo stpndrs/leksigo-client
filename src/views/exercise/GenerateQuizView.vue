@@ -2,9 +2,10 @@
 import ButtonComponent from '@/components/buttons/ButtonComponent.vue';
 import ChevronLeftIcon from '@/components/shape/ChevronLeft.Icon.vue';
 import { useGenerateQuizStore } from '@/stores/GenerateQuizStore';
+import { latestQuizStore } from '@/stores/LatestQuizStore';
 import api from '@/utils/api';
 import { triggerToast } from '@/utils/toast';
-import { ref, reactive, computed } from 'vue';
+import { ref, reactive, computed, onMounted } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 const apiUrl = import.meta.env.VITE_APP_API_URL
@@ -42,6 +43,12 @@ const form = reactive({
     method: '',
 });
 
+onMounted(() => {
+    form.level = latestQuizStore.getLevel == null ? 1 : latestQuizStore.getLevel == 1 ? 2 : 3
+    
+    handleLevelChange()
+})
+
 // --- 2. LOGIC FORM ---
 const handleLevelChange = () => {
     form.method = '';
@@ -54,7 +61,7 @@ const handleLevelChange = () => {
 // --- 3. LOGIC GENERATE ---
 const handleGenerate = async () => {
     if (!form.quantity || !form.level) {
-        alert("Mohon masukkan Jumlah dan pilih Level terlebih dahulu.");
+        triggerToast("Mohon masukkan Jumlah dan pilih Level terlebih dahulu.", 'info');
         return;
     }
 
@@ -75,7 +82,7 @@ const handleGenerate = async () => {
             generatedQuestions.value = apiResponse.data.questions.filter(d => d.level == form.level).slice(0, form.quantity);
 
             if (generatedQuestions.value.length === 0) {
-                alert("Tidak ada soal yang berhasil digenerate.");
+                triggerToast("Tidak ada soal yang berhasil digenerate.", 'info');
             }
         } else {
             throw new Error(apiResponse.message || "Gagal mendapatkan data soal.");
@@ -83,7 +90,7 @@ const handleGenerate = async () => {
 
     } catch (error) {
         console.error("Error generating questions:", error);
-        alert("Terjadi kesalahan saat menghubungi server. Silakan coba lagi.");
+        triggerToast("Terjadi kesalahan saat menghubungi server. Silakan coba lagi.", 'error');
 
     } finally {
         isLoading.value = false;
@@ -105,7 +112,7 @@ const toggleSelectAll = () => {
 
 const handleSaveSelection = async () => {
     if (selectedIndices.value.length === 0) {
-        alert("Pilih setidaknya satu soal untuk disimpan.");
+        triggerToast("Pilih setidaknya satu soal untuk disimpan.", 'info');
         return;
     }
     const selectedData = selectedIndices.value.map(index => generatedQuestions.value[index]);
@@ -118,7 +125,7 @@ const handleSaveSelection = async () => {
         triggerToast('Berhasil menyimpan data')
         router.push({ name: 'exercise.quiz.create', params: id })
     } else {
-        alert("Gagal menyimpan.");
+        triggerToast("Gagal menyimpan.", 'error');
     }
 };
 
@@ -155,7 +162,7 @@ const getMethodBadge = (methodId) => {
                     <div class="form-group">
                         <label>Level</label>
                         <div class="select-wrapper">
-                            <select v-model="form.level" @change="handleLevelChange">
+                            <select v-model="form.level" @change="handleLevelChange" disabled>
                                 <option value="" disabled>Pilih Level</option>
                                 <option v-for="l in levels" :key="l" :value="l">Level {{ l }}</option>
                             </select>
