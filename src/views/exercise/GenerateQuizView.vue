@@ -73,7 +73,8 @@ const handleGenerate = async () => {
         const response = await api.post('/exercise/generate', {
             quantity: Number(form.quantity) + 10,
             difficulty: form.level,
-            method: form.method
+            method: form.method,
+            exerciseId: id
         });
 
         const apiResponse = response.data;
