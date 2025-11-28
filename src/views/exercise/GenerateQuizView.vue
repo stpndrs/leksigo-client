@@ -7,6 +7,7 @@ import { triggerToast } from '@/utils/toast';
 import { ref, reactive, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
+const apiUrl = import.meta.env.VITE_APP_API_URL
 const route = useRoute();
 const router = useRouter()
 const id = route.params.id;
@@ -212,7 +213,12 @@ const getMethodBadge = (methodId) => {
                         </div>
 
                         <label :for="`q-${index}`" class="card-content">
-                            <h4 class="question-text">{{ item.question.value }}</h4>
+                            <img :src="`${apiUrl}/api/v1/image/exercise/${item.question.value}`" alt="Image"
+                                v-if="item.question.value.endsWith('.png')">
+                            <div :style="{ 'background-color': item.question.value }" class="object-color"
+                                v-else-if="item.question.value.startsWith('#')"></div>
+                            <!-- PREVIEW WARNA DAN FIXING LEVEL KETIKA GENERATE -->
+                            <h4 class="question-text" v-else>{{ item.question.value }}</h4>
                             <div class="card-footer">
                                 <span class="key-label">Kunci Jawaban:</span>
                                 <span class="key-value">{{ item.key }}</span>
@@ -505,6 +511,19 @@ const getMethodBadge = (methodId) => {
     .card-content {
         flex: 1;
         cursor: pointer;
+
+        img {
+            width: 100%;
+        }
+    }
+
+    .object-color {
+        width: 300px;
+        height: 150px;
+        display: block;
+        background-color: white;
+        border-radius: 10px;
+        border: 1px solid var(--Neutral-300);
     }
 
     .card-meta {
