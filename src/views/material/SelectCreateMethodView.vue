@@ -22,12 +22,12 @@ const id = route.params.id
             <div class="grid-container">
                 <div class="item">
                     <img src="../../assets/images/book.svg" alt="Manual">
-                    <ButtonComponent label="Buat dari awal" class="secondary" display="border" size="full"
+                    <ButtonComponent label="Buat dari awal" class="primary" display="border" size="full"
                         @click="router.push({ name: 'material.create', params: id })" />
                 </div>
                 <div class="item">
                     <img src="../../assets/images/ai.svg" alt="Manual">
-                    <ButtonComponent label="Gunakan template AI" class="secondary" size="full"
+                    <ButtonComponent label="Gunakan template AI" class="primary" size="full"
                         @click="router.push({ name: 'material.generate', params: id })" />
                 </div>
             </div>
