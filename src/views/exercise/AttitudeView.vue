@@ -45,7 +45,7 @@ const submit = async () => {
         point: point.value
     }).then(res => {
         console.log(res);
-        router.push({ name: 'exercise.quiz.summary', params: { id: id, quizId: quizId } })
+        router.push({ name: 'exercise.quiz.overview', params: { id: id, quizId: quizId } })
     }).catch(err => {
         console.log(err);
     })
