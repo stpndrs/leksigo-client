@@ -498,7 +498,7 @@ onMounted(async () => {
                         <br>
                         <ButtonComponent :isDisabled="isLoading"
                             :label="isLoading ? 'Loading...' : 'Selesaikan penyimpanan soal'" class="secondary"
-                            size="full" display="border" @click="showConfirmation" />
+                            size="full" @click="showConfirmation" />
                     </div>
                 </div>
             </div>

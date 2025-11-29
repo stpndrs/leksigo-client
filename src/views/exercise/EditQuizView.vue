@@ -552,7 +552,7 @@ onMounted(async () => {
                         <ButtonComponent label="Ambil dari Bank Soal" class="secondary" size="full" display="border"
                             @click="isModalShowed = true" />
                         <br>
-                        <ButtonComponent :isDisabled="isLoading" :label="isLoading ? 'Loading...' : 'Selesaikan penyimpanan soal'" class="primary" size="full"
+                        <ButtonComponent :isDisabled="isLoading" :label="isLoading ? 'Loading...' : 'Selesaikan penyimpanan soal'" class="secondary" size="full"
                             @click="showConfirmation" />
                     </div>
                 </div>
