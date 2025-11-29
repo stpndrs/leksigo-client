@@ -139,7 +139,7 @@ const getMethodBadge = (methodId) => {
     <div class="page-container">
         <header class="page-header">
             <div class="header-content">
-                <router-link :to="{ name: 'childs.detail', params: { id: id } }" class="back-btn">
+                <router-link :to="{ name: 'exercise.quiz.list', params: { id: id } }" class="back-btn">
                     <ChevronLeftIcon />
                 </router-link>
                 <div>
