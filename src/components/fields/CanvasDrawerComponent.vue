@@ -131,6 +131,8 @@ const stopDrawing = () => {
 const clearCanvas = (shouldEmit = true) => {
     if (ctx.value && canvasRef.value) {
         ctx.value.clearRect(0, 0, canvasRef.value.width, canvasRef.value.height);
+        ctx.value.fillStyle = '#FFFFFF';
+        ctx.value.fillRect(0, 0, canvasWidth, canvasHeight);
         localFile.value = '';
         if (shouldEmit) {
             emit('update:file', null);
@@ -194,15 +196,13 @@ defineExpose({
         <div class="controls">
             <ButtonComponent @click="clearCanvas()" label="Ulangi menggambar" display="border" size="small"
                 class="secondary" />
-            <ButtonComponent @click="saveAsBase64()" label="Simpan gambar" size="small"
-                class="secondary" />
+            <ButtonComponent @click="saveAsBase64()" label="Simpan gambar" size="small" class="secondary" />
         </div>
 
         <div v-if="localFile" class="output">
             <h3>Pratinjau Jawaban Canvas:</h3>
 
             <img :src="localFile" alt="Hasil Gambar" />
-            <p style="margin-top: 10px; font-size: 0.9em;">*Gambar siap dikirim ke server dalam format Base64.</p>
         </div>
     </div>
 </template>
