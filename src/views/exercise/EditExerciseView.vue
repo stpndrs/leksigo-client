@@ -70,8 +70,8 @@ const submit = async () => {
 
 <template>
     <div class="container">
-        <ConfirmComponent v-if="isConfirmOpen" title="Simpan soal?"
-            message="Apakah Anda yakin untuk menyimpan soal latihan?" confirmText="Simpan" cancelText="Batal"
+        <ConfirmComponent v-if="isConfirmOpen" title="Simpan latihan?"
+            message="Apakah Anda yakin untuk menyimpan latihan?" confirmText="Simpan" cancelText="Batal"
             @confirm="handleConfirmAction" @cancel="handleCancelAction" />
 
         <QuestionBankModal v-if="isModalShowed" :questions="questionBank" :method="method"
