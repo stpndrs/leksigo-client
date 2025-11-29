@@ -356,25 +356,28 @@ const submit = async () => {
 
 
 onMounted(async () => {
-    console.log(generateQuizStore.savedQuiz)
+    console.log(numberOfQuestion.value)
     const questionsStore = generateQuizStore.savedQuiz.questions
 
-    questionsStore.forEach((item, index) => {
-        console.log(item);
+    if (questionsStore.length > 0) {
+        questionsStore.forEach((item, index) => {
+            console.log(item);
 
-        questions.value.push({
-            question: item.question.value,
-            key: item.key,
-            method: item.method,
-            objectValue: item.method == 5 ? (item.question.value.startsWith('image/') ? 2 : 1) : null, // if color, the object value is 1, if path 2
-            index: index + 1
+            questions.value.push({
+                question: item.question.value,
+                key: item.key,
+                method: item.method,
+                objectValue: item.method == 5 ? (item.question.value.startsWith('image/') ? 2 : 1) : null, // if color, the object value is 1, if path 2
+                index: index + 1
+            })
         })
-    })
 
-    handleAttemptQuestion(1)
-    numberOfQuestion.value = questionsStore.length
+        handleAttemptQuestion(1)
+        numberOfQuestion.value = questionsStore.length
 
-    console.log(questions.value);
+        console.log(questions.value);
+    }
+
 
 })
 
@@ -493,8 +496,9 @@ onMounted(async () => {
                         <ButtonComponent label="Bank Soal" class="secondary" size="full" display="border"
                             @click="isModalShowed = true" />
                         <br>
-                        <ButtonComponent :isDisabled="isLoading" :label="isLoading ? 'Loading...' : 'Selesaikan penyimpanan soal'" class="secondary" size="full"
-                            display="border"  @click="showConfirmation" />
+                        <ButtonComponent :isDisabled="isLoading"
+                            :label="isLoading ? 'Loading...' : 'Selesaikan penyimpanan soal'" class="secondary"
+                            size="full" display="border" @click="showConfirmation" />
                     </div>
                 </div>
             </div>
