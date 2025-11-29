@@ -268,7 +268,7 @@ watch(() => questionActiveIndex.value, () => {
                     <div class="method">{{ formatMethodLabel(questionActive?.method) }}</div>
                     <p class="guide">
                         <span v-if="[1, 2, 4].includes(questionActive?.method)">Jawab dengan menulis di kertas lalu
-                            di-upload, **atau** menggambar di canvas.</span>
+                            di-upload, atau menggambar di canvas.</span>
                         <span v-if="[3, 5].includes(questionActive?.method)">Rekam suara Anda sebagai jawaban.</span>
                     </p>
                     <div class="workspace-body">
