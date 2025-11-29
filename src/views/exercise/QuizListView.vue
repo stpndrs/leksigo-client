@@ -52,7 +52,7 @@ const calculateTotalPoint = () => {
         totalQuizPoint.value += parseInt(item.quizPoint) || 0
     });
 
-    totalQuizPoint.value = Math.round(totalQuizPoint.value / data.value.quiz.length)
+    totalQuizPoint.value = Math.round(totalQuizPoint.value / data.value.quiz.length) || 0
 }
 
 </script>
