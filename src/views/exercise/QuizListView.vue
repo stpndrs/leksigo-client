@@ -83,7 +83,7 @@ const calculateTotalPoint = () => {
                 <!-- View if work mode is on -->
                 <div :class="['item', { disabled: index > 0 ? data?.quiz[index - 1]?.answers?.length == 0 || data?.quiz[index - 1]?.quizPoint < 60 : false }]"
                     v-for="(item, index) in data?.quiz" :key="index"
-                    @click="(index > 0 ? data?.quiz[index - 1]?.answers?.length == 0 || data?.quiz[index - 1]?.quizPoint <= 60 : false) ? null : $router.push({ name: 'exercise.quiz.overview', params: { id: id, quizId: item._id } })"
+                    @click="(index > 0 ? data?.quiz[index - 1]?.answers?.length == 0 || data?.quiz[index - 1]?.quizPoint < 60 : false) ? null : $router.push({ name: 'exercise.quiz.overview', params: { id: id, quizId: item._id } })"
                     v-if="workStore.isWorkMode">
                     <div class="point">{{ item?.quizPoint ?? 0 }}</div>
                     <div class="identity">
@@ -94,7 +94,7 @@ const calculateTotalPoint = () => {
                     <div class="status">
                         <DoneIcon v-if="item.answers.length > 0" />
                         <LockOpenIcon
-                            v-else-if="index > 0 ? data?.quiz[index - 1]?.answers?.length > 0 && data?.quiz[index - 1]?.quizPoint > 60 : true" />
+                            v-else-if="index > 0 ? data?.quiz[index - 1]?.answers?.length > 0 && data?.quiz[index - 1]?.quizPoint >= 60 : true" />
                         <LockIcon v-else />
                     </div>
                 </div>
