@@ -27,6 +27,7 @@ const isShowToast = ref(false);
 const toastMsg = ref('');
 const toastType = ref('success');
 const isLoading = ref(false)
+const isSaveLoading = ref(false)
 
 const id = route.params.id
 const quizId = route.params.quizId
@@ -206,6 +207,7 @@ const fileToBase64 = (params) => {
 };
 
 const finishQuiz = async () => {
+    isSaveLoading.value = true
     // Pastikan semua File/Blob dikonversi ke Base64 sebelum dikirim
     const formattingPromises = answers.value.map(async (item) => {
         // Hanya konversi jika `answer` BUKAN Base64 string
@@ -228,6 +230,8 @@ const finishQuiz = async () => {
     }).catch(e => {
         console.log(e);
         triggerToast('Gagal menyelesaikan latihan', 'error');
+    }).finally(() => {
+        isSaveLoading.value = false
     })
 }
 
@@ -348,8 +352,9 @@ watch(() => questionActiveIndex.value, () => {
                         </div>
                     </div>
                     <div class="question-bank">
-                        <ButtonComponent label="Selesaikan soal" class="secondary" size="full" display="border"
-                            @click="showConfirmation" />
+                        <ButtonComponent :label='isSaveLoading ? "Sedang menyimpan..." : "Selesaikan soal"'
+                            class="secondary" size="full" display="border" @click="showConfirmation"
+                            :isDisabled="isSaveLoading" />
                     </div>
                 </div>
             </div>
