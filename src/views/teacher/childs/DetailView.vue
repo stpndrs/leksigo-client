@@ -37,9 +37,12 @@ onMounted(async () => {
                     d.exercisePoint += parseInt(q.quizPoint) || 0
                 })
 
+                d.exercisePoint = Math.round(d.exercisePoint / d.quiz.length) || 0
+
                 points.value += parseInt(d.exercisePoint)
 
             })
+            points.value = Math.round(points.value / data.value.exercises.length) || 0
 
             // calculate showed material
             if (workStore.isWorkMode || authStore.user.role == 2)
