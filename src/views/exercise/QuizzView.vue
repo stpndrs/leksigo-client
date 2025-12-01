@@ -352,7 +352,7 @@ watch(() => questionActiveIndex.value, () => {
                         </div>
                     </div>
                     <div class="question-bank">
-                        <ButtonComponent :label='isSaveLoading ? "Sedang menyimpan..." : "Selesaikan soal"'
+                        <ButtonComponent :label='isSaveLoading ? "Sedang menyimpan..." : "Selesaikan pengerjaan quiz"'
                             class="secondary" size="full" display="border" @click="showConfirmation"
                             :isDisabled="isSaveLoading" />
                     </div>
