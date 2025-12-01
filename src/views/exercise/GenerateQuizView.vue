@@ -611,45 +611,6 @@ const getMethodBadge = (methodId) => {
     }
 }
 
-// --- Empty & Loading States ---
-.loading-state,
-.empty-state {
-    background: var(--White);
-    border-radius: var(--Radius-md);
-    padding: 4rem 2rem;
-    text-align: center;
-    color: var(--Neutral-700);
-    border: 1px dashed var(--Neutral-200);
-
-    .spinner {
-        width: 48px;
-        height: 48px;
-        border: 5px solid var(--Neutral-100);
-        border-top-color: var(--Primary-900);
-        border-radius: 50%;
-        margin: 0 auto 1.5rem;
-        animation: spin 1s linear infinite;
-    }
-
-    .empty-icon {
-        font-size: 4rem;
-        margin-bottom: 1rem;
-        opacity: 0.8;
-    }
-
-    h3 {
-        font-family: 'Ubuntu Sans';
-        margin-bottom: 0.5rem;
-        color: var(--Neutral-900);
-    }
-}
-
-@keyframes spin {
-    to {
-        transform: rotate(360deg);
-    }
-}
-
 // --- Sticky Bottom Bar ---
 .bottom-action-bar {
     position: fixed;

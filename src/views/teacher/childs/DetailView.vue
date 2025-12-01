@@ -23,6 +23,7 @@ const dataContainer = ref(null)
 const activeSlide = ref(0)
 const isWorkMode = workStore.isWorkMode
 const isShowModal = ref(false)
+const isLoading = ref(false)
 
 onMounted(async () => {
     await api(`/childs/${id}`)
@@ -46,6 +47,8 @@ onMounted(async () => {
 
         }).catch((err) => {
             console.log(err);
+        }).finally(() => {
+            isLoading.value = false
         })
 })
 
@@ -146,8 +149,13 @@ const handleModal = () => {
                                 <h3>Latihan</h3>
                             </div>
                             <div class="card-body">
+                                <div v-if="isLoading" class="loading-state">
+                                    <div class="spinner"></div>
+                                    <p>Sedang mengambil data...</p>
+                                </div>
                                 <div class="item" v-for="(item, index) in data?.exercises" :key="index"
-                                    @click="$router.push({ name: 'exercise.quiz.list', params: { id: item._id } })">
+                                    @click="$router.push({ name: 'exercise.quiz.list', params: { id: item._id } })"
+                                    v-else>
                                     <div class="point">{{ item?.exercisePoint ?? 0 }}</div>
                                     <div class="identity">
                                         <p class="title">{{ item.name }}</p>
@@ -168,8 +176,13 @@ const handleModal = () => {
                                 <h3>Materi</h3>
                             </div>
                             <div class="card-body">
+                                <div v-if="isLoading" class="loading-state">
+                                    <div class="spinner"></div>
+                                    <p>Sedang mengambil data...</p>
+                                </div>
                                 <div class="item" v-for="(item, index) in data?.materials" :key="index"
-                                    @click="router.push({ name: 'material.overview', params: { id: id, materialId: item._id } })">
+                                    @click="router.push({ name: 'material.overview', params: { id: id, materialId: item._id } })"
+                                    v-else>
                                     <p class="title">{{ item.title }}</p>
                                     <div class="category">{{ item.method }}</div>
                                 </div>
@@ -327,6 +340,14 @@ const handleModal = () => {
                 border-radius: 10px;
                 padding: 30px;
 
+                .loading-state {
+                    min-height: 75vh;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    flex-direction: column;
+                }
+
                 .card-header {
                     font-size: 30px;
                     margin-bottom: 20px;
@@ -341,6 +362,10 @@ const handleModal = () => {
             .exercises.card {
                 position: relative;
                 background-color: var(--White);
+
+                .spinner {
+                    border-top-color: var(--Secondary-900);
+                }
 
                 .card-header {
                     color: var(--Secondary-900);
