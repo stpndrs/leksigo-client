@@ -25,6 +25,7 @@ const id = route.params.id
 const quizId = route.params.quizId
 const quizData = ref([])
 const questions = ref([])
+const isLoading = ref(false)
 
 onMounted(async () => {
     getData()
@@ -33,6 +34,7 @@ onMounted(async () => {
 const getData = async () => {
     await api.get(`/exercise/${id}/quiz/${quizId}`)
         .then((res) => {
+            isLoading.value = true
             quizData.value = res.data.data
             questions.value = res.data.data.questions
 
@@ -40,6 +42,8 @@ const getData = async () => {
         })
         .catch((err) => {
             console.log(err);
+        }).finally(() => {
+            isLoading.value = false
         })
 }
 
@@ -71,7 +75,11 @@ const visibility = async () => {
                     :icon="!quizData.isHidden ? EyeSlashIcon : EyeIcon" class="secondary" size="small" display="border"
                     @click="visibility" v-if="!isWorkMode && authStore.user.role == 1" />
             </div>
-            <div class="grid-container">
+            <div v-if="isLoading" class="loading-state">
+                <div class="spinner"></div>
+                <p>Sedang mengambil data...</p>
+            </div>
+            <div class="grid-container" v-else>
                 <div class="answers-container">
                     <div class="item" v-for="(item, index) in questions" :key="index">
                         <div class="score">Soal Nomor : {{ index + 1 }}</div>
@@ -130,6 +138,14 @@ const visibility = async () => {
     height: 30vh;
     border-radius: 10px;
     border: 1px solid #eee;
+}
+
+.loading-state {
+    background-color: unset;
+
+    .spinner {
+        border-top-color: var(--Secondary-900);
+    }
 }
 
 .grid-container {

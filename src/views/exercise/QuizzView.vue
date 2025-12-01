@@ -26,6 +26,7 @@ const confirmMsg = ref('');
 const isShowToast = ref(false);
 const toastMsg = ref('');
 const toastType = ref('success');
+const isLoading = ref(false)
 
 const id = route.params.id
 const quizId = route.params.quizId
@@ -45,11 +46,14 @@ const canvasBase64 = ref(null); // Menampung output Base64 dari CanvasDrawerComp
 onMounted(async () => {
     await api.get(`/exercise/${id}/quiz/${quizId}`)
         .then((res) => {
+            isLoading.value = true
             quizData.value = res.data.data
             initQuiz()
         })
         .catch((err) => {
             console.log(err);
+        }).finally(() => {
+            isLoading.value = false
         })
 })
 
@@ -122,7 +126,7 @@ const saveAnswer = () => {
         let currentFileType = 'image/jpeg';
         let isAnswerValid = false;
         console.log(file.value);
-        
+
 
         if ([1, 2, 4].includes(questionActive?.value?.method)) {
             // Logika untuk Gambar/Tulisan
@@ -262,9 +266,12 @@ watch(() => questionActiveIndex.value, () => {
             <ConfirmComponent v-if="isConfirmOpen" title="Selesaikan Latihan?"
                 message="Apakah Anda Yakin Untuk Menyelesaikan Sesi Latihan?" confirmText="Simpan" cancelText="Batal"
                 @confirm="handleConfirmAction" @cancel="handleCancelAction" />
-
             <div class="grid-container">
-                <div class="workspace">
+                <div v-if="isLoading" class="loading-state" style="background-color: unset;">
+                    <div class="spinner" style="border-top-color: var(--Secondary-900);"></div>
+                    <p>Sedang mengambil data...</p>
+                </div>
+                <div class="workspace" v-else>
                     <div class="method">{{ formatMethodLabel(questionActive?.method) }}</div>
                     <p class="guide">
                         <span v-if="[1, 2, 4].includes(questionActive?.method)">Jawab dengan menulis di kertas lalu

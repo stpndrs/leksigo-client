@@ -17,6 +17,7 @@ const isWorkMode = workStore.isWorkMode
 const id = route.params.id
 const quizId = route.params.quizId
 const data = ref([])
+const isLoading = ref(false)
 
 onMounted(async () => {
     getData()
@@ -25,6 +26,7 @@ onMounted(async () => {
 const getData = async () => {
     await api.get(`/exercise/${id}/quiz/${quizId}`)
         .then((res) => {
+            isLoading.value = true
             data.value = res.data.data
 
             console.log(data.value.answers.length);
@@ -32,6 +34,8 @@ const getData = async () => {
         })
         .catch((err) => {
             console.log(err);
+        }).finally(() => {
+            isLoading.value = false
         })
 }
 </script>
@@ -46,36 +50,42 @@ const getData = async () => {
         </div>
         <div class="page-body">
             <div class="card">
-                <div class="card-header">
-                    <h3>{{ data?.name }}</h3>
-                    <div class="level-container">
-                        <div :class="['item', { active: data?.level == 1 }]">1</div>
-                        <div :class="['item', { active: data?.level == 2 }]">2</div>
-                        <div :class="['item', { active: data?.level == 3 }]">3</div>
-                    </div>
+                <div v-if="isLoading" class="loading-state">
+                    <div class="spinner" style="border-top-color: var(--Secondary-900);"></div>
+                    <p>Sedang mengambil data...</p>
                 </div>
-                <div class="card-body">
-                    <div class="description">
-                        <div v-html="data?.description"></div>
+                <span v-else>
+                    <div class="card-header">
+                        <h3>{{ data?.name }}</h3>
+                        <div class="level-container">
+                            <div :class="['item', { active: data?.level == 1 }]">1</div>
+                            <div :class="['item', { active: data?.level == 2 }]">2</div>
+                            <div :class="['item', { active: data?.level == 3 }]">3</div>
+                        </div>
                     </div>
-                    <div class="data">
-                        <div class="date">Tanggal Ditambahkan : <span>{{ formatDate(data?.date) }}</span></div>
-                        <div class="questionTotal">Jumlah Soal : <span>{{ data?.questions?.length }}</span></div>
-                        <div class="point">Poin Lolos : <span>60</span></div>
+                    <div class="card-body">
+                        <div class="description">
+                            <div v-html="data?.description"></div>
+                        </div>
+                        <div class="data">
+                            <div class="date">Tanggal Ditambahkan : <span>{{ formatDate(data?.date) }}</span></div>
+                            <div class="questionTotal">Jumlah Soal : <span>{{ data?.questions?.length }}</span></div>
+                            <div class="point">Poin Lolos : <span>60</span></div>
+                        </div>
+                        <div class="action">
+                            <ButtonComponent label="Mulai Mengerjakan" class="secondary"
+                                @click="router.push({ name: 'exercise.quiz.work', params: { id: id, quizId: quizId } })"
+                                v-if="authStore?.user?.role == 1" />
+                            <ButtonComponent
+                                :label="authStore?.user?.role == 1 ? 'Review pengerjaan sebelumnya' : 'Review pengerjaan'"
+                                class="primary" display="border"
+                                @click="router.push({ name: 'exercise.quiz.review', params: { id: id, quizId: quizId } })"
+                                v-if="data?.answers?.length > 0" />
+                            <ButtonComponent label="Penilaian Perilaku" class="secondary" display="border"
+                                @click="router.push({ name: 'exercise.attitude', params: { id: id, quizId: quizId } })" />
+                        </div>
                     </div>
-                    <div class="action">
-                        <ButtonComponent label="Mulai Mengerjakan" class="secondary"
-                            @click="router.push({ name: 'exercise.quiz.work', params: { id: id, quizId: quizId } })"
-                            v-if="authStore?.user?.role == 1" />
-                        <ButtonComponent
-                            :label="authStore?.user?.role == 1 ? 'Review pengerjaan sebelumnya' : 'Review pengerjaan'"
-                            class="primary" display="border"
-                            @click="router.push({ name: 'exercise.quiz.review', params: { id: id, quizId: quizId } })"
-                            v-if="data?.answers?.length > 0" />
-                        <ButtonComponent label="Penilaian Perilaku" class="secondary" display="border"
-                            @click="router.push({ name: 'exercise.attitude', params: { id: id, quizId: quizId } })" />
-                    </div>
-                </div>
+                </span>
             </div>
         </div>
     </div>

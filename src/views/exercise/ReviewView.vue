@@ -26,6 +26,7 @@ const confirmMsg = ref(''); // (Tidak terpakai, tapi ada)
 const isShowToast = ref(false);
 const toastMsg = ref('');
 const toastType = ref('success');
+const isLoading = ref(false)
 
 const id = route.params.id
 const quizId = route.params.quizId
@@ -35,6 +36,7 @@ const answers = ref([])
 onMounted(async () => {
     await api.get(`/exercise/${id}/quiz/${quizId}`)
         .then((res) => {
+            isLoading.value = true
             quizData.value = res.data.data
 
             initAnswersData()
@@ -43,6 +45,8 @@ onMounted(async () => {
         })
         .catch((err) => {
             console.log(err);
+        }).finally(() => {
+            isLoading.value = false
         })
 })
 
@@ -96,7 +100,11 @@ const initAnswersData = () => {
         </div>
         <div class="page-body">
 
-            <div class="grid-container">
+            <div v-if="isLoading" class="loading-state" style="background: unset;">
+                <div class="spinner"></div>
+                <p>Sedang mengambil data...</p>
+            </div>
+            <div class="grid-container" v-else>
                 <div class="answers-container">
                     <div class="item" v-for="(item, index) in answers" :key="index">
                         <div class="score">Skor : {{ parseInt(item.similarityPoint) }}/100</div>

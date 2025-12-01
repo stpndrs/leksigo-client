@@ -19,10 +19,12 @@ const data = ref([])
 const id = route.params.id
 const quizId = route.params.quizId
 const correctAnswer = ref(0)
+const isLoading = ref(false)
 
 onMounted(async () => {
     api.get(`/exercise/${id}/quiz/${quizId}`)
         .then((res) => {
+            isLoading.value = true
             data.value = res.data.data
 
             data.value.answers.map(d => {
@@ -31,6 +33,8 @@ onMounted(async () => {
         })
         .catch((err) => {
             console.log(err);
+        }).finally(() => {
+            isLoading.value = false
         })
 })
 </script>
@@ -55,7 +59,11 @@ onMounted(async () => {
                         <div :class="['item', { active: data?.level == 3 }]">3</div>
                     </div>
                 </div>
-                <div class="card-body">
+                <div v-if="isLoading" class="loading-state" style="background: unset;">
+                    <div class="spinner" style="border-top-color: var(--Secondary-900);"></div>
+                    <p>Sedang mengambil data...</p>
+                </div>
+                <div class="card-body" v-else>
                     <div class="description">
                         <div v-html="data?.description"></div>
                     </div>
