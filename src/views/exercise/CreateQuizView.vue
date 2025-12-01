@@ -246,7 +246,8 @@ const insertQuestion = (params) => {
             question: params.question.value, // 'question.value' dari bank soal
             key: params.key,
             method: params.method,
-            index: questionActive.value
+            index: questionActive.value,
+            objectValue: params.question.value.startsWith('#') ? 1 : 2
         });
     } else {
         findQuestion.question = params.question.value;
@@ -494,7 +495,7 @@ onMounted(async () => {
                     </div>
                     <div class="question-bank">
                         <ButtonComponent label="Bank Soal" class="secondary" size="full" display="border"
-                            @click="isModalShowed = true" />
+                            @click="isModalShowed = true" :isDisabled="!method" />
                         <br>
                         <ButtonComponent :isDisabled="isLoading"
                             :label="isLoading ? 'Loading...' : 'Selesaikan penyimpanan soal'" class="secondary"

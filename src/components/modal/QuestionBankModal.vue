@@ -14,14 +14,16 @@ const questionBank = ref([])
 onMounted(async () => {
     await api.get(`/questions?level=${props.level}&method=${props.method}`)
         .then(res => {
+            questionBank.value = []
             questionBank.value = res.data.data
-            if (props.questionType == 1) {
+            if (props.method == 5 && props.questionType == 1) {
                 questionBank.value = res.data.data.filter(d => d.question.type == 'hex')
-            } else if (props.questionType == 2) {
+            } else if (props.method == 5 && props.questionType == 2) {
                 questionBank.value = res.data.data.filter(d => d.question.type == 'path')
             }
 
-            // PERBAIKI QUESTION BANK UNTUK METODE GAMBAR
+            console.log(props.questionType);
+
         }).catch(e => {
             console.log(e);
         })
@@ -43,7 +45,8 @@ watch(() => props => () => {
                 <div class="questions-container">
                     <div class="question-item" v-for="(item, index) in questionBank" :key="index">
                         <div class="question-header">
-                            <img :src="`${baseUrl}/api/v1/${item?.question?.value}`" alt="Pertanyaan" v-if="item?.question?.type == 'path'">
+                            <img :src="`${baseUrl}/api/v1/${item?.question?.value}`" alt="Pertanyaan"
+                                v-if="item?.question?.type == 'path'">
                             <h2 class="question" v-else>{{ item?.question?.value }}</h2>
                             <p class="date">{{ formatDate(item?.createdAt) }}</p>
                         </div>
