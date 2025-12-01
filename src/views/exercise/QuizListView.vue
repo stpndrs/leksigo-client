@@ -20,6 +20,8 @@ const id = route.params.id
 
 const totalQuizPoint = ref(0)
 
+const isLoading = ref(false)
+
 
 onMounted(async () => {
     let params
@@ -33,6 +35,7 @@ onMounted(async () => {
         params: params
     })
         .then((res) => {
+            isLoading.value = true
             data.value = res.data.data
             // get latest quiz, save to session, for validate in form (make a newest level)
             const latestQuiz = data.value.quiz[data.value.quiz.length - 1]
@@ -44,6 +47,8 @@ onMounted(async () => {
             calculateTotalPoint()
         }).catch(err => {
             console.error(err)
+        }).finally(() => {
+            isLoading.value = false
         })
 })
 
@@ -79,7 +84,11 @@ const calculateTotalPoint = () => {
                     :isDisabled="latestQuizStore.getLevel == 3"
                     v-if="!workStore.isWorkMode && authStore?.user?.role == 1" />
             </div>
-            <div class="quiz-container">
+            <div v-if="isLoading" class="loading-state">
+                <div class="spinner"></div>
+                <p>Sedang mengambil data...</p>
+            </div>
+            <div class="quiz-container" v-else>
                 <!-- View if work mode is on -->
                 <div :class="['item', { disabled: index > 0 ? data?.quiz[index - 1]?.answers?.length == 0 || data?.quiz[index - 1]?.quizPoint < 60 : false }]"
                     v-for="(item, index) in data?.quiz" :key="index"
@@ -132,6 +141,13 @@ const calculateTotalPoint = () => {
     p {
         font-size: 35px;
         color: var(--Secondary-900);
+    }
+}
+
+.loading-state {
+    background: unset;
+    .spinner {
+        border-top-color: var(--Secondary-900);
     }
 }
 

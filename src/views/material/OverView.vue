@@ -18,6 +18,7 @@ const router = useRouter()
 const id = route.params.id
 const materialId = route.params.materialId
 const material = ref(null)
+const isLoading = ref(false)
 
 // --- UTILS ---
 const getYoutubeId = (url) => {
@@ -38,10 +39,13 @@ onMounted(async () => {
 
 const getData = async () => {
     try {
+        isLoading.value = true
         const res = await api.get(`materials/${route.params.materialId}`)
         material.value = res.data.data
     } catch (e) {
         console.error(e);
+    } finally {
+        isLoading.value = false
     }
 }
 
@@ -66,8 +70,12 @@ const visibility = async () => {
         </div>
 
         <div class="page-body">
-            <div class="material" v-if="material">
+            <div v-if="isLoading" class="loading-state">
+                <div class="spinner"></div>
+                <p>Sedang mengambil data...</p>
+            </div>
 
+            <div class="material" v-else-if="!isLoading && material">
                 <div class="material-header">
                     <div class="btn-group">
                         <ButtonComponent label="Edit Materi" size="small" display="border"
@@ -185,6 +193,10 @@ const visibility = async () => {
         font-family: 'Ubuntu Sans', sans-serif;
         margin: 0;
     }
+}
+
+.loading-state {
+    background: unset;
 }
 
 .material {
