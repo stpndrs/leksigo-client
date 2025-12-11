@@ -12,7 +12,7 @@ import { useRouter } from 'vue-router';
 
 const api = import.meta.env.VITE_APP_API_URL
 const router = useRouter()
-const email = ref('')
+const username = ref('')
 const password = ref('')
 const role = ref('')
 const isLoading = ref(false)
@@ -35,7 +35,7 @@ async function submit() {
     errors.value = null
     isLoading.value = true
     await axios.post(`${api}/api/v1/auth/login`, {
-        email: email.value,
+        username: username.value,
         password: password.value,
     })
         .then((res) => {
@@ -52,7 +52,7 @@ async function submit() {
                 showAlert.value = true;
                 alertTitle.value = 'Gagal melakukan login';
                 alertMsg.value = e.response.data.message;
-                email.value = '';
+                username.value = '';
                 password.value = ''
             }
         }).finally(() => {
@@ -77,9 +77,9 @@ async function submit() {
                     <div class="item forms">
                         <form @submit.prevent="submit">
                             <img :src="teacher_parent" alt="Login">
-                            <input-component type="email" label="Email" placeholder="Contoh: example@mail.com"
-                                id="email" v-model="email" :isInvalid="errors?.email ?? false"
-                                :invalidMsg="errors?.email ?? ''" />
+                            <input-component type="username" label="Username/Email" placeholder="Contoh: example@mail.com"
+                                id="username" v-model="username" :isInvalid="errors?.username ?? false"
+                                :invalidMsg="errors?.username ?? ''" />
                             <input-component type="password" label="Password" placeholder="● ● ● ● ● ●" id="password"
                                 v-model="password" :isInvalid="errors?.password ?? false"
                                 :invalidMsg="errors?.password ?? ''" />
