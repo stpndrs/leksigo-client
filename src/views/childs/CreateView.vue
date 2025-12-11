@@ -6,6 +6,6 @@ import TeacherCreateView from '../teacher/childs/CreateView.vue';
 </script>
 
 <template>
-    <TeacherCreateView v-if="authStore.user.role == 1" />
+    <TeachezrCreateView v-if="authStore.user.role == 1" />
     <ParentCreateView v-if="authStore.user.role == 2" />
 </template>
