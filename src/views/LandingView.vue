@@ -66,6 +66,84 @@ const toggleFaq = (index) => {
 const toggleMobileMenu = () => {
 	isMobileMenuOpen.value = !isMobileMenuOpen.value;
 };
+
+useHead({
+	// 1. Judul Halaman (Muncul di Tab Browser & Google)
+	title: 'LeksiGo - Aplikasi Manajemen SLB & Marketplace Vokasi',
+
+	// 2. Meta Tags Standar
+	meta: [
+		{
+			name: 'description',
+			content: 'LeksiGo adalah ekosistem digital terpadu untuk Sekolah Luar Biasa (SLB). Kelola manajemen sekolah, pembelajaran adaptif AI, dan jual karya vokasi siswa dalam satu aplikasi.'
+		},
+		{
+			name: 'keywords',
+			content: 'Aplikasi SLB, Manajemen Sekolah Luar Biasa, Pendidikan Inklusi, Marketplace Vokasi ABK, Media Pembelajaran Adaptif, Sistem Informasi Sekolah'
+		},
+		{
+			name: 'author',
+			content: 'Tim LeksiGo'
+		},
+		{
+			name: 'robots',
+			content: 'index, follow' // Izinkan Google meng-index halaman ini
+		},
+
+		// 3. Open Graph (Agar tampilan cantik saat di-share di WA/Facebook/LinkedIn)
+		{
+			property: 'og:title',
+			content: 'LeksiGo - Solusi Digital Sekolah Luar Biasa'
+		},
+		{
+			property: 'og:description',
+			content: 'Bantu sekolah lebih berdaya dengan manajemen terintegrasi dan marketplace vokasi khusus siswa disabilitas.'
+		},
+		{
+			property: 'og:image',
+			content: 'https://leksigo.com/assets/images/thumbnail.png' // Ganti dengan URL gambar asli nanti
+		},
+		{
+			property: 'og:url',
+			content: 'https://leksigo.com'
+		},
+		{
+			property: 'og:type',
+			content: 'website'
+		},
+
+		// 4. Twitter Card (Agar cantik di Twitter/X)
+		{
+			name: 'twitter:card',
+			content: 'summary_large_image'
+		},
+		{
+			name: 'twitter:title',
+			content: 'LeksiGo - Ekosistem SLB Terpadu'
+		},
+		{
+			name: 'twitter:description',
+			content: 'Platform manajemen & vokasi untuk Sekolah Luar Biasa.'
+		},
+		{
+			name: 'twitter:image',
+			content: 'https://leksigo.com/assets/images/thumbnail.png'
+		}
+	],
+
+	// 5. Link Canonical (Mencegah duplikasi konten di mata Google)
+	link: [
+		{
+			rel: 'canonical',
+			href: 'https://leksigo.com'
+		},
+		{
+			rel: 'icon',
+			href: '/icon.ico', // Pastikan punya favicon
+			type: 'image/x-icon'
+		}
+	]
+})
 </script>
 
 <template>

@@ -7,9 +7,11 @@ import { authStore } from './stores/AuthStore'
 import { createPinia } from 'pinia'
 
 const app = createApp(App)
-app.use(createPinia()) // Gunakan Pinia
+const head = createHead()
 
+app.use(createPinia()) // Gunakan Pinia
 app.use(router)
+app.use(head)
 authStore.loadToken()
 
 app.mount('#app')
