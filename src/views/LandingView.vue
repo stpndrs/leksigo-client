@@ -4,6 +4,7 @@ import EnvelopeIcon from '@/components/shape/EnvelopeIcon.vue';
 import InstagramIcon from '@/components/shape/InstagramIcon.vue';
 import KanbanIcon from '@/components/shape/KanbanIcon.vue';
 import ShopiIcon from '@/components/shape/ShopiIcon.vue';
+import { useHead } from '@vueuse/head';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 
