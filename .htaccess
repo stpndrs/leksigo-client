@@ -1,0 +1,18 @@
+<VirtualHost *:80>
+    ServerName leksigo.com
+    DocumentRoot /var/www/leksigo-frontend/dist
+
+    <Directory /var/www/leksigo-frontend/dist>
+        Options Indexes FollowSymLinks
+        AllowOverride All
+        Require all granted
+
+        # Logika Vue Router History Mode
+        RewriteEngine On
+        RewriteBase /
+        RewriteRule ^index\.html$ - [L]
+        RewriteCond %{REQUEST_FILENAME} !-f
+        RewriteCond %{REQUEST_FILENAME} !-d
+        RewriteRule . /index.html [L]
+    </Directory>
+</VirtualHost>
