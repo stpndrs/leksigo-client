@@ -26,8 +26,3 @@ EXPOSE 80
 
 # Nyalakan Nginx
 CMD ["nginx", "-g", "daemon off;"]
-
-
-FROM httpd:alpine
-COPY ./dist /usr/local/apache2/htdocs/
-# Pastikan .htaccess juga ikut tercopy jika tidak ada di dalam folder dist
