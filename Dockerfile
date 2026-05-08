@@ -20,6 +20,7 @@ FROM nginx:alpine AS production-stage
 
 # Copy hasil build dari Tahap 1 (folder /dist) ke dalam Nginx
 COPY --from=build-stage /app/dist /usr/share/nginx/html
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 # Buka port 80 (port standar Nginx)
 EXPOSE 80
