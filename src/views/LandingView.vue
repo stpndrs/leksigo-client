@@ -25,11 +25,11 @@ const features = ref([
 		desc: "Digitalisasi administrasi & pantauan terapi (PPI).",
 		icon: "chart"
 	},
-	{
-		title: "Wadah Jualan Vokasi",
-		desc: "Marketplace karya otentik siswa SLB.",
-		icon: "store"
-	}
+	// {
+	// 	title: "Wadah Jualan Vokasi",
+	// 	desc: "Marketplace karya otentik siswa SLB.",
+	// 	icon: "store"
+	// }
 ]);
 
 // Data FAQ
@@ -53,6 +53,76 @@ const faqs = ref([
 		question: "Bagaimana cara berlangganan?",
 		answer: "Kami menyediakan model berlangganan (SaaS) untuk sekolah. Hubungi kami untuk demo gratis.",
 		isOpen: false
+	}
+]);
+
+// Data Pricing
+// Data Pricing disesuaikan eksak dengan gambar mockup baru
+const pricings = ref([
+	{
+		name: "FREE TRIAL",
+		subPrice: "Gratis",
+		exactPrice: "Gratis",
+		period: "Selamanya",
+		icon: "gift",
+		colorClass: "card-blue",
+		features: [
+			"Kelola 1 anak",
+			"1 Latihan",
+			"1 Materi",
+			"Lihat penilaian & progress belajar",
+			"Tambah latihan & materi"
+		]
+	},
+	{
+		name: "STARTER",
+		subPrice: "Rp70 Ribuan / Bulan",
+		exactPrice: "Rp72.000",
+		period: "/ bulan",
+		icon: "sprout",
+		colorClass: "card-green",
+		features: [
+			"Kelola 5 anak",
+			"2 Latihan",
+			"2 Materi",
+			"Generate latihan (1)",
+			"Lihat penilaian & progress belajar",
+			"Tambah latihan & materi"
+		]
+	},
+	{
+		name: "MEDIUM",
+		subPrice: "Rp140 Ribuan / Bulan",
+		exactPrice: "Rp144.000",
+		period: "/ bulan",
+		icon: "star",
+		colorClass: "card-orange",
+		features: [
+			"Kelola 5 anak",
+			"10 Latihan",
+			"15 Materi",
+			"Generate latihan (10)",
+			"Generate materi (10)",
+			"Lihat penilaian & progress belajar",
+			"Tambah latihan & materi"
+		]
+	},
+	{
+		name: "PREMIUM",
+		subPrice: "Rp500 Ribuan / Bulan",
+		exactPrice: "Rp504.000",
+		period: "/ bulan",
+		icon: "crown",
+		colorClass: "card-purple",
+		features: [
+			"Kelola anak unlimited",
+			"Latihan unlimited",
+			"Materi unlimited",
+			"Generate latihan unlimited",
+			"Generate materi unlimited",
+			"Lihat penilaian & progress belajar",
+			"Tambah latihan & materi"
+		]
 	}
 ]);
 
@@ -161,7 +231,7 @@ useHead({
 					<div class="nav-links desktop-only">
 						<a href="#" class="active">Beranda</a>
 						<a href="#about">Tentang</a>
-						<a href="#contact">Hubungi Kami</a>
+						<a href="https://instagram.com/edu.leksigo">Hubungi Kami</a>
 					</div>
 
 					<button class="btn btn-primary desktop-only" @click="router.push({ name: 'login' })">Login</button>
@@ -241,6 +311,82 @@ useHead({
 			</div>
 		</section>
 
+		<section class="pricing" id="pricing">
+			<div class="section-header">
+				<h1 class="text-pink">Pilihan Paket</h1>
+				<h2>Investasi Terbaik untuk Efisiensi Sekolah</h2>
+			</div>
+
+			<div class="pricing-grid">
+				<div v-for="(plan, index) in pricings" :key="index" class="pricing-card" :class="plan.colorClass">
+
+					<div class="card-header">
+						<h3>{{ plan.name }}</h3>
+						<p class="sub-price">{{ plan.subPrice }}</p>
+
+						<div class="illustration-wrapper">
+							<div class="icon-circle">
+								<svg v-if="plan.icon === 'gift'" width="28" height="28" viewBox="0 0 24 24" fill="none"
+									stroke="currentColor" stroke-width="2" stroke-linecap="round"
+									stroke-linejoin="round">
+									<polyline points="20 12 20 22 4 22 4 12"></polyline>
+									<rect x="2" y="7" width="20" height="5"></rect>
+									<line x1="12" y1="22" x2="12" y2="7"></line>
+									<path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"></path>
+									<path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"></path>
+								</svg>
+
+								<svg v-if="plan.icon === 'sprout'" width="28" height="28" viewBox="0 0 24 24"
+									fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+									stroke-linejoin="round">
+									<path d="M7 20h10"></path>
+									<path d="M12 20v-8"></path>
+									<path d="M12 12a5 5 0 0 1 5-5h3"></path>
+									<path d="M12 14a5 5 0 0 0-5-5H4"></path>
+								</svg>
+
+								<svg v-if="plan.icon === 'star'" width="28" height="28" viewBox="0 0 24 24" fill="none"
+									stroke="currentColor" stroke-width="2" stroke-linecap="round"
+									stroke-linejoin="round">
+									<polygon
+										points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+									</polygon>
+								</svg>
+
+								<svg v-if="plan.icon === 'crown'" width="28" height="28" viewBox="0 0 24 24" fill="none"
+									stroke="currentColor" stroke-width="2" stroke-linecap="round"
+									stroke-linejoin="round">
+									<path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"></path>
+								</svg>
+							</div>
+						</div>
+					</div>
+
+					<ul class="plan-features">
+						<li v-for="(feat, fIndex) in plan.features" :key="fIndex">
+							<div class="check-wrapper">
+								<svg class="check-icon" width="12" height="12" viewBox="0 0 24 24" fill="none"
+									stroke="currentColor" stroke-width="3" stroke-linecap="round"
+									stroke-linejoin="round">
+									<polyline points="20 6 9 17 4 12"></polyline>
+								</svg>
+							</div>
+							<span>{{ feat }}</span>
+						</li>
+					</ul>
+
+					<div class="card-footer">
+						<div class="price-btn">
+							<span class="main-amount">{{ plan.exactPrice }}</span>
+							<span class="sub-period" v-if="plan.period !== 'Selamanya'">{{ plan.period }}</span>
+							<span class="sub-period text-dim" v-else>{{ plan.period }}</span>
+						</div>
+					</div>
+
+				</div>
+			</div>
+		</section>
+
 		<section class="faq">
 			<div class="faq-container">
 				<div class="faq-header">
@@ -283,10 +429,10 @@ useHead({
 						dan kemandirian ekonomi bagi penyandang disabilitas.
 					</p>
 					<div class="brand-socials">
-						<a href="#">
+						<a href="https://www.instagram.com/edu.leksigo">
 							<InstagramIcon />
 						</a>
-						<a href="#">
+						<a href="mailto:contact@leksigo.com">
 							<EnvelopeIcon />
 						</a>
 					</div>
@@ -314,6 +460,7 @@ useHead({
 
 <style lang="scss">
 * {
+	scroll-behavior: smooth;
 	font-family: 'Ubuntu Sans';
 }
 
@@ -568,7 +715,7 @@ useHead({
 
 	.cards-grid {
 		display: grid;
-		grid-template-columns: repeat(3, 1fr);
+		grid-template-columns: repeat(2, 1fr);
 		gap: 24px;
 	}
 
@@ -712,7 +859,7 @@ useHead({
 
 	.cards-grid {
 		display: grid;
-		grid-template-columns: repeat(3, 1fr);
+		grid-template-columns: repeat(2, 1fr);
 		gap: 24px;
 	}
 
@@ -774,6 +921,255 @@ useHead({
 
 		.section-header h2 {
 			font-size: 1.5rem;
+		}
+	}
+}
+
+/* --- PRICING SECTION (GLOW & CIRCLE STYLING) --- */
+.pricing {
+	padding: 60px 0;
+	text-align: center;
+
+	.pricing-grid {
+		display: grid;
+		grid-template-columns: repeat(4, 1fr);
+		gap: 18px;
+		align-items: stretch;
+		margin-top: 40px;
+	}
+
+	.pricing-card {
+		background: var(--White);
+		border-radius: 24px;
+		padding: 40px 22px 30px 22px;
+		display: flex;
+		flex-direction: column;
+		justify-content: space-between;
+		transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+		box-shadow: 0 8px 30px rgba(0, 0, 0, 0.02);
+		border: 1.5px solid transparent;
+
+		&:hover {
+			transform: translateY(-8px);
+
+			// Efek hover ikon membesar tipis saat kartu di-hover
+			.icon-circle {
+				transform: scale(1.08);
+			}
+		}
+	}
+
+	/* --- SKEMA WARNA DENGAN SOFT GLOW EFFECT --- */
+	.card-blue {
+		border-color: #E6EEF8;
+
+		h3 {
+			color: #0060C0;
+		}
+
+		.icon-circle {
+			background: #EDF4FC;
+			color: #3482E2;
+			box-shadow: 0 10px 20px rgba(52, 130, 226, 0.15);
+		}
+
+		.check-wrapper {
+			background: #EDF4FC;
+			color: #3482E2;
+		}
+
+		.price-btn {
+			background-color: #EDF4FC;
+			color: #1E66C9;
+		}
+	}
+
+	.card-green {
+		border-color: #EAF5ED;
+
+		h3 {
+			color: #1E824C;
+		}
+
+		.icon-circle {
+			background: #EAF7EE;
+			color: #27AE60;
+			box-shadow: 0 10px 20px rgba(39, 174, 96, 0.15);
+		}
+
+		.check-wrapper {
+			background: #EAF7EE;
+			color: #27AE60;
+		}
+
+		.price-btn {
+			background-color: #EAF7EE;
+			color: #1E7E34;
+		}
+	}
+
+	.card-orange {
+		border-color: #FDF1EA;
+
+		h3 {
+			color: #D35400;
+		}
+
+		.icon-circle {
+			background: #FDF2E9;
+			color: #E67E22;
+			box-shadow: 0 10px 20px rgba(230, 126, 34, 0.15);
+		}
+
+		.check-wrapper {
+			background: #FDF2E9;
+			color: #E67E22;
+		}
+
+		.price-btn {
+			background-color: #FDF2E9;
+			color: #C0392B;
+		}
+	}
+
+	.card-purple {
+		border-color: #F3EFFB;
+
+		h3 {
+			color: #512DA8;
+		}
+
+		.icon-circle {
+			background: #F1EDFA;
+			color: #8E44AD;
+			box-shadow: 0 10px 20px rgba(142, 68, 173, 0.15);
+		}
+
+		.check-wrapper {
+			background: #F1EDFA;
+			color: #8E44AD;
+		}
+
+		.price-btn {
+			background-color: #F1EDFA;
+			color: #512DA8;
+		}
+	}
+
+	/* --- DETAIL STYLING KARTU --- */
+	.card-header {
+		text-align: center;
+		margin-bottom: 25px;
+
+		h3 {
+			font-size: 1.35rem;
+			font-weight: 800;
+			letter-spacing: 0.5px;
+			margin-bottom: 6px;
+		}
+
+		.sub-price {
+			font-size: 0.85rem;
+			color: #94A3B8;
+			font-weight: 600;
+			margin-bottom: 25px;
+		}
+
+		.illustration-wrapper {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			margin-bottom: 10px;
+
+			// Box Bulatan untuk Ikon Utama
+			.icon-circle {
+				width: 65px;
+				height: 65px;
+				border-radius: 50%;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				transition: transform 0.3s ease;
+			}
+		}
+	}
+
+	.plan-features {
+		list-style: none;
+		padding: 0;
+		margin: 0 0 35px 0;
+		text-align: left;
+		flex-grow: 1;
+
+		li {
+			display: flex;
+			align-items: center; // Bikin teks dan checklist sejajar tengah secara vertikal
+			gap: 12px;
+			font-size: 0.95rem;
+			color: #334155;
+			margin-bottom: 16px;
+			font-weight: 500;
+
+			// Bulatan kecil untuk background icon check
+			.check-wrapper {
+				width: 24px;
+				height: 24px;
+				border-radius: 50%;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				flex-shrink: 0;
+			}
+		}
+	}
+
+	.card-footer {
+		width: 100%;
+
+		.price-btn {
+			width: 100%;
+			padding: 16px 12px;
+			border-radius: 16px;
+			font-weight: 700;
+			font-size: 1.2rem;
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+			line-height: 1.2;
+			transition: transform 0.2s, opacity 0.2s;
+			cursor: pointer;
+
+			&:hover {
+				transform: scale(1.02);
+			}
+
+			.main-amount {
+				font-weight: 800;
+			}
+
+			.sub-period {
+				font-size: 0.8rem;
+				font-weight: 600;
+				margin-top: 2px;
+
+				&.text-dim {
+					opacity: 0.5;
+				}
+			}
+		}
+	}
+
+	@media (max-width: 1100px) {
+		.pricing-grid {
+			grid-template-columns: repeat(2, 1fr);
+			gap: 20px;
+		}
+	}
+
+	@media (max-width: 600px) {
+		.pricing-grid {
+			grid-template-columns: 1fr;
 		}
 	}
 }
